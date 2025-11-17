@@ -17,7 +17,7 @@
   #sidebar {
     position: fixed;
     top: 0;
-    left: -230px; /* hidden */
+    left: -230px;
     width: 230px;
     height: 100vh;
     background-color: rgba(255,255,255,0.85);
@@ -32,7 +32,6 @@
     left: 0;
   }
 
-  /* Left edge hover area */
   #sidebarTrigger {
     position: fixed;
     top: 0;
@@ -56,7 +55,6 @@
   .btn-blue:hover { background-color: #1e40af; }
   .btn-red { background-color: #e50914; }
   .btn-red:hover { background-color: #b00610; }
-
 </style>
 </head>
 <body class="min-h-screen">
@@ -77,32 +75,43 @@
   <a href="pages/admin.html"><button class="menu-btn btn-red">Admin</button></a>
 </aside>
 
-<!-- MAIN CENTER CONTENT -->
 <main class="relative w-full h-screen">
 
-  <!-- Fully centered box -->
-  <div class="absolute inset-0 flex items-center justify-center">
-    <div class="bg-white/20 p-10 rounded-2xl border border-white/30 
+  <!-- GROUPED CENTER BLOCK -->
+  <div class="absolute inset-0 flex flex-col items-center justify-center gap-6">
+
+    <!-- HEADER -->
+    <h2 class="text-5xl font-bold text-white drop-shadow-lg">
+      Welcome to Cloud Inventory
+    </h2>
+
+    <!-- BANNER -->
+    <img src="images/banner.png"
+         alt="Banner"
+         style="width:720px; height:120px; object-fit:cover;"
+         class="rounded-xl shadow-xl border border-white/30 backdrop-blur-lg">
+
+    <!-- TAG LINE BOX -->
+    <div class="bg-white/20 p-8 rounded-2xl border border-white/30 
                 backdrop-blur-md shadow-xl max-w-xl text-center">
-      <h2 class="text-4xl font-bold text-white">Welcome to Cloud Inventory</h2>
-      <p class="text-lg text-white/90 mt-4">
+      <p class="text-lg text-white/90">
         Select a section from the left menu.
       </p>
     </div>
+
   </div>
 
 </main>
+
 
 <script>
   const sidebar = document.getElementById("sidebar");
   const trigger = document.getElementById("sidebarTrigger");
 
-  // Show sidebar on left hover
   trigger.addEventListener("mouseenter", () => {
     sidebar.classList.add("show");
   });
 
-  // Hide sidebar automatically when leaving
   sidebar.addEventListener("mouseleave", () => {
     sidebar.classList.remove("show");
   });
