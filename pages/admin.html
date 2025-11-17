@@ -15,14 +15,77 @@
   .card-white { background-color: rgba(255,255,255,0.9); color: #1f2937; }
   .btn-red { background-color:#dc2626; color:white; padding:0.5rem 1rem; border-radius:0.5rem; }
   .btn-red:hover { background-color:#b91c1c; }
+
+  /* Sidebar Styles */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: -230px;
+    width: 230px;
+    height: 100vh;
+    background: rgba(255,255,255,0.85);
+    padding: 1rem;
+    border-radius: 0 1rem 1rem 0;
+    transition: left .3s ease;
+    z-index: 999;
+    backdrop-filter: blur(8px);
+  }
+  #sidebar.show { left: 0; }
+  #sidebarTrigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 100vh;
+    z-index: 998;
+  }
+  .menu-btn {
+    width: 100%;
+    text-align: left;
+    margin-bottom: .5rem;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    color: white;
+    font-weight: 500;
+    transition: .2s;
+  }
+  .btn-blue { background-color: #1d4ed8; }
+  .btn-blue:hover { background-color:#1e40af; }
+  .btn-red-sidebar { background-color:#e50914; }
+  .btn-red-sidebar:hover { background-color:#b00610; }
 </style>
 </head>
 
 <body class="min-h-screen p-6 text-white">
 
+<!-- SIDEBAR TRIGGER -->
+<div id="sidebarTrigger"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <h1 class="text-2xl font-bold mb-6 text-gray-900">CloudInventory</h1>
+
+  <a href="../index.html"><button class="menu-btn btn-blue">Home</button></a>
+  <a href="dashboard.html"><button class="menu-btn btn-blue">Dashboard</button></a>
+  <a href="sales.html"><button class="menu-btn btn-blue">Sales</button></a>
+  <a href="purchase.html"><button class="menu-btn btn-blue">Purchases</button></a>
+  <a href="stock.html"><button class="menu-btn btn-blue">Stock</button></a>
+  <a href="report.html"><button class="menu-btn btn-blue">Report</button></a>
+  <a href="admin.html"><button class="menu-btn btn-red-sidebar">Admin</button></a>
+</aside>
+
 <h1 class="text-3xl font-bold mb-6">Admin Panel</h1>
 
 <div id="content"></div>
+
+<!-- SIDEBAR SCRIPT -->
+<script>
+  const sidebar = document.getElementById("sidebar");
+  const trigger = document.getElementById("sidebarTrigger");
+
+  trigger.addEventListener("mouseenter", () => { sidebar.classList.add("show"); });
+  sidebar.addEventListener("mouseleave", () => { sidebar.classList.remove("show"); });
+</script>
 
 <script>
 let users = JSON.parse(localStorage.getItem("userList") || "[]");
@@ -35,10 +98,13 @@ function renderAdmin(){
   let html = `
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+    <!-- MANAGE USERS -->
     <div class="card-white p-6 rounded-xl shadow-md">
       <h2 class="text-xl font-bold mb-4">Manage Users</h2>
 
-      <input id="uName" type="text" placeholder="User name" class="p-2 border rounded-lg w-full mb-2">
+      <input id="uName" type="text" placeholder="User Name" class="p-2 border rounded-lg w-full mb-2">
+      <input id="uPass" type="password" placeholder="Password" class="p-2 border rounded-lg w-full mb-2">
+
       <button id="addUser" class="btn-red mb-4">Add User</button>
 
       <ul>
@@ -47,7 +113,7 @@ function renderAdmin(){
   users.forEach((u,i)=>{
     html += `
       <li class="mb-2 flex justify-between">
-        ${u}
+        ${u.name}
         <button onclick="deleteUser(${i})" class="text-red-600">Delete</button>
       </li>
     `;
@@ -57,10 +123,21 @@ function renderAdmin(){
       </ul>
     </div>
 
+    <!-- MANAGE STOCK -->
     <div class="card-white p-6 rounded-xl shadow-md">
       <h2 class="text-xl font-bold mb-4">Manage Stock</h2>
 
       <input id="sName" type="text" placeholder="Product Name" class="p-2 border rounded-lg w-full mb-2">
+      <input id="sModel" type="text" placeholder="Model" class="p-2 border rounded-lg w-full mb-2">
+      <input id="sSerial" type="text" placeholder="Serial Number" class="p-2 border rounded-lg w-full mb-2">
+      <input id="sQty" type="number" placeholder="Quantity" class="p-2 border rounded-lg w-full mb-2">
+      <input id="sPrice" type="number" placeholder="Price" class="p-2 border rounded-lg w-full mb-2">
+
+      <select id="sType" class="p-2 border rounded-lg w-full mb-4">
+        <option value="Cash">Cash</option>
+        <option value="Credit">Credit</option>
+      </select>
+
       <button id="addStock" class="btn-red mb-4">Add to Stock</button>
 
       <ul>
@@ -69,7 +146,7 @@ function renderAdmin(){
   stock.forEach((s,i)=>{
     html += `
       <li class="mb-2 flex justify-between">
-        ${s.name}
+        ${s.name} (${s.model})
         <button onclick="deleteStock(${i})" class="text-red-600">Delete</button>
       </li>
     `;
@@ -84,18 +161,30 @@ function renderAdmin(){
 
   document.getElementById("content").innerHTML = html;
 
+  // ADD USER
   document.getElementById("addUser").onclick = ()=>{
     const name = document.getElementById("uName").value.trim();
-    if(!name) return;
-    users.push(name);
+    const pass = document.getElementById("uPass").value.trim();
+    if(!name || !pass) return alert("Both fields required.");
+
+    users.push({ name, password: pass });
     saveUsers();
     renderAdmin();
   };
 
+  // ADD STOCK
   document.getElementById("addStock").onclick = ()=>{
     const name = document.getElementById("sName").value.trim();
-    if(!name) return;
-    stock.push({sku:"ADMIN",name,qty:0,price:0});
+    const model = document.getElementById("sModel").value.trim();
+    const serial = document.getElementById("sSerial").value.trim();
+    const qty = Number(document.getElementById("sQty").value);
+    const price = Number(document.getElementById("sPrice").value);
+    const type = document.getElementById("sType").value;
+
+    if(!name || !model || !serial || !qty || !price)
+      return alert("All fields required.");
+
+    stock.push({ name, model, serial, qty, price, type });
     saveStock();
     renderAdmin();
   };

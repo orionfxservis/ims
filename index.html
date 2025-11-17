@@ -28,44 +28,25 @@
     backdrop-filter: blur(8px);
   }
 
-  #sidebar.show {
-    left: 0;
-  }
+  #sidebar.show { left: 0; }
+  #sidebarTrigger { position: fixed; top:0; left:0; width:20px; height:100vh; z-index:998; }
 
-  #sidebarTrigger {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 20px;
-    height: 100vh;
-    z-index: 998;
-  }
-
-  .menu-btn {
-    width: 100%;
-    text-align: left;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    color: white;
-    font-weight: 500;
-    transition: 0.2s;
-  }
-  .btn-blue { background-color: #1d4ed8; }
-  .btn-blue:hover { background-color: #1e40af; }
-  .btn-red { background-color: #e50914; }
-  .btn-red:hover { background-color: #b00610; }
+  .menu-btn { width: 100%; text-align: left; margin-bottom:0.5rem; padding:0.5rem 1rem; border-radius:0.5rem; color:white; font-weight:500; transition:0.2s;}
+  .btn-blue { background-color:#1d4ed8; }
+  .btn-blue:hover { background-color:#1e40af; }
+  .btn-red { background-color:#e50914; }
+  .btn-red:hover { background-color:#b00610; }
 </style>
 </head>
+
 <body class="min-h-screen">
 
-<!-- Invisible hover trigger -->
+<!-- Sidebar Trigger -->
 <div id="sidebarTrigger"></div>
 
 <!-- Sidebar -->
 <aside id="sidebar">
   <h1 class="text-2xl font-bold mb-6 text-gray-900">CloudInventory</h1>
-
   <a href="index.html"><button class="menu-btn btn-blue">Home</button></a>
   <a href="pages/dashboard.html"><button class="menu-btn btn-blue">Dashboard</button></a>
   <a href="pages/sales.html"><button class="menu-btn btn-blue">Sales</button></a>
@@ -75,47 +56,91 @@
   <a href="pages/admin.html"><button class="menu-btn btn-red">Admin</button></a>
 </aside>
 
-<main class="relative w-full h-screen">
+<main class="relative w-full min-h-screen flex items-center justify-center p-4">
+  <!-- Centered content -->
+  <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6 w-full max-w-6xl">
 
-  <!-- GROUPED CENTER BLOCK -->
-  <div class="absolute inset-0 flex flex-col items-center justify-center gap-6">
+    <!-- Left Column: Header + Banner + Tagline -->
+    <div class="flex flex-col items-center lg:items-start gap-6 flex-1">
+      <!-- Header -->
+      <h2 class="text-5xl font-bold text-white drop-shadow-lg text-center lg:text-left">
+        Welcome to Cloud Inventory
+      </h2>
 
-    <!-- HEADER -->
-    <h2 class="text-5xl font-bold text-white drop-shadow-lg">
-      Welcome to Cloud Inventory
-    </h2>
+      <!-- Banner -->
+      <img src="images/banner.png" alt="Banner" class="w-[720px] h-[120px] object-cover rounded-xl shadow-xl border border-white/30 backdrop-blur-lg">
 
-    <!-- BANNER -->
-    <img src="images/banner.png"
-         alt="Banner"
-         style="width:720px; height:120px; object-fit:cover;"
-         class="rounded-xl shadow-xl border border-white/30 backdrop-blur-lg">
-
-    <!-- TAG LINE BOX -->
-    <div class="bg-white/20 p-8 rounded-2xl border border-white/30 
-                backdrop-blur-md shadow-xl max-w-xl text-center">
-      <p class="text-lg text-white/90">
-        Select a section from the left menu.
-      </p>
+      <!-- Tagline -->
+      <div class="bg-white/20 p-6 rounded-2xl border border-white/30 backdrop-blur-md shadow-xl max-w-xl text-center lg:text-left">
+        <p class="text-lg text-white/90">Select a section from the left menu.</p>
+      </div>
     </div>
 
-  </div>
+    <!-- Right Column: Login Box -->
+    <div class="w-full max-w-md p-6 bg-white/20 rounded-2xl border border-white/30 backdrop-blur-md shadow-xl flex flex-col gap-4">
+      <h3 class="text-2xl font-bold text-white text-center mb-4">Login</h3>
+      <form id="loginForm" class="flex flex-col gap-4">
+        <input type="text" id="userId" placeholder="User ID" class="p-3 rounded-lg border shadow-sm w-full" required>
+        <input type="password" id="userPass" placeholder="Password" class="p-3 rounded-lg border shadow-sm w-full" required>
+        <button type="submit" class="btn-blue w-full py-2 rounded-lg font-semibold">Login</button>
+      </form>
+      <p id="loginError" class="text-red-600 hidden text-center">Invalid credentials</p>
 
+      <!-- Change Admin Password -->
+      <div class="mt-4">
+        <label class="text-white mb-1 font-medium">Change Admin Password:</label>
+        <input type="password" id="newAdminPass" placeholder="New Password" class="p-2 rounded-lg border w-full mb-2">
+        <button id="changePass" class="btn-red w-full py-2 rounded-lg font-semibold">Change Password</button>
+      </div>
+    </div>
+  </div>
 </main>
 
-
 <script>
+  // Sidebar toggle
   const sidebar = document.getElementById("sidebar");
   const trigger = document.getElementById("sidebarTrigger");
+  trigger.addEventListener("mouseenter", ()=> sidebar.classList.add("show"));
+  sidebar.addEventListener("mouseleave", ()=> sidebar.classList.remove("show"));
 
-  trigger.addEventListener("mouseenter", () => {
-    sidebar.classList.add("show");
+  // Ensure default admin exists
+  let users = JSON.parse(localStorage.getItem("userList") || "[]");
+  if(!users.find(u=>u.name==="admin")){
+    users.push({ name:"admin", password:"admin123" });
+    localStorage.setItem("userList", JSON.stringify(users));
+  }
+
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
+  const loginBox = document.querySelector("#loginBox");
+
+  loginForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    const userId = document.getElementById("userId").value.trim();
+    const userPass = document.getElementById("userPass").value.trim();
+    users = JSON.parse(localStorage.getItem("userList") || "[]");
+    const validUser = users.find(u => u.name === userId && u.password === userPass);
+    if(validUser){
+      loginError.classList.add("hidden");
+      alert("Login successful!");
+    } else {
+      loginError.classList.remove("hidden");
+    }
   });
 
-  sidebar.addEventListener("mouseleave", () => {
-    sidebar.classList.remove("show");
+  // Change Admin Password
+  document.getElementById("changePass").addEventListener("click", ()=>{
+    const newPass = document.getElementById("newAdminPass").value.trim();
+    if(!newPass) return alert("Enter a new password");
+    users = JSON.parse(localStorage.getItem("userList") || "[]");
+    const adminIndex = users.findIndex(u=>u.name==="admin");
+    if(adminIndex!==-1){
+      users[adminIndex].password = newPass;
+      localStorage.setItem("userList", JSON.stringify(users));
+      alert("Admin password changed successfully!");
+      document.getElementById("newAdminPass").value="";
+    }
   });
 </script>
-
 </body>
 </html>
