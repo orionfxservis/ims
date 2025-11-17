@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cloud Inventory — Sales</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  body {
+    background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=3840&q=80');
+    background-size: cover;
+    background-position: center;
+  }
+  .card-white { background-color: rgba(255,255,255,0.9); color: #1f2937; }
+  input[readonly] { background-color: #e6e6e6; cursor: not-allowed; }
+  .btn-blue { background-color: #1d4ed8; color:white; padding:0.5rem 1rem; border-radius:0.5rem; }
+  .btn-blue:hover { background-color:#1e40af; }
+
+  /* Sidebar Styles (same as dashboard.html) */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: -230px;
+    width: 230px;
+    height: 100vh;
+    background: rgba(255,255,255,0.85);
+    padding: 1rem;
+    border-radius: 0 1rem 1rem 0;
+    transition: left .3s ease;
+    z-index: 999;
+    backdrop-filter: blur(8px);
+  }
+  #sidebar.show { left: 0; }
+  #sidebarTrigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 100vh;
+    z-index: 998;
+  }
+  .menu-btn {
+    width: 100%;
+    text-align: left;
+    margin-bottom: .5rem;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    color: white;
+    font-weight: 500;
+    transition: .2s;
+  }
+  .btn-red { background-color:#e50914; }
+  .btn-red:hover { background-color:#b00610; }
+</style>
+</head>
+
+<body class="min-h-screen p-6 text-white">
+
+<!-- SIDEBAR TRIGGER -->
+<div id="sidebarTrigger"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <h1 class="text-2xl font-bold mb-6 text-gray-900">CloudInventory</h1>
+
+  <a href="../index.html"><button class="menu-btn btn-blue">Home</button></a>
+  <a href="dashboard.html"><button class="menu-btn btn-blue">Dashboard</button></a>
+  <a href="sales.html"><button class="menu-btn btn-blue">Sales</button></a>
+  <a href="purchase.html"><button class="menu-btn btn-blue">Purchases</button></a>
+  <a href="stock.html"><button class="menu-btn btn-blue">Stock</button></a>
+  <a href="report.html"><button class="menu-btn btn-blue">Report</button></a>
+  <a href="admin.html"><button class="menu-btn btn-red">Admin</button></a>
+</aside>
+
+<!-- PAGE CONTENT -->
+<div class="ml-0 max-w-7xl mx-auto">
+
+<h1 class="text-3xl font-bold mb-6">Sales</h1>
+<div id="content"></div>
+
+</div>
+
+<!-- SIDEBAR SCRIPT -->
+<script>
+  const sidebar = document.getElementById("sidebar");
+  const trigger = document.getElementById("sidebarTrigger");
+
+  trigger.addEventListener("mouseenter", () => { sidebar.classList.add("show"); });
+  sidebar.addEventListener("mouseleave", () => { sidebar.classList.remove("show"); });
+</script>
+
+<!-- SALES PAGE SCRIPT -->
+<script>
+const sampleStock = [
+  { sku: "P-001", name: "Chromebook 11", qty: 24, price: 199 },
+  { sku: "P-002", name: "USB-C Charger", qty: 120, price: 19 },
+  { sku: "P-003", name: "Wireless Mouse", qty: 64, price: 25 },
+  { sku: "P-004", name: "HDMI Cable", qty: 200, price: 8 },
+];
+
+let sampleSales = [];
+
+function formatRs(n){ return 'Rs.' + Number(n).toLocaleString(); }
+function getTodayISO(){ return new Date().toISOString().split('T')[0]; }
+
+function renderSales(){
+  const today = getTodayISO();
+  let html = ``;
+
+  html += `
+  <div class="card-white p-4 rounded-xl shadow-md mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block font-medium mb-1">Date</label>
+        <input id="saleDate" type="date" value="${today}" readonly class="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Product</label>
+        <select id="saleProduct" class="w-full p-2 border rounded-lg">
+          <option value="">-- Select Product --</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Customer</label>
+        <input id="saleCustomer" type="text" placeholder="Customer name" class="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Quantity</label>
+        <input id="saleQty" type="number" min="1" value="1" class="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Price (per unit)</label>
+        <input id="salePrice" type="text" readonly class="w-full p-2 border rounded-lg bg-gray-100 cursor-not-allowed" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Total</label>
+        <input id="saleTotal" type="text" readonly class="w-full p-2 border rounded-lg bg-gray-100 cursor-not-allowed" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Amount Paid</label>
+        <input id="saleAmount" type="number" min="0" value="0" class="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Balance</label>
+        <input id="saleBalance" type="text" readonly class="w-full p-2 border rounded-lg bg-gray-100 cursor-not-allowed" />
+      </div>
+
+      <div class="md:col-span-3">
+        <button id="addSaleBtn" class="btn-blue">Add Sale</button>
+        <span id="saleMsg" class="ml-4 text-sm"></span>
+      </div>
+    </div>
+  </div>
+  `;
+
+  html += `<div class="overflow-x-auto"><table id="salesTable" class="w-full text-left card-white rounded-lg shadow-md"><thead>
+           <tr class="border-b"><th class="px-4 py-2">Date</th><th class="px-4 py-2">Product</th><th class="px-4 py-2">Customer</th>
+           <th class="px-4 py-2">Qty</th><th class="px-4 py-2">Total</th><th class="px-4 py-2">Amount Paid</th><th class="px-4 py-2">Balance</th><th class="px-4 py-2">Status</th></tr>
+           </thead><tbody>`;
+
+  sampleSales.forEach(s => {
+    html += `<tr class="border-t">
+              <td class="px-4 py-2">${s.date}</td>
+              <td class="px-4 py-2">${s.product}</td>
+              <td class="px-4 py-2">${s.customer}</td>
+              <td class="px-4 py-2">${s.qty}</td>
+              <td class="px-4 py-2">${formatRs(s.total)}</td>
+              <td class="px-4 py-2">${formatRs(s.amountPaid)}</td>
+              <td class="px-4 py-2">${formatRs(s.balance)}</td>
+              <td class="px-4 py-2">${s.status}</td>
+            </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+document.getElementById('content').innerHTML = renderSales();
+
+function attachSalesFormBehavior(){
+  const productEl = document.getElementById('saleProduct');
+  productEl.innerHTML = '<option value="">-- Select Product --</option>';
+  sampleStock.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.sku;
+    opt.textContent = `${item.name} — ${formatRs(item.price)} (Stock: ${item.qty})`;
+    opt.dataset.price = item.price;
+    opt.dataset.name = item.name;
+    opt.dataset.stock = item.qty;
+    productEl.appendChild(opt);
+  });
+
+  const priceEl = document.getElementById('salePrice');
+  const qtyEl = document.getElementById('saleQty');
+  const totalEl = document.getElementById('saleTotal');
+  const amountEl = document.getElementById('saleAmount');
+  const balanceEl = document.getElementById('saleBalance');
+  const addBtn = document.getElementById('addSaleBtn');
+  const msgEl = document.getElementById('saleMsg');
+
+  function recalc(){
+    const price = Number(priceEl.value || 0);
+    const qty = Number(qtyEl.value || 0);
+    const total = price * qty;
+    totalEl.value = formatRs(total);
+    const amount = Number(amountEl.value || 0);
+    const balance = total - amount;
+    balanceEl.value = formatRs(balance >= 0 ? balance : 0);
+  }
+
+  productEl.addEventListener('change', () => {
+    const sel = productEl.selectedOptions[0];
+    priceEl.value = sel ? sel.dataset.price : '';
+    recalc();
+  });
+
+  qtyEl.addEventListener('input', recalc);
+  amountEl.addEventListener('input', recalc);
+
+  addBtn.addEventListener('click', () => {
+    msgEl.textContent = '';
+
+    const prodOpt = productEl.selectedOptions[0];
+    if(!prodOpt){ msgEl.textContent = 'Select a product.'; return; }
+
+    const sale = {
+      date: document.getElementById('saleDate').value,
+      product: prodOpt.dataset.name,
+      qty: Number(qtyEl.value),
+      total: Number(prodOpt.dataset.price) * Number(qtyEl.value),
+      amountPaid: Number(amountEl.value),
+      balance: Math.max(Number(prodOpt.dataset.price) * Number(qtyEl.value) - Number(amountEl.value), 0),
+      customer: document.getElementById('saleCustomer').value.trim() || 'Walk-in',
+      status: Number(amountEl.value) >= (Number(prodOpt.dataset.price) * Number(qtyEl.value)) ? 'Paid' : 'Pending'
+    };
+
+    sampleSales.unshift(sale);
+    document.getElementById('content').innerHTML = renderSales();
+    attachSalesFormBehavior();
+
+    msgEl.textContent = 'Sale Added';
+    setTimeout(()=> msgEl.textContent = '', 2000);
+  });
+
+  recalc();
+}
+
+attachSalesFormBehavior();
+</script>
+
+</body>
+</html>

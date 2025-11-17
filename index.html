@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cloud Inventory — Main</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  body {
+    background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=3840&q=80');
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* --- SIDEBAR SLIDE --- */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: -230px; /* hidden */
+    width: 230px;
+    height: 100vh;
+    background-color: rgba(255,255,255,0.85);
+    padding: 1rem;
+    border-radius: 0 1rem 1rem 0;
+    transition: left 0.3s ease-in-out;
+    z-index: 999;
+    backdrop-filter: blur(8px);
+  }
+
+  #sidebar.show {
+    left: 0;
+  }
+
+  /* Left edge hover area */
+  #sidebarTrigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 100vh;
+    z-index: 998;
+  }
+
+  .menu-btn {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+  .btn-blue { background-color: #1d4ed8; }
+  .btn-blue:hover { background-color: #1e40af; }
+  .btn-red { background-color: #e50914; }
+  .btn-red:hover { background-color: #b00610; }
+
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Invisible hover trigger -->
+<div id="sidebarTrigger"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar">
+  <h1 class="text-2xl font-bold mb-6 text-gray-900">CloudInventory</h1>
+
+  <a href="index.html"><button class="menu-btn btn-blue">Home</button></a>
+  <a href="pages/dashboard.html"><button class="menu-btn btn-blue">Dashboard</button></a>
+  <a href="pages/sales.html"><button class="menu-btn btn-blue">Sales</button></a>
+  <a href="pages/purchase.html"><button class="menu-btn btn-blue">Purchases</button></a>
+  <a href="pages/stock.html"><button class="menu-btn btn-blue">Stock</button></a>
+  <a href="pages/report.html"><button class="menu-btn btn-blue">Report</button></a>
+  <a href="pages/admin.html"><button class="menu-btn btn-red">Admin</button></a>
+</aside>
+
+<!-- MAIN CENTER CONTENT -->
+<main class="relative w-full h-screen">
+
+  <!-- Fully centered box -->
+  <div class="absolute inset-0 flex items-center justify-center">
+    <div class="bg-white/20 p-10 rounded-2xl border border-white/30 
+                backdrop-blur-md shadow-xl max-w-xl text-center">
+      <h2 class="text-4xl font-bold text-white">Welcome to Cloud Inventory</h2>
+      <p class="text-lg text-white/90 mt-4">
+        Select a section from the left menu.
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const sidebar = document.getElementById("sidebar");
+  const trigger = document.getElementById("sidebarTrigger");
+
+  // Show sidebar on left hover
+  trigger.addEventListener("mouseenter", () => {
+    sidebar.classList.add("show");
+  });
+
+  // Hide sidebar automatically when leaving
+  sidebar.addEventListener("mouseleave", () => {
+    sidebar.classList.remove("show");
+  });
+</script>
+
+</body>
+</html>

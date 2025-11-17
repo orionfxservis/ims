@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cloud Inventory — Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  body {
+    background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=3840&q=80');
+    background-size: cover;
+    background-position: center;
+  }
+  .card-white { background-color: rgba(255,255,255,0.9); color: #1f2937; }
+  .btn-red { background-color:#dc2626; color:white; padding:0.5rem 1rem; border-radius:0.5rem; }
+  .btn-red:hover { background-color:#b91c1c; }
+</style>
+</head>
+
+<body class="min-h-screen p-6 text-white">
+
+<h1 class="text-3xl font-bold mb-6">Admin Panel</h1>
+
+<div id="content"></div>
+
+<script>
+let users = JSON.parse(localStorage.getItem("userList") || "[]");
+let stock = JSON.parse(localStorage.getItem("stockData") || "[]");
+
+function saveUsers(){ localStorage.setItem("userList", JSON.stringify(users)); }
+function saveStock(){ localStorage.setItem("stockData", JSON.stringify(stock)); }
+
+function renderAdmin(){
+  let html = `
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <div class="card-white p-6 rounded-xl shadow-md">
+      <h2 class="text-xl font-bold mb-4">Manage Users</h2>
+
+      <input id="uName" type="text" placeholder="User name" class="p-2 border rounded-lg w-full mb-2">
+      <button id="addUser" class="btn-red mb-4">Add User</button>
+
+      <ul>
+  `;
+
+  users.forEach((u,i)=>{
+    html += `
+      <li class="mb-2 flex justify-between">
+        ${u}
+        <button onclick="deleteUser(${i})" class="text-red-600">Delete</button>
+      </li>
+    `;
+  });
+
+  html += `
+      </ul>
+    </div>
+
+    <div class="card-white p-6 rounded-xl shadow-md">
+      <h2 class="text-xl font-bold mb-4">Manage Stock</h2>
+
+      <input id="sName" type="text" placeholder="Product Name" class="p-2 border rounded-lg w-full mb-2">
+      <button id="addStock" class="btn-red mb-4">Add to Stock</button>
+
+      <ul>
+  `;
+
+  stock.forEach((s,i)=>{
+    html += `
+      <li class="mb-2 flex justify-between">
+        ${s.name}
+        <button onclick="deleteStock(${i})" class="text-red-600">Delete</button>
+      </li>
+    `;
+  });
+
+  html += `
+      </ul>
+    </div>
+
+  </div>
+  `;
+
+  document.getElementById("content").innerHTML = html;
+
+  document.getElementById("addUser").onclick = ()=>{
+    const name = document.getElementById("uName").value.trim();
+    if(!name) return;
+    users.push(name);
+    saveUsers();
+    renderAdmin();
+  };
+
+  document.getElementById("addStock").onclick = ()=>{
+    const name = document.getElementById("sName").value.trim();
+    if(!name) return;
+    stock.push({sku:"ADMIN",name,qty:0,price:0});
+    saveStock();
+    renderAdmin();
+  };
+}
+
+function deleteUser(i){
+  if(confirm("Delete this user?")){
+    users.splice(i,1);
+    saveUsers();
+    renderAdmin();
+  }
+}
+
+function deleteStock(i){
+  if(confirm("Delete this product?")){
+    stock.splice(i,1);
+    saveStock();
+    renderAdmin();
+  }
+}
+
+renderAdmin();
+</script>
+
+</body>
+</html>
