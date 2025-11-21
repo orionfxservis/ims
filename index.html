@@ -47,6 +47,16 @@
 
   .btn-red { background-color:#e50914; }
   .btn-red:hover { background-color:#b00610; }
+
+  /* Banner Styles */
+  .banner-img {
+    width: 720px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
 </style>
 </head>
 
@@ -70,25 +80,18 @@
   <button id="adminBtn" class="menu-btn btn-red">Admin</button>
 </aside>
 
-<main class="relative w-full min-h-screen flex items-center justify-center p-4">
-  <!-- Main Content -->
-  <div class="flex flex-col items-center justify-center gap-6 w-full max-w-4xl">
+<main class="relative w-full min-h-screen flex flex-col items-center justify-center p-4 gap-6">
+  <!-- Header -->
+  <h2 class="text-5xl font-bold text-white drop-shadow-lg text-center">
+    Welcome to Cloud Inventory System
+  </h2>
 
-    <!-- Header -->
-    <h2 class="text-5xl font-bold text-white drop-shadow-lg text-center">
-      Welcome to Cloud Inventory
-    </h2>
+  <!-- Banner Container -->
+  <div id="bannerContainer" class="flex flex-col items-center gap-4"></div>
 
-    <!-- Banner -->
-    <img src="images/banner.png"
-         alt="Banner"
-         class="w-[720px] h-[120px] object-cover rounded-xl shadow-xl border border-white/30 backdrop-blur-lg">
-
-    <!-- Tagline -->
-    <div class="bg-white/20 p-6 rounded-2xl border border-white/30 backdrop-blur-md shadow-xl max-w-xl text-center">
-      <p class="text-lg text-white/90">Select a section from the left menu.</p>
-    </div>
-
+  <!-- Tagline -->
+  <div class="bg-white/20 p-6 rounded-2xl border border-white/30 backdrop-blur-md shadow-xl max-w-xl text-center">
+    <p class="text-lg text-white/90">Select a section from the left menu.</p>
   </div>
 </main>
 
@@ -102,7 +105,6 @@
 
   // Ensure admin user exists
   let users = JSON.parse(localStorage.getItem("userList") || "[]");
-
   if (!users.find(u => u.name === "admin")) {
     users.push({ name: "admin", password: "admin123" });
     localStorage.setItem("userList", JSON.stringify(users));
@@ -122,6 +124,23 @@
   document.getElementById("adminBtn").addEventListener("click", () => {
       if (checkAdminAccess()) window.location.href = "pages/admin.html";
   });
+
+  // --- DYNAMIC BANNER DISPLAY ---
+  const bannerContainer = document.getElementById("bannerContainer");
+  const banners = JSON.parse(localStorage.getItem("bannerList") || "[]");
+
+  if (banners.length === 0) {
+    // Default banner if none added
+    bannerContainer.innerHTML = `<img src="images/banner.png" alt="Banner" class="banner-img">`;
+  } else {
+    banners.forEach(b => {
+      const img = document.createElement("img");
+      img.src = b.url;
+      img.alt = b.title;
+      img.className = "banner-img";
+      bannerContainer.appendChild(img);
+    });
+  }
 </script>
 
 <!-- Shared Authentication Script -->
