@@ -11,10 +11,13 @@
     background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=3840&q=80');
     background-size: cover;
     background-position: center;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   }
-  .card-white { background-color: rgba(255,255,255,0.9); color: #1f2937; }
+  .card-white { background-color: rgba(255,255,255,0.9); color: #1f2937; padding:1.5rem; border-radius:1rem; }
   .btn-red { background-color:#dc2626; color:white; padding:0.5rem 1rem; border-radius:0.5rem; }
   .btn-red:hover { background-color:#b91c1c; }
+  .btn-blue { background-color:#1d4ed8; color:white; padding:0.5rem 1rem; border-radius:0.5rem; }
+  .btn-blue:hover { background-color:#1e40af; }
 
   /* Sidebar Styles */
   #sidebar {
@@ -49,10 +52,9 @@
     font-weight: 500;
     transition: .2s;
   }
-  .btn-blue { background-color: #1d4ed8; }
-  .btn-blue:hover { background-color:#1e40af; }
   .btn-red-sidebar { background-color:#e50914; }
   .btn-red-sidebar:hover { background-color:#b00610; }
+  .banner-preview { max-width:150px; max-height:80px; border-radius:6px; object-fit:cover; }
 </style>
 </head>
 
@@ -90,89 +92,78 @@
 <script>
 let users = JSON.parse(localStorage.getItem("userList") || "[]");
 let stock = JSON.parse(localStorage.getItem("stockData") || "[]");
+let banners = JSON.parse(localStorage.getItem("bannerList") || "[]");
 
 function saveUsers(){ localStorage.setItem("userList", JSON.stringify(users)); }
 function saveStock(){ localStorage.setItem("stockData", JSON.stringify(stock)); }
+function saveBanners(){ localStorage.setItem("bannerList", JSON.stringify(banners)); }
 
 function renderAdmin(){
-  let html = `
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
 
-    <!-- MANAGE USERS -->
-    <div class="card-white p-6 rounded-xl shadow-md">
+  // Manage Users
+  html += `
+    <div class="card-white">
       <h2 class="text-xl font-bold mb-4">Manage Users</h2>
-
       <input id="uName" type="text" placeholder="User Name" class="p-2 border rounded-lg w-full mb-2">
       <input id="uPass" type="password" placeholder="Password" class="p-2 border rounded-lg w-full mb-2">
-
       <button id="addUser" class="btn-red mb-4">Add User</button>
-
-      <ul>
-  `;
-
+      <ul>`;
   users.forEach((u,i)=>{
-    html += `
-      <li class="mb-2 flex justify-between">
-        ${u.name}
-        <button onclick="deleteUser(${i})" class="text-red-600">Delete</button>
-      </li>
-    `;
+    html += `<li class="mb-2 flex justify-between">${u.name}<button onclick="deleteUser(${i})" class="text-red-600">Delete</button></li>`;
   });
+  html += `</ul></div>`;
 
+  // Manage Stock
   html += `
-      </ul>
-    </div>
-
-    <!-- MANAGE STOCK -->
-    <div class="card-white p-6 rounded-xl shadow-md">
+    <div class="card-white">
       <h2 class="text-xl font-bold mb-4">Manage Stock</h2>
-
       <input id="sName" type="text" placeholder="Product Name" class="p-2 border rounded-lg w-full mb-2">
       <input id="sModel" type="text" placeholder="Model" class="p-2 border rounded-lg w-full mb-2">
       <input id="sSerial" type="text" placeholder="Serial Number" class="p-2 border rounded-lg w-full mb-2">
       <input id="sQty" type="number" placeholder="Quantity" class="p-2 border rounded-lg w-full mb-2">
       <input id="sPrice" type="number" placeholder="Price" class="p-2 border rounded-lg w-full mb-2">
-
       <select id="sType" class="p-2 border rounded-lg w-full mb-4">
         <option value="Cash">Cash</option>
         <option value="Credit">Credit</option>
       </select>
-
       <button id="addStock" class="btn-red mb-4">Add to Stock</button>
-
-      <ul>
-  `;
-
+      <ul>`;
   stock.forEach((s,i)=>{
-    html += `
-      <li class="mb-2 flex justify-between">
-        ${s.name} (${s.model})
-        <button onclick="deleteStock(${i})" class="text-red-600">Delete</button>
-      </li>
-    `;
+    html += `<li class="mb-2 flex justify-between">${s.name} (${s.model})<button onclick="deleteStock(${i})" class="text-red-600">Delete</button></li>`;
   });
+  html += `</ul></div>`;
 
+  // Manage Banners
   html += `
-      </ul>
-    </div>
+    <div class="card-white md:col-span-2">
+      <h2 class="text-xl font-bold mb-4">Manage Banners</h2>
+      <input id="bTitle" type="text" placeholder="Banner Title" class="p-2 border rounded-lg w-full mb-2">
+      <input id="bUrl" type="text" placeholder="Image URL (GitHub Raw link)" class="p-2 border rounded-lg w-full mb-2">
+      <button id="addBanner" class="btn-blue mb-4">Add Banner</button>
+      <ul>`;
+  banners.forEach((b,i)=>{
+    html += `<li class="mb-3 flex justify-between items-center">
+      <div><img src="${b.url}" alt="${b.title}" class="banner-preview mr-2"> ${b.title}</div>
+      <button onclick="deleteBanner(${i})" class="text-red-600">Delete</button>
+    </li>`;
+  });
+  html += `</ul></div>`;
 
-  </div>
-  `;
-
+  html += `</div>`; // grid end
   document.getElementById("content").innerHTML = html;
 
-  // ADD USER
+  // Add User
   document.getElementById("addUser").onclick = ()=>{
     const name = document.getElementById("uName").value.trim();
     const pass = document.getElementById("uPass").value.trim();
     if(!name || !pass) return alert("Both fields required.");
-
     users.push({ name, password: pass });
     saveUsers();
     renderAdmin();
   };
 
-  // ADD STOCK
+  // Add Stock
   document.getElementById("addStock").onclick = ()=>{
     const name = document.getElementById("sName").value.trim();
     const model = document.getElementById("sModel").value.trim();
@@ -180,31 +171,26 @@ function renderAdmin(){
     const qty = Number(document.getElementById("sQty").value);
     const price = Number(document.getElementById("sPrice").value);
     const type = document.getElementById("sType").value;
-
-    if(!name || !model || !serial || !qty || !price)
-      return alert("All fields required.");
-
+    if(!name || !model || !serial || !qty || !price) return alert("All fields required.");
     stock.push({ name, model, serial, qty, price, type });
     saveStock();
     renderAdmin();
   };
+
+  // Add Banner
+  document.getElementById("addBanner").onclick = ()=>{
+    const title = document.getElementById("bTitle").value.trim();
+    const url = document.getElementById("bUrl").value.trim();
+    if(!title || !url) return alert("Both fields required.");
+    banners.push({ title, url });
+    saveBanners();
+    renderAdmin();
+  };
 }
 
-function deleteUser(i){
-  if(confirm("Delete this user?")){
-    users.splice(i,1);
-    saveUsers();
-    renderAdmin();
-  }
-}
-
-function deleteStock(i){
-  if(confirm("Delete this product?")){
-    stock.splice(i,1);
-    saveStock();
-    renderAdmin();
-  }
-}
+function deleteUser(i){ if(confirm("Delete this user?")){ users.splice(i,1); saveUsers(); renderAdmin(); } }
+function deleteStock(i){ if(confirm("Delete this product?")){ stock.splice(i,1); saveStock(); renderAdmin(); } }
+function deleteBanner(i){ if(confirm("Delete this banner?")){ banners.splice(i,1); saveBanners(); renderAdmin(); } }
 
 renderAdmin();
 </script>
