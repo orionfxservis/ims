@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="auth-wrapper">
+        <!-- Left Side: Hero Text -->
+        <div class="auth-hero">
+
+
+            <h1 class="hero-title">Cloud Base<br>Inventory Management<br>System</h1>
+            <div class="hero-tagline">
+                <p class="tag-en">Effortless management for your growing business.</p>
+                <p class="tag-ur">اپنے بڑھتے ہوئے کاروبار کے لیے آسان انوینٹری کا انتظام۔</p>
+            </div>
+
+            <div class="hero-banner" id="activeBanner">
+                <!-- Banner Placeholder 720x120 -->
+                <span>Banner Space (720x120)</span>
+            </div>
+
+            <div class="hero-social">
+                <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fa-brands fa-linkedin-in"></i></a>
+            </div>
+
+            <div class="hero-copyright">
+                &copy; 2026 IMS Cloud. All Rights Reserved.
+            </div>
+        </div>
+
+        <!-- Right Side: Forms -->
+        <div class="auth-form-container">
+            <!-- Login Form -->
+            <div class="auth-card" id="loginForm">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-boxes-stacked"></i> IMS Cloud
+                </div>
+                <h2 class="auth-title">Welcome Back</h2>
+
+                <form id="formLogin">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-input" id="loginCompany" placeholder="Enter company name"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="loginUsername" placeholder="Enter your username"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password"
+                            required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btnLogin">
+                        <span>Sign In</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" onclick="toggleAuth()">Create Account</a>
+                </div>
+            </div>
+
+            <!-- Register Form (Hidden by default) -->
+            <div class="auth-card hidden" id="registerForm">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-user-plus"></i> Join IMS
+                </div>
+                <h2 class="auth-title">Create Account</h2>
+
+                <form id="formRegister">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-input" id="regCompany" placeholder="Enter company name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" class="form-input" id="regCustomer" placeholder="Enter customer name"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="regPassword" placeholder="Minimum 6 characters"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Re-enter Password</label>
+                        <input type="password" class="form-input" id="regConfirmPassword" placeholder="Repeat password"
+                            required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btnRegister">
+                        <span>Send Request</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    Already have an account? <a href="#" onclick="toggleAuth()">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/YOUR_NUMBER" target="_blank" class="whatsapp-float">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/YOUR_NUMBER" target="_blank" class="whatsapp-float">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="toastMessage">Notification here</span>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // UI Toggle
+        function toggleAuth() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+        }
+
+        // Utils
+        const showToast = (msg, type = 'info') => {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+
+            toast.className = `toast ${type} show`;
+            msgEl.textContent = msg;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        };
+
+        // Login Logic
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div>';
+            btn.disabled = true;
+
+            const company = document.getElementById('loginCompany').value;
+            const username = document.getElementById('loginUsername').value;
+            const pass = document.getElementById('loginPassword').value;
+
+            try {
+                // Pass object if Auth.login supports it, or just ignore company for now but logging it
+                console.log("Attempting login for:", username, "Company:", company);
+                const res = await Auth.login(username, pass);
+                if (res.success) {
+                    showToast('Login successful!', 'success');
+                    setTimeout(() => {
+                        window.location.href = res.role === 'ADMIN' ? 'page/admin.html' : 'page/dashboard.html';
+                    }, 1000);
+                } else {
+                    // Debug: Show full response if message is missing
+                    console.log("Login fail response:", res);
+                    const msg = res.message || `Login failed: ${JSON.stringify(res)}`;
+                    showToast(msg, 'error');
+                }
+            } catch (err) {
+                showToast('Something went wrong', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Register Logic
+        document.getElementById('formRegister').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const p1 = document.getElementById('regPassword').value;
+            const p2 = document.getElementById('regConfirmPassword').value;
+
+            if (p1 !== p2) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnRegister');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div>';
+            btn.disabled = true;
+
+            const data = {
+                name: document.getElementById('regCompany').value,
+                username: document.getElementById('regCustomer').value, // Customer Name acts as Username
+                password: p1
+            };
+
+            try {
+                const res = await Auth.register(data);
+                if (res.success) {
+                    showToast('Request sent! Wait for admin approval.', 'success');
+                    setTimeout(toggleAuth, 2000);
+                    document.getElementById('formRegister').reset();
+                } else {
+                    showToast(res.message || 'Registration failed', 'error');
+                }
+            } catch (err) {
+                showToast('Something went wrong', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load Banner
+            if (CONFIG.API_URL) {
+                try {
+                    const res = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'getBanners' })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.bannerUrl) {
+                        const bannerDiv = document.getElementById('activeBanner');
+                        bannerDiv.innerHTML = `<img src="${data.bannerUrl}" alt="System Banner" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+                        bannerDiv.style.border = 'none';
+                        bannerDiv.style.background = 'transparent';
+                    }
+                } catch (e) {
+                    console.error("Failed to load banner", e);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

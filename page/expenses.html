@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Expenses</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="auth-logo" style="font-size: 1.5rem;">
+                    <i class="fa-solid fa-boxes-stacked"></i> IMS Cloud
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+                <a href="purchase.html" class="nav-item">
+                    <i class="fa-solid fa-cart-shopping"></i> Purchase
+                </a>
+                <a href="sales.html" class="nav-item">
+                    <i class="fa-solid fa-cash-register"></i> Sales
+                </a>
+                <a href="expenses.html" class="nav-item active">
+                    <i class="fa-solid fa-wallet"></i> Expenses
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <i class="fa-solid fa-file-invoice"></i> Reports
+                </a>
+                <a href="#" class="nav-item" onclick="Auth.logout()" style="margin-top: auto;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <button class="btn btn-outline" style="width: auto;" id="sidebarToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="user-profile">
+                    Hello, <span id="userName" style="font-weight: 600;">User</span>
+                </div>
+            </div>
+
+            <div class="page-title mb-4">Record Expense</div>
+
+            <div class="card">
+                <form id="expensesForm">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <!-- Auto-filled Date (Non-editable) -->
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-input" id="expenseDate" readonly
+                                style="background-color: #f3f4f6;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Expense Head</label>
+                            <select class="form-input" id="expenseHead">
+                                <option>Electric Bill</option>
+                                <option>Shop Rent</option>
+                                <option>Salary</option>
+                                <option>Maintenance</option>
+                                <option>Phone Bill</option>
+                                <option>Lunch</option>
+                                <option>Tea</option>
+                                <option>Conveyance</option>
+                                <option>Daily Wages</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Amount Paid</label>
+                            <input type="number" class="form-input" id="expenseAmount" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Payment Mode</label>
+                            <select class="form-input" id="expensePaymentMode">
+                                <option value="Cash">Cash</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Online">Online</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea class="form-input" rows="2"></textarea>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary" style="width: auto;">
+                            Save Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Expense Chart Section -->
+            <div class="card" style="margin-top: 20px;">
+                <h3 style="margin-bottom: 20px;">Expense History (By Date)</h3>
+                <div style="height: 300px;">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/user.js"></script>
+    <script>
+        // Auto-set Date on load (Failsafe)
+        if (document.getElementById('expenseDate')) {
+            document.getElementById('expenseDate').valueAsDate = new Date();
+        }
+    </script>
+</body>
+
+</html>

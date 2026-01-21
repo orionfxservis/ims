@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="auth-logo" style="font-size: 1.5rem;">
+                    <i class="fa-solid fa-boxes-stacked"></i> IMS Admin
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showSection('users')">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('banners')">
+                    <i class="fa-solid fa-images"></i> Banners
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('settings')">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+                <a href="#" class="nav-item" onclick="Auth.logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <button class="btn btn-outline" style="width: auto;" id="sidebarToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="user-profile">
+                    <span id="adminName">Admin</span>
+                </div>
+            </div>
+
+            <!-- User Management Section -->
+            <div id="usersSection">
+                <div class="page-title mb-4">User Management</div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banners Section -->
+            <div id="bannersSection" class="hidden">
+                <div class="page-title mb-4">Banner Management</div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Update System Banner</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">
+                        Enter an image URL to set as the login page banner. Preview it first to ensure it looks correct.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">Banner Image URL</label>
+                        <input type="text" class="form-input" id="bannerUrlInput"
+                            placeholder="https://example.com/banner.jpg">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 30px;">
+                        <button class="btn btn-outline" style="width: auto;" onclick="previewBanner()">
+                            <i class="fa-solid fa-eye"></i> Preview
+                        </button>
+                        <button class="btn btn-primary" style="width: auto;" id="publishBtn" onclick="publishBanner()"
+                            disabled>
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Publish to Login Page
+                        </button>
+                    </div>
+
+                    <!-- Preview Area -->
+                    <div id="bannerPreviewContainer"
+                        style="display: none; border: 2px dashed #E5E7EB; padding: 20px; border-radius: 12px; text-align: center;">
+                        <p class="text-muted" style="margin-bottom: 10px;">Preview Mode</p>
+                        <img id="bannerPreviewImg" src="" alt="Banner Preview"
+                            style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settingsSection" class="hidden">
+                <div class="page-title mb-4">System Settings</div>
+
+                <!-- Google Sheet Connection -->
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; color: var(--text-main);">Google Sheet Connection</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">
+                        Connect your system to Google Sheets by entering the deployment URL below.
+                        <br>
+                        <small>See <code>APPS_SCRIPT_README.md</code> for deployment instructions.</small>
+                    </p>
+
+                    <form id="connectionForm">
+                        <div class="form-group">
+                            <label class="form-label">Web App URL</label>
+                            <input type="text" class="form-input" id="apiUrlInput"
+                                placeholder="https://script.google.com/macros/s/.../exec" required>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary" style="width: auto;">
+                                <i class="fa-solid fa-link"></i> Connect & Save
+                            </button>
+                            <button type="button" class="btn btn-outline" id="disconnectBtn" style="width: auto;"
+                                onclick="disconnectApi()">
+                                <i class="fa-solid fa-unlink"></i> Disconnect
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="toastMessage">Notification here</span>
+    </div>
+
+    <!-- Edit/Password Modal -->
+    <div id="editModal" class="auth-container hidden"
+        style="position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5);">
+        <div class="auth-card" style="position: relative;">
+            <button onclick="closeModal()"
+                style="position: absolute; right: 20px; top: 20px; border: none; background: none; cursor: pointer; font-size: 1.2rem;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="auth-title" style="margin-bottom: 20px;">Edit User</h3>
+            <form id="editForm">
+                <input type="hidden" id="editUsername">
+                <div class="form-group">
+                    <label class="form-label">New Password (Optional)</label>
+                    <input type="text" class="form-input" id="editPassword" placeholder="Leave empty to keep current">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>
