@@ -69,20 +69,20 @@
 
                     <div class="form-group">
                         <label class="form-label">Company Name</label>
-                        <input type="text" class="form-input" id="loginCompany"
-                            placeholder="Enter company name" required>
+                        <input type="text" class="form-input" id="loginCompany" placeholder="Enter company name"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Username</label>
-                        <input type="text" class="form-input" id="loginUsername"
-                            placeholder="Enter your username" required>
+                        <input type="text" class="form-input" id="loginUsername" placeholder="Enter your username"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-input" id="loginPassword"
-                            placeholder="Enter your password" required>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password"
+                            required>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="btnLogin">
@@ -93,7 +93,7 @@
 
                 <div class="auth-footer">
                     Don’t have an account?
-                    <a href="#" onclick="toggleAuth()">Create Account</a>
+                    <a href="#" id="linkToRegister">Create Account</a>
                 </div>
             </div>
 
@@ -110,26 +110,25 @@
 
                     <div class="form-group">
                         <label class="form-label">Company Name</label>
-                        <input type="text" class="form-input" id="regCompany"
-                            placeholder="Enter company name" required>
+                        <input type="text" class="form-input" id="regCompany" placeholder="Enter company name" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Customer Name</label>
-                        <input type="text" class="form-input" id="regCustomer"
-                            placeholder="Enter customer name" required>
+                        <input type="text" class="form-input" id="regCustomer" placeholder="Enter customer name"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-input" id="regPassword"
-                            placeholder="Minimum 6 characters" required>
+                        <input type="password" class="form-input" id="regPassword" placeholder="Minimum 6 characters"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Re-enter Password</label>
-                        <input type="password" class="form-input" id="regConfirmPassword"
-                            placeholder="Repeat password" required>
+                        <input type="password" class="form-input" id="regConfirmPassword" placeholder="Repeat password"
+                            required>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="btnRegister">
@@ -140,7 +139,7 @@
 
                 <div class="auth-footer">
                     Already have an account?
-                    <a href="#" onclick="toggleAuth()">Sign In</a>
+                    <a href="#" id="linkToLogin">Sign In</a>
                 </div>
             </div>
 
@@ -169,6 +168,16 @@
             document.getElementById('loginForm').classList.toggle('hidden');
             document.getElementById('registerForm').classList.toggle('hidden');
         }
+
+        document.getElementById('linkToRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuth();
+        });
+
+        document.getElementById('linkToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuth();
+        });
 
         const showToast = (msg, type = 'info') => {
             const toast = document.getElementById('toast');
@@ -276,4 +285,5 @@
     </script>
 
 </body>
+
 </html>

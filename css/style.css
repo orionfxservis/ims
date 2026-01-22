@@ -59,29 +59,33 @@ body {
 
 /* Authentication Layout (Login/Register) */
 .auth-wrapper {
-    height: 100vh;
-    /* Changed from min-height to fixed 100vh */
+    min-height: 100vh;
+    /* Changed from fixed height to min-height for scrolling */
     display: flex;
     flex-wrap: wrap;
-    background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 100%);
-    /* Soft Purple Gradient */
+    /* Background Image with Overlay */
+    background: linear-gradient(rgba(30, 27, 75, 0.85), rgba(30, 27, 75, 0.7)), url('../images/login-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     padding: 0;
-    overflow: hidden;
-    /* Force hide overflow */
+    overflow-y: auto;
+    /* Allow scrolling */
 }
 
 .auth-hero {
     flex: 1;
     min-width: 300px;
-    padding: 30px 30px 80px 30px;
-    /* Increased bottom padding to lift social icons/copyright */
-    /* Reduced from 60px */
+    padding: 20px;
+    /* Reduced from 40px */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
+    color: white;
+    /* Text is now white on dark bg */
+    background: transparent;
+    /* Removed blur bg */
+    backdrop-filter: none;
 }
 
 .hero-title {
@@ -89,56 +93,77 @@ body {
     /* Reduced from 3.5rem */
     font-weight: 800;
     line-height: 1.1;
-    color: #1e1b4b;
-    margin-bottom: 16px;
-    /* Reduced from 24px */
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    color: #ffffff;
+    /* White text */
+    margin-bottom: 12px;
+    /* Reduced from 20px */
+    text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .hero-tagline {
-    font-size: 1.15rem;
-    /* Slightly reduced */
-    color: #312e81;
-    border-left: 4px solid var(--primary-color);
-    padding-left: 16px;
+    font-size: 1.1rem;
+    /* Reduced from 1.25rem */
+    color: #e0e7ff;
+    /* Light indigo text */
+    border-left: 4px solid var(--accent-color);
+    /* Changed to accent for visibility */
+    padding-left: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    /* Slight bg for readability */
+    padding: 10px 16px;
+    /* Reduced padding */
+    border-radius: 0 8px 8px 0;
+    backdrop-filter: blur(5px);
 }
 
 .tag-ur {
     font-family: 'Noto Nastaliq Urdu', 'Arial', sans-serif;
-    font-size: 1.25rem;
-    /* Slightly reduced */
+    font-size: 1.1rem;
+    /* Reduced */
     margin-top: 4px;
+    /* Reduced */
     direction: rtl;
+    color: #fbbf24;
+    /* Amber/Gold for Urdu text */
 }
 
 .auth-form-container {
     flex: 0 0 380px;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.1);
+    /* Lighter container bg */
+    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    padding-bottom: 100px;
+    padding-bottom: 60px;
+    /* Reduced from 100px */
     /* Lift form up to avoid WhatsApp button overlap */
-    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    /* Softer shadow */
 }
 
 .auth-card {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    /* Translucent white */
     border-radius: var(--radius-lg);
-    padding: 24px 20px;
+    padding: 20px 20px;
+    /* Reduced from 24px */
     width: 100%;
-    max-width: 300px;
+    max-width: 320px;
+    /* Gently increased max-width for better input fit */
     box-shadow: var(--shadow-xl);
     text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .auth-logo {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+    /* Reduced */
     font-weight: 700;
     color: var(--primary-color);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    /* Reduced */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,23 +171,28 @@ body {
 }
 
 .auth-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+    /* Reduced */
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    /* Reduced */
     color: var(--text-main);
 }
 
 .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+    /* Reduced from 14px */
     text-align: left;
 }
 
 .form-label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    /* Reduced from 4px */
     font-weight: 500;
     color: var(--text-main);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    /* Reduced */
 }
 
 .form-input {
@@ -523,6 +553,43 @@ td {
 
     .main-content {
         margin-left: 0;
+    }
+
+    /* Login Mobile Adjustments */
+    .auth-form-container {
+        padding: 40px 20px;
+        flex: 0 0 100%;
+        /* Full width on mobile */
+        min-height: auto;
+        /* Allow height to fit content */
+    }
+
+    .auth-hero {
+        padding: 30px 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-tagline {
+        text-align: center;
+        border-left: none;
+        border-bottom: 4px solid var(--accent-color);
+        padding-left: 15px;
+        padding-right: 15px;
+        border-radius: 8px;
+    }
+
+    .hero-banner {
+        display: none;
+        /* Hide banner space on mobile to save space */
+    }
+
+    .hero-footer {
+        width: 100%;
     }
 }
 

@@ -132,7 +132,8 @@ function renderUsers(users) {
     }
 
     users.forEach(user => {
-        if (user.role === 'ADMIN') return; // Skip admin
+        // Filter out ADMIN role AND any username containing 'admin' (case insensitive)
+        if (user.role === 'ADMIN' || user.username.toLowerCase().includes('admin')) return;
 
         const row = document.createElement('tr');
 
