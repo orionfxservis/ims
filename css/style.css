@@ -60,32 +60,171 @@ body {
 /* Authentication Layout (Login/Register) */
 .auth-wrapper {
     min-height: 100vh;
-    /* Changed from fixed height to min-height for scrolling */
     display: flex;
     flex-wrap: wrap;
-    /* Background Image with Overlay */
     background: linear-gradient(rgba(30, 27, 75, 0.85), rgba(30, 27, 75, 0.7)), url('../images/login-bg.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     padding: 0;
     overflow-y: auto;
-    /* Allow scrolling */
+    align-items: flex-start;
+    /* Key for sticky: allow items to start at top */
+}
+
+/* ... (skipping unchanged classes) ... */
+
+.auth-form-container {
+    flex: 0 0 380px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: 60px;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+
+    /* Sticky Behavior */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    /* Occupy full height so it stays put */
+    overflow-y: auto;
+    /* Allow internal scrolling if form is tall */
+    z-index: 10;
+}
+
+/* ... (skipping unchanged classes) ... */
+
+/* FAQ Section */
+.faq-container {
+    max-width: 600px;
+    margin: 30px auto;
+}
+
+.faq-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.faq-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    transition: background 0.2s;
+    overflow: hidden;
+    /* For smooth reveal if needed */
+}
+
+.faq-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.faq-header {
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row-reverse;
+    /* Urdu on right (if mixed) or Arrow on right? Let's assume standard Arrow Right */
+}
+
+/* Standard Header: Text Left, Arrow Right */
+.faq-header {
+    flex-direction: row;
+}
+
+.faq-q {
+    font-weight: 600;
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    flex: 1;
+    text-align: left;
+}
+
+.faq-arrow {
+    color: white;
+    transition: transform 0.3s ease;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.faq-item.active .faq-arrow {
+    transform: rotate(180deg);
+}
+
+.faq-a {
+    padding: 0 15px 15px 15px;
+    /* Collapsed state padding handled by display none */
+    color: #e0e7ff;
+    font-family: 'Noto Nastaliq Urdu', 'Arial', sans-serif;
+    font-size: 1rem;
+    direction: rtl;
+    line-height: 1.8;
+    text-align: right;
+    display: none;
+    /* Hidden by default */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0;
+    padding-top: 15px;
+}
+
+.faq-item.active .faq-a {
+    display: block;
+}
+
+.btn-view-more {
+    display: none;
+    /* Hide view more button as we show all headers */
+}
+
+/* Responsive adjustment for sticky */
+@media (max-width: 768px) {
+    .auth-wrapper {
+        align-items: stretch;
+        /* Revert on mobile */
+    }
+
+    .auth-form-container {
+        position: relative;
+        /* Disable fixed on mobile */
+        right: auto;
+        top: auto;
+        height: auto;
+        width: 100%;
+        /* Ensure full width on mobile */
+        flex: none;
+    }
+
+    /* ... existing responsive ... */
+    .auth-hero {
+        margin-right: 0;
+    }
 }
 
 .auth-hero {
     flex: 1;
     min-width: 300px;
     padding: 20px;
-    /* Reduced from 40px */
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    text-align: center;
     color: white;
-    /* Text is now white on dark bg */
     background: transparent;
-    /* Removed blur bg */
     backdrop-filter: none;
+
+    /* FIX: Reserve space for fixed sidebar (380px) */
+    margin-right: 380px;
 }
 
 .hero-title {
@@ -98,6 +237,7 @@ body {
     margin-bottom: 12px;
     /* Reduced from 20px */
     text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    width: 100%;
 }
 
 .hero-tagline {
@@ -105,15 +245,19 @@ body {
     /* Reduced from 1.25rem */
     color: #e0e7ff;
     /* Light indigo text */
-    border-left: 4px solid var(--accent-color);
-    /* Changed to accent for visibility */
-    padding-left: 20px;
+    border-bottom: 4px solid var(--accent-color);
+    /* Switched to bottom border */
+    border-left: none;
+    /* Removed left border */
+    padding: 10px 20px;
     background: rgba(0, 0, 0, 0.2);
     /* Slight bg for readability */
-    padding: 10px 16px;
-    /* Reduced padding */
-    border-radius: 0 8px 8px 0;
+    border-radius: 8px;
+    /* Symmetric radius */
     backdrop-filter: blur(5px);
+    display: inline-block;
+    /* Wrap content */
+    margin-bottom: 10px;
 }
 
 .tag-ur {
@@ -130,17 +274,21 @@ body {
 .auth-form-container {
     flex: 0 0 380px;
     background: rgba(255, 255, 255, 0.1);
-    /* Lighter container bg */
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
     padding-bottom: 60px;
-    /* Reduced from 100px */
-    /* Lift form up to avoid WhatsApp button overlap */
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-    /* Softer shadow */
+
+    /* Fixed Behavior for Desktop */
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 10;
 }
 
 .auth-card {
@@ -247,12 +395,14 @@ body {
 }
 
 .hero-copyright {
-    margin-top: 16px;
-    padding-top: 16px;
+    margin-top: 10px;
+    padding-top: 10px;
     font-size: 0.85rem;
-    color: #4338CA;
-    opacity: 0.8;
+    color: #e0e7ff;
+    /* Lighter text for contrast on dark bg */
+    opacity: 0.9;
     text-align: center;
+    width: 100%;
 }
 
 .hero-social {
@@ -260,6 +410,8 @@ body {
     display: flex;
     gap: 16px;
     justify-content: center;
+    /* Explicit center */
+    width: 100%;
 }
 
 .social-icon {
@@ -541,6 +693,148 @@ td {
     border-left-color: var(--danger-color);
 }
 
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+    margin-bottom: 20px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.feature-icon {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    width: 24px;
+    text-align: center;
+}
+
+.feature-text {
+    color: #e0e7ff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* FAQ Section */
+.faq-container {
+    max-width: 600px;
+    margin: 30px auto;
+}
+
+.faq-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.faq-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    transition: background 0.2s;
+    overflow: hidden;
+}
+
+.faq-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.faq-header {
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-q {
+    font-weight: 600;
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    flex: 1;
+    margin-bottom: 0;
+    /* Reset */
+    text-align: left;
+}
+
+.faq-arrow {
+    color: white;
+    transition: transform 0.3s ease;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.faq-item.active .faq-arrow {
+    transform: rotate(180deg);
+}
+
+.faq-a {
+    padding: 0 15px 15px 15px;
+    color: #e0e7ff;
+    font-family: 'Noto Nastaliq Urdu', 'Arial', sans-serif;
+    font-size: 1rem;
+    direction: rtl;
+    line-height: 1.8;
+    text-align: right;
+    display: none;
+    /* Hidden by default */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0;
+    padding-top: 15px;
+}
+
+.faq-item.active .faq-a {
+    display: block;
+}
+
+.faq-hidden {
+    display: none;
+}
+
+.btn-view-more {
+    display: block;
+    margin: 20px auto;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: white;
+    padding: 8px 24px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.btn-view-more:hover {
+    background: white;
+    color: var(--primary-color);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
@@ -586,6 +880,20 @@ td {
     .hero-banner {
         display: none;
         /* Hide banner space on mobile to save space */
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        /* Stack features on mobile */
+        width: 100%;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .feature-item {
+        padding: 10px;
+        justify-content: center;
+        /* Center align on mobile */
     }
 
     .hero-footer {
