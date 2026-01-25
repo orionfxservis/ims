@@ -1,106 +1,61 @@
-class Auth {
-    static async register(data) {
-        if (!CONFIG.API_URL) {
-            console.log("Demo Mode: Registration successful");
-            return { success: true, message: "Demo Mode: Account created automatically! You can login now." };
-        }
+console.log("auth.js loaded");
 
-        try {
-            const response = await fetch(CONFIG.API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'register',
-                    ...data
-                })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error("Registration Error:", error);
-            return { success: false, message: "Network error occurred." };
-        }
-    }
+const loginForm = document.getElementById("formLogin");
+const registerForm = document.getElementById("formRegister");
 
-    static async login(username, password) {
-        // Local Admin Authentication (Bypasses Server)
-        // User requested to save password locally to resolve server issues
-        const localAdminPass = localStorage.getItem('IMS_ADMIN_PASS') || 'admin123';
-
-        if (username.toLowerCase() === 'admin' && password === localAdminPass) {
-            console.log("Local Admin Login Successful");
-            const user = {
-                name: 'Admin',
-                username: 'admin',
-                role: CONFIG.ROLES.ADMIN,
-                status: 'Approved'
-            };
-            this.setSession(user);
-            return { success: true, role: user.role, user: user };
-        }
-
-        if (!CONFIG.API_URL) {
-            // Demo Mode: Allow any login
-            console.log("Demo Mode: Login successful");
-            // ... existing demo logic ...
-            const role = CONFIG.ROLES.USER;
-            const user = {
-                name: 'Demo User',
-                username: username,
-                role: role,
-                status: 'Approved'
-            };
-            this.setSession(user);
-            return { success: true, role: role, user: user };
-        }
-
-        try {
-            const response = await fetch(CONFIG.API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'login',
-                    username,
-                    password
-                })
-            });
-            console.log("Login Request sent to:", CONFIG.API_URL);
-            const result = await response.json();
-            console.log("Login Response received:", result);
-
-            if (result.success) {
-                this.setSession(result.user);
-            }
-            return result;
-        } catch (error) {
-            console.error("Login Error:", error);
-            return { success: false, message: "Network error occurred." };
-        }
-    }
-
-    static setSession(user) {
-        localStorage.setItem('ims_user', JSON.stringify(user));
-    }
-
-    static getSession() {
-        const user = localStorage.getItem('ims_user');
-        return user ? JSON.parse(user) : null;
-    }
-
-    static logout() {
-        localStorage.removeItem('ims_user');
-        window.location.href = '../index.html'; // Adjust path if needed
-    }
-
-    static checkAuth() {
-        const user = this.getSession();
-        if (!user) {
-            window.location.href = '../index.html'; // Redirect to login if not authenticated
-        }
-        return user;
-    }
-
-    static checkAdmin() {
-        const user = this.getSession();
-        if (!user || user.role !== CONFIG.ROLES.ADMIN) {
-            window.location.href = user ? 'dashboard.html' : '../index.html';
-        }
-    }
+async function callAPI(payload) {
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("API error", err);
+    return { success: false, message: "Network error" };
+  }
 }
+
+/* LOGIN */
+loginForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    action: "login",
+    company: loginCompany.value.trim(),
+    username: loginUsername.value.trim(),
+    password: loginPassword.value.trim()
+  };
+
+  const result = await callAPI(payload);
+  console.log("Login result:", result);
+
+  alert(result.message || (result.success ? "Login OK" : "Login failed"));
+  if (result.success) {
+    // redirect or show admin page
+    window.location = "/page/admin.html";
+  }
+});
+
+/* REGISTER */
+registerForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (regPassword.value !== regConfirmPassword.value) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  const payload = {
+    action: "register",
+    company: regCompany.value.trim(),
+    username: regCustomer.value.trim(),
+    password: regPassword.value.trim()
+  };
+
+  const result = await callAPI(payload);
+  alert(result.message);
+});
