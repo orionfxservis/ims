@@ -12,50 +12,64 @@ async function callAPI(payload) {
       },
       body: JSON.stringify(payload)
     });
-    return await res.json();
+    const json = await res.json();
+    console.log("API response:", json);
+    return json;
   } catch (err) {
-    console.error("API error", err);
+    console.error("API request failed", err);
     return { success: false, message: "Network error" };
   }
 }
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 loginForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const payload = {
     action: "login",
-    company: loginCompany.value.trim(),
-    username: loginUsername.value.trim(),
-    password: loginPassword.value.trim()
+    company: document.getElementById("loginCompany").value.trim(),
+    username: document.getElementById("loginUsername").value.trim(),
+    password: document.getElementById("loginPassword").value.trim()
   };
 
-  const result = await callAPI(payload);
-  console.log("Login result:", result);
+  console.log("Login payload:", payload);
 
-  alert(result.message || (result.success ? "Login OK" : "Login failed"));
-  if (result.success) {
-    // redirect or show admin page
-    window.location = "/page/admin.html";
+  if (!payload.company || !payload.username || !payload.password) {
+    alert("All fields are required");
+    return;
   }
+
+  const res = await callAPI(payload);
+  alert(res.message || (res.success ? "Login successful" : "Login failed"));
+  if (res.success) window.location.href = "/page/admin.html";
 });
 
-/* REGISTER */
+/* ===== REGISTER ===== */
 registerForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  if (regPassword.value !== regConfirmPassword.value) {
+  const pass = document.getElementById("regPassword").value.trim();
+  const confirm = document.getElementById("regConfirmPassword").value.trim();
+
+  if (pass !== confirm) {
     alert("Passwords do not match");
     return;
   }
 
   const payload = {
     action: "register",
-    company: regCompany.value.trim(),
-    username: regCustomer.value.trim(),
-    password: regPassword.value.trim()
+    company: document.getElementById("regCompany").value.trim(),
+    username: document.getElementById("regCustomer").value.trim(),
+    password: pass
   };
 
-  const result = await callAPI(payload);
-  alert(result.message);
+  console.log("Register payload:", payload);
+
+  if (!payload.company || !payload.username || !payload.password) {
+    alert("All fields are required");
+    return;
+  }
+
+  const res = await callAPI(payload);
+  alert(res.message || (res.success ? "Registered successfully" : "Failed"));
 });
