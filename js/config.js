@@ -1,18 +1,4 @@
 const CONFIG = {
-    // Placeholder - User needs to fill this with their deployment URL
-    // Checks localStorage first for dynamic configuration via Admin Panel
-    API_URL: localStorage.getItem('IMS_API_URL') || "",
-
-    // Application Constants
-    ROLES: {
-        ADMIN: 'ADMIN',
-        USER: 'USER'
-    },
-
-    STATUS: {
-        PENDING: 'Pending',
-        APPROVED: 'Approved',
-        REJECTED: 'Rejected',
-        LOCKED: 'Locked'
-    }
+  API_URL: "https://script.google.com/macros/s/AKfycbyt2t843uqFQ3kzaTbyEZMV0Un-eVjXD16mx3Bm0YdDuXoTqhKgFdnfh5ckdoI4zF5DYQ/exec"
 };
+
