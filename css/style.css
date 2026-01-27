@@ -299,11 +299,16 @@ body {
 }
 
 .hero-subtitle {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 2.4rem;
+    /* Matched 2nd line */
+    font-weight: 800;
+    /* Matched title weight */
     margin-bottom: 0rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
+    line-height: 1.1;
+    text-align: center;
+    /* Horizontally centered */
 }
 
 .hero-title {
@@ -313,6 +318,8 @@ body {
     margin-bottom: 1rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
+    text-align: center;
+    /* Horizontally centered */
 }
 
 .highlight-text {
@@ -394,15 +401,17 @@ body {
     backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
-    padding: 0.65rem 0.5rem;
+    padding: 0.5rem 1rem;
+    /* Reduced vertical padding */
     border-radius: 8px;
     flex: 1;
-    text-align: center;
     display: flex;
     flex-direction: column;
+    /* Stack Top Row and Label */
     align-items: center;
     justify-content: center;
-    min-height: 90px;
+    min-height: 60px;
+    /* Reduced min-height */
     box-shadow: none;
     transition: background 0.2s;
 }
@@ -411,25 +420,40 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+.stat-top {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    /* Icon Left, Number Right */
+    align-items: center;
+    margin-bottom: 0.1rem;
+    /* Reduced gap */
+}
+
 .stat-box-icon {
     font-size: 1.25rem;
+    /* Reduced icon size */
     color: #f59e0b;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0;
 }
 
 .stat-box-number {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    /* Reduced number size */
     font-weight: 700;
     color: #3b82f6;
     line-height: 1;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 .stat-box-label {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.65rem;
+    /* Reduced label size */
+    color: rgba(255, 255, 255, 0.8);
     line-height: 1.1;
     font-weight: 500;
+    text-align: center;
+    width: 100%;
 }
 
 /* RIGHT SIDE (Login) */
