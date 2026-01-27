@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Admin Panel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard-additions.css"> <!-- Re-using dashboard styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Admin Specific Styles */
+        .admin-sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 2px solid #3b82f6;
+            color: #60a5fa;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .btn-approve {
+            background: #22c55e;
+        }
+
+        .btn-lock {
+            background: #ef4444;
+        }
+
+        .btn-edit {
+            background: #f59e0b;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* Banner Grid */
+        .banner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .banner-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .banner-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+
+        .banner-actions {
+            padding: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-image" style="background-image: url('assets/inventory_system_background.png');"></div>
+
+    <div class="dashboard-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar admin-sidebar">
+            <div class="logo-area"
+                style="padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem; text-align: center;">
+                <i class="fa-solid fa-shield-halved" style="font-size: 2rem; color: #f59e0b;"></i>
+                <h2 style="font-size: 1.2rem; margin-top: 0.5rem;">IMS Admin</h2>
+            </div>
+
+            <nav style="flex: 1;">
+                <a href="#" class="nav-item admin-nav-item active" onclick="switchTab('dashboard', this)">
+                    <i class="fa-solid fa-gauge"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('users', this)">
+                    <i class="fa-solid fa-users-gear"></i> User Management
+                </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('banners', this)">
+                    <i class="fa-solid fa-images"></i> Banners
+                </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('system', this)">
+                    <i class="fa-solid fa-sliders"></i> System
+                </a>
+            </nav>
+
+            <div class="user-profile" style="padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.9rem; margin-bottom: 0.5rem;" id="adminName">Admin</div>
+                <button class="btn-logout" id="logoutBtn"
+                    style="color: #ef4444; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+            <!-- 1. DASHBOARD -->
+            <div id="dashboard" class="view-section">
+                <h1 class="page-title">Admin Dashboard</h1>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Registered Users</div>
+                        <div class="stat-value" id="countTotalUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active Login Users</div>
+                        <div class="stat-value" id="countActiveUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending Approvals</div>
+                        <div class="stat-value" style="color: #f59e0b;" id="countPendingUsers">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. USER MANAGEMENT -->
+            <div id="users" class="view-section hidden">
+                <h1 class="page-title">User Management</h1>
+                <div class="glass-table-container">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. BANNERS -->
+            <div id="banners" class="view-section hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 class="page-title" style="margin: 0;">Promo Banners</h1>
+                    <button class="btn" style="width: auto;" onclick="addBanner()"><i class="fa-solid fa-plus"></i> Add
+                        New</button>
+                </div>
+
+                <div class="banner-grid" id="bannerGrid" style="margin-bottom: 3rem;">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Dashboard Banner Section -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+                    <h2 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">Dashboard Bottom Banner
+                        (120x720px)</h2>
+                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: #ddd;">Banner Image URL</label>
+                            <input type="text" class="form-input" id="dashboardBannerUrl"
+                                placeholder="Enter URL or leave empty to disable">
+                        </div>
+                        <button class="btn" style="width: auto;" onclick="saveDashboardBanner()">Save Banner</button>
+                    </div>
+                    <div id="dashboardBannerPreview"
+                        style="margin-top: 1.5rem; border: 1px dashed rgba(255,255,255,0.2); min-height: 120px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <span style="color: #666;">Preview</span>
+                    </div>
+                </div>
+
+                <!-- Hero Banner Section -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; margin-top: 2rem;">
+                    <h2 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">Hero Section Banner (Under
+                        Stats)</h2>
+                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: #ddd;">Banner Image URL</label>
+                            <input type="text" class="form-input" id="heroBannerUrl" placeholder="Enter URL">
+                        </div>
+                        <button class="btn" style="width: auto;" onclick="saveHeroBanner()">Save</button>
+                    </div>
+                    <div id="heroBannerPreview"
+                        style="margin-top: 1rem; border: 1px dashed rgba(255,255,255,0.2); min-height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <span style="color: #666;">Preview</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. SYSTEM -->
+            <div id="system" class="view-section hidden">
+                <h1 class="page-title">System Settings</h1>
+                <div class="glass-card" style="max-width: 600px;">
+                    <div class="form-group">
+                        <label>Google Sheet Connectivity</label>
+                        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 1rem;">Enter the Web App URL of your
+                            Google Script.</p>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" class="form-input" id="sheetId"
+                                placeholder="https://script.google.com/..." value="" style="flex: 1;">
+                            <button id="btnTestConnection" class="btn"
+                                style="width: auto; background: #64748b; white-space: nowrap;"
+                                onclick="testConnection()">
+                                <i class="fa-solid fa-plug"></i> Test
+                            </button>
+                        </div>
+                        <p id="connectionStatus" style="font-size: 0.8rem; margin-top: 0.5rem; display: none;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>WhatsApp Alert Number</label>
+                        <input type="text" class="form-input" id="adminPhone" placeholder="e.g. 923001234567" value="">
+                    </div>
+
+                    <button class="btn" onclick="saveSystemSettings()">Save Settings</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

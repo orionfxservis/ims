@@ -5,442 +5,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMS | Login</title>
-
-    <!-- Main Styles -->
     <link rel="stylesheet" href="css/style.css">
-
-    <!-- FontAwesome -->
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
-    <main class="auth-wrapper">
+    <!-- HD Background Image -->
+    <div class="bg-image" style="background-image: url('assets/inventory_system_background.png');"></div>
 
-        <!-- ================= LEFT : BRAND / HERO ================= -->
-        <section class="auth-hero">
+    <div class="hero-container">
 
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    For Karachi Wholesalers & Retailers <br>
-                    <span style="color: var(--accent-color);">Easy</span> Online Inventory Control System
-                </h1>
+        <!-- LEFT SIDE: Marketing Info -->
+        <div class="hero-left">
+            <h2 class="hero-subtitle" style="margin-top: 0;">For Karachi Wholesalers & Retailers</h2>
+            <h1 class="hero-title"><span class="highlight-text">Easy</span> Online Inventory Control System</h1>
 
-                <div class="hero-tagline">
-                    <p class="tag-en">Manage stock, track sales & get alerts, for importers, wholesalers & retailers in
-                        Karachi</p>
-                    <p class="tag-ur">کراچی کے امپورٹرز، ہول سیلرز اور ریٹیلرز کے لیے — اسٹاک سنبھالیں، سیلز ٹریک کریں
-                        اور الرٹس حاصل کریں۔</p>
+            <div class="info-box">
+                <p class="info-text-en">Manage stock, track sales & get alerts, for importers, wholesalers & retailers
+                    in Karachi</p>
+                <p class="info-text-ur">کراچی کے امپورٹرز، ہول سیلرز اور ریٹیلرز کے لیے — اسٹاک سنبھالیں، سیلز ٹریک کریں
+                    اور الرٹس حاصل کریں۔</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fa-solid fa-chart-line feature-icon"></i>
+                    <span>Real-time Stock Tracking</span>
                 </div>
-
-                <!-- Features Grid -->
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <i class="fa-solid fa-chart-line feature-icon"></i>
-                        <span class="feature-text">Real-time Stock Tracking</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fa-solid fa-truck-field feature-icon"></i>
-                        <span class="feature-text">Supplier & Purchase Order</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fa-solid fa-file-invoice-dollar feature-icon"></i>
-                        <span class="feature-text">Sales & Profit Reporting</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fa-solid fa-bell feature-icon"></i>
-                        <span class="feature-text">Low Stock Alerts</span>
-                    </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-truck feature-icon"></i>
+                    <span>Supplier & Purchase Order</span>
                 </div>
-
-                <!-- FAQ Section -->
-                <div class="faq-container">
-                    <h3 class="faq-title">⭐ Frequently Asked Questions</h3>
-
-                    <!-- Visible Items (1-5) -->
-                    <!-- Visible Items (1-5) -->
-                    <div class="faq-item">
-                        <div class="faq-header" onclick="toggleFaq(this)">
-                            <div class="faq-q">📱 Which devices does IMS support? | IMS کن ڈیوائسز پر کام کرتا ہے؟</div>
-                            <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                        </div>
-                        <div class="faq-a">IMS ڈیسک ٹاپ، لیپ ٹاپ، ٹیبلٹ اور موبائل فون پر کام کرتا ہے۔ آپ Chrome، Edge
-                            یا کسی بھی جدید براؤزر کے ذریعے سسٹم استعمال کر سکتے ہیں، کسی خاص سسٹم کی ضرورت نہیں۔</div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-header" onclick="toggleFaq(this)">
-                            <div class="faq-q">📲 Can I use IMS on mobile or tablet? | کیا IMS موبائل یا ٹیبلٹ پر
-                                استعمال ہو
-                                سکتا ہے؟</div>
-                            <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                        </div>
-                        <div class="faq-a">جی ہاں۔ IMS موبائل فرینڈلی ہے اور اینڈرائیڈ، آئی فون اور ٹیبلٹ پر آسانی سے
-                            چلتا ہے۔ آپ دکان، گودام یا سفر کے دوران بھی سسٹم استعمال کر سکتے ہیں۔</div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-header" onclick="toggleFaq(this)">
-                            <div class="faq-q">🌐 Is internet required? | کیا انٹرنیٹ ضروری ہے؟</div>
-                            <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                        </div>
-                        <div class="faq-a">جی ہاں، IMS استعمال کرنے کے لیے انٹرنیٹ کنکشن ضروری ہے۔ تاہم یہ سسٹم کمزور یا
-                            سست انٹرنیٹ پر بھی بہتر طریقے سے کام کرتا ہے۔</div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-header" onclick="toggleFaq(this)">
-                            <div class="faq-q">🔐 Is my data secure? | کیا میرا ڈیٹا محفوظ ہے؟</div>
-                            <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                        </div>
-                        <div class="faq-a">بالکل۔ آپ کے کاروبار کا ڈیٹا محفوظ اور خفیہ رہتا ہے۔ صرف اجازت یافتہ صارفین
-                            ہی لاگ اِن کر کے ڈیٹا تک رسائی حاصل کر سکتے ہیں۔</div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-header" onclick="toggleFaq(this)">
-                            <div class="faq-q">💰 What is the pricing? | IMS کی قیمت کیا ہے؟</div>
-                            <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                        </div>
-                        <div class="faq-a">IMS کی قیمت سادہ اور مناسب ہے، خاص طور پر چھوٹے اور درمیانے کاروبار کے لیے۔
-                            یہ دستی حساب کتاب اور اضافی عملے کے مقابلے میں زیادہ فائدہ مند ہے۔</div>
-                    </div>
-
-                    <!-- Hidden Items (6-10) -->
-                    <div id="moreFaqs" class="faq-hidden">
-                        <div class="faq-item">
-                            <div class="faq-header" onclick="toggleFaq(this)">
-                                <div class="faq-q">❌ Any hidden charges? | کیا کوئی پوشیدہ چارجز ہیں؟</div>
-                                <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                            </div>
-                            <div class="faq-a">نہیں۔ کوئی پوشیدہ چارجز نہیں ہیں۔ جو قیمت طے کی جاتی ہے وہی آخری ہوتی ہے،
-                                بعد میں کوئی اضافی فیس نہیں لی جاتی۔</div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-header" onclick="toggleFaq(this)">
-                                <div class="faq-q">🔔 Low stock alerts? | کیا کم اسٹاک کی اطلاع ملتی ہے؟</div>
-                                <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                            </div>
-                            <div class="faq-a">جی ہاں۔ جب اسٹاک کم ہونے لگتا ہے تو IMS خودکار طور پر الرٹ فراہم کرتا ہے
-                                تاکہ آپ بروقت سامان دوبارہ منگوا سکیں۔</div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-header" onclick="toggleFaq(this)">
-                                <div class="faq-q">📊 Reports available? | کیا رپورٹس دستیاب ہیں؟</div>
-                                <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                            </div>
-                            <div class="faq-a">جی ہاں۔ آپ یومیہ، ماہانہ اور سالانہ رپورٹس دیکھ اور ڈاؤن لوڈ کر سکتے ہیں،
-                                جن میں سیلز، اسٹاک اور خریداری کی مکمل تفصیل ہوتی ہے۔</div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-header" onclick="toggleFaq(this)">
-                                <div class="faq-q">📞 WhatsApp support available? | کیا واٹس ایپ سپورٹ دستیاب ہے؟</div>
-                                <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                            </div>
-                            <div class="faq-a">جی ہاں۔ صارفین کو واٹس ایپ کے ذریعے سپورٹ فراہم کی جاتی ہے تاکہ مسائل کا
-                                حل جلد اور آسانی سے ہو سکے۔</div>
-                        </div>
-
-                        <div class="faq-item">
-                            <div class="faq-header" onclick="toggleFaq(this)">
-                                <div class="faq-q">🧑💼 Easy for non-technical users? | کیا یہ غیر تکنیکی عملے کے لیے
-                                    آسان
-                                    ہے؟</div>
-                                <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                            </div>
-                            <div class="faq-a">بالکل۔ IMS سادہ اور صارف دوست سسٹم ہے۔ بنیادی کمپیوٹر معلومات رکھنے والا
-                                عملہ بھی اسے آسانی سے استعمال کر سکتا ہے۔</div>
-                        </div>
-                    </div>
-
-                    <button class="btn-view-more" id="btnToggleFaq" onclick="toggleFaqs()">View More FAQs</button>
-
-                    <script>
-                        function toggleFaqs() {
-                            const moreDiv = document.getElementById('moreFaqs');
-                            const btn = document.getElementById('btnToggleFaq');
-
-                            if (moreDiv.classList.contains('faq-hidden')) {
-                                moreDiv.classList.remove('faq-hidden');
-                                btn.textContent = "View Less FAQs";
-                            } else {
-                                moreDiv.classList.add('faq-hidden');
-                                btn.textContent = "View More FAQs";
-                            }
-                        }
-
-                        function toggleFaq(header) {
-                            const item = header.parentElement;
-                            const isActive = item.classList.contains('active');
-
-                            // Close all others
-                            document.querySelectorAll('.faq-item').forEach(i => {
-                                i.classList.remove('active');
-                            });
-
-                            // Toggle clicked one
-                            if (!isActive) {
-                                item.classList.add('active');
-                            }
-                        }
-                    </script>
+                <div class="feature-item">
+                    <i class="fa-solid fa-file-invoice-dollar feature-icon"></i>
+                    <span>Sales & Profit Reporting</span>
                 </div>
-
-                <!-- Banner (Hidden for now to focus on features) -->
-                <div class="hero-banner hidden" id="activeBanner">
-                    <span>Banner Space (720x120)</span>
+                <div class="feature-item">
+                    <i class="fa-solid fa-bell feature-icon"></i>
+                    <span>Low Stock Alerts</span>
                 </div>
             </div>
 
-            <!-- Social + Footer -->
-            <div class="hero-footer">
-                <div class="hero-social">
-                    <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="social-icon"><i class="fa-brands fa-linkedin-in"></i></a>
+            <div class="stats-row">
+                <div class="stat-box-glass">
+                    <i class="fa-solid fa-building stat-box-icon"></i>
+                    <div class="stat-box-number">0</div>
+                    <div class="stat-box-label">Registered Companies</div>
                 </div>
-
-                <div class="hero-copyright">
-                    &copy; 2026 IMS Cloud. All Rights Reserved.
+                <div class="stat-box-glass">
+                    <i class="fa-solid fa-users stat-box-icon"></i>
+                    <div class="stat-box-number">0</div>
+                    <div class="stat-box-label">Registered Users</div>
+                </div>
+                <div class="stat-box-glass">
+                    <i class="fa-solid fa-user-check stat-box-icon"></i>
+                    <div class="stat-box-number">0</div>
+                    <div class="stat-box-label">Login Users</div>
+                </div>
+                <div class="stat-box-glass">
+                    <i class="fa-solid fa-box-open stat-box-icon"></i>
+                    <div class="stat-box-number">0</div>
+                    <div class="stat-box-label">Items in Stock</div>
                 </div>
             </div>
 
-        </section>
+            <!-- Hero Banner -->
+            <div id="heroBannerContainer"
+                style="margin-top: 2rem; width: 100%; display: flex; justify-content: center; padding-bottom: 2rem;">
+                <!-- Injected via JS -->
+            </div>
+        </div>
 
-        <!-- ================= RIGHT : AUTH FORMS ================= -->
-        <section class="auth-form-container">
+        <!-- RIGHT SIDE: Forms -->
+        <div class="hero-right">
 
-            <!-- LOGIN -->
-            <div class="auth-card" id="loginForm">
-                <div class="auth-logo">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>IMS Cloud</span>
+            <!-- LOGIN CONTAINER -->
+            <div class="glass-card" id="loginContainer">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fa-solid fa-cube" style="font-size: 2rem; color: #60a5fa;"></i>
                 </div>
+                <h1 class="title">IMS Cloud</h1>
+                <p class="subtitle">Welcome Back</p>
 
-                <h2 class="auth-title">Welcome Back</h2>
-
-                <form id="formLogin">
-
+                <form id="loginForm">
+                    <!-- Login Fields -->
                     <div class="form-group">
-                        <label class="form-label">Company Name</label>
-                        <input type="text" class="form-input" id="loginCompany" placeholder="Enter company name"
-                            required>
+                        <label for="loginCompany">Company Name</label>
+                        <input type="text" id="loginCompany" class="form-input" placeholder="Enter company name">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-input" id="loginUsername" placeholder="Enter your username"
-                            required>
+                        <label for="username">Username</label>
+                        <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password"
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-input" placeholder="Enter your password"
                             required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="btnLogin">
-                        <span>Sign In</span>
+                    <button type="submit" class="btn" id="loginBtn">
+                        <span class="btn-text">Sign In</span>
                     </button>
 
+                    <p class="link-text" style="color: rgba(255,255,255,0.7); margin-top: 1rem;">
+                        Don't have an account? <a href="#" onclick="toggleAuth('register'); return false;"
+                            style="color: #60a5fa; font-weight: 600; text-decoration: none;">Create Account</a>
+                    </p>
                 </form>
-
-                <div class="auth-footer">
-                    Don’t have an account?
-                    <a href="#" id="linkToRegister">Create Account</a>
-                </div>
             </div>
 
-            <!-- REGISTER -->
-            <div class="auth-card hidden" id="registerForm">
-                <div class="auth-logo">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Join IMS</span>
-                </div>
+            <!-- REGISTER CONTAINER (Hidden by default) -->
+            <div class="glass-card" id="registerContainer" style="display: none;">
+                <h1 class="title">Create Account</h1>
+                <p class="subtitle">Join the organization</p>
 
-                <h2 class="auth-title">Create Account</h2>
-
-                <form id="formRegister">
-
+                <form id="registerForm">
                     <div class="form-group">
-                        <label class="form-label">Company Name</label>
-                        <input type="text" class="form-input" id="regCompany" placeholder="Enter company name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Customer Name</label>
-                        <input type="text" class="form-input" id="regCustomer" placeholder="Enter customer name"
+                        <label for="regCompanyName">Company Name</label>
+                        <input type="text" id="regCompanyName" class="form-input" placeholder="Your Company Ltd."
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-input" id="regPassword" placeholder="Minimum 6 characters"
-                            required>
+                        <label for="regUsername">Username</label>
+                        <input type="text" id="regUsername" class="form-input" placeholder="Choose a username" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Re-enter Password</label>
-                        <input type="password" class="form-input" id="regConfirmPassword" placeholder="Repeat password"
-                            required>
+                        <label for="regPhone">Phone Number (WhatsApp)</label>
+                        <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 923001234567" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="btnRegister">
-                        <span>Send Request</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input type="password" id="regPassword" class="form-input" placeholder="Password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm</label>
+                            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm"
+                                required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="registerBtn">
+                        <span class="btn-text">Register Account</span>
                     </button>
 
+                    <p class="link-text" style="margin-top: 1rem;">
+                        Already have an account? <a href="#" onclick="toggleAuth('login'); return false;"
+                            style="color: #60a5fa; font-weight: 600; text-decoration: none;">Login</a>
+                    </p>
                 </form>
-
-                <div class="auth-footer">
-                    Already have an account?
-                    <a href="#" id="linkToLogin">Sign In</a>
-                </div>
             </div>
 
-        </section>
+        </div>
 
-    </main>
-
-    <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/YOUR_NUMBER" target="_blank" class="whatsapp-float">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="toastMessage">Notification here</span>
     </div>
 
-    <!-- Scripts (UNCHANGED) -->
-    <script src="js/config.js"></script>
+    <!-- Simple Notification Toast (Hidden by default) -->
+    <div id="toast" class="glass-card"
+        style="position: fixed; bottom: 20px; right: 80px; width: auto; padding: 1rem; display: none; z-index: 100;">
+        <span id="toastMsg">Message</span>
+    </div>
+
+
+    <!-- Whatsapp Widget -->
+    <div
+        style="position: fixed; bottom: 20px; right: 20px; background: #22c55e; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100;">
+        <i class="fa-brands fa-whatsapp" style="color: white; font-size: 30px;"></i>
+    </div>
+
+    <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-
-    <!-- Inline JS (UNCHANGED) -->
-    <script>
-        function toggleAuth() {
-            document.getElementById('loginForm').classList.toggle('hidden');
-            document.getElementById('registerForm').classList.toggle('hidden');
-        }
-
-        document.getElementById('linkToRegister').addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleAuth();
-        });
-
-        document.getElementById('linkToLogin').addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleAuth();
-        });
-
-        const showToast = (msg, type = 'info') => {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toastMessage');
-
-            toast.className = `toast ${type} show`;
-            msgEl.textContent = msg;
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        };
-
-        document.getElementById('formLogin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnLogin');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<div class="spinner"></div>';
-            btn.disabled = true;
-
-            const company = document.getElementById('loginCompany').value;
-            const username = document.getElementById('loginUsername').value;
-            const pass = document.getElementById('loginPassword').value;
-
-            try {
-                const res = await Auth.login(username, pass);
-                if (res.success) {
-                    showToast('Login successful!', 'success');
-                    setTimeout(() => {
-                        window.location.href = res.role === 'ADMIN'
-                            ? 'page/admin.html'
-                            : 'page/dashboard.html';
-                    }, 1000);
-                } else {
-                    showToast(res.message || 'Login failed', 'error');
-                }
-            } catch {
-                showToast('Something went wrong', 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('formRegister').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const p1 = document.getElementById('regPassword').value;
-            const p2 = document.getElementById('regConfirmPassword').value;
-
-            if (p1 !== p2) {
-                showToast('Passwords do not match', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('btnRegister');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<div class="spinner"></div>';
-            btn.disabled = true;
-
-            const data = {
-                name: document.getElementById('regCompany').value,
-                username: document.getElementById('regCustomer').value,
-                password: p1
-            };
-
-            try {
-                const res = await Auth.register(data);
-                if (res.success) {
-                    showToast('Request sent! Wait for admin approval.', 'success');
-                    setTimeout(toggleAuth, 2000);
-                    document.getElementById('formRegister').reset();
-                } else {
-                    showToast(res.message || 'Registration failed', 'error');
-                }
-            } catch {
-                showToast('Something went wrong', 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (CONFIG.API_URL) {
-                try {
-                    const res = await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'getBanners' })
-                    });
-                    const data = await res.json();
-                    if (data.success && data.bannerUrl) {
-                        const bannerDiv = document.getElementById('activeBanner');
-                        bannerDiv.innerHTML =
-                            `<img src="${data.bannerUrl}" alt="System Banner"
-                            style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
-                        bannerDiv.style.border = 'none';
-                        bannerDiv.style.background = 'transparent';
-                    }
-                } catch (e) {
-                    console.error("Failed to load banner", e);
-                }
-            }
-        });
-    </script>
-
 </body>
 
 </html>
