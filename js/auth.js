@@ -21,10 +21,21 @@ window.toggleAuth = function (view) {
 document.addEventListener('DOMContentLoaded', () => {
 
     // Load Hero Banner
-    const heroBanner = localStorage.getItem('heroBanner');
-    const heroBannerContainer = document.getElementById('heroBannerContainer');
-    if (heroBanner && heroBannerContainer) {
-        heroBannerContainer.innerHTML = `<img src="${heroBanner}" alt="Hero Banner" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">`;
+    // Load Hero Banner
+    loadHeroBanner();
+
+    async function loadHeroBanner() {
+        try {
+            const banners = await API.getBanners();
+            const heroBanner = banners.find(b => b.type === 'hero');
+            const heroBannerContainer = document.getElementById('heroBannerContainer');
+
+            if (heroBanner && heroBanner.url && heroBannerContainer) {
+                heroBannerContainer.innerHTML = `<img src="${heroBanner.url}" alt="Hero Banner" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">`;
+            }
+        } catch (e) {
+            console.error("Failed to load hero banner", e);
+        }
     }
 
     // Login Handling

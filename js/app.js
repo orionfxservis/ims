@@ -71,10 +71,20 @@ function loadDashboardData() {
     animateValue(document.querySelector('#dashboard .stat-card:nth-child(3) .stat-value'), 0, 80000, 2000, 'Rs. ');
 
     // Load Dashboard Banner
-    const dbBanner = localStorage.getItem('dashboardBanner');
-    const bannerContainer = document.getElementById('dashboardBannerContainer');
-    if (dbBanner && bannerContainer) {
-        bannerContainer.innerHTML = `<img src="${dbBanner}" alt="Dashboard Banner" style="max-width: 720px; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">`;
+    loadDashboardBanner();
+}
+
+async function loadDashboardBanner() {
+    try {
+        const banners = await API.getBanners();
+        const dbBanner = banners.find(b => b.type === 'dashboard');
+        const bannerContainer = document.getElementById('dashboardBannerContainer');
+
+        if (dbBanner && dbBanner.url && bannerContainer) {
+            bannerContainer.innerHTML = `<img src="${dbBanner.url}" alt="Dashboard Banner" style="max-width: 720px; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">`;
+        }
+    } catch (e) {
+        console.error("Failed to load dashboard banner", e);
     }
 }
 
