@@ -120,6 +120,9 @@
                 <a href="#" class="nav-item admin-nav-item" onclick="switchTab('banners', this)">
                     <i class="fa-solid fa-images"></i> Banners
                 </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('categories', this)">
+                    <i class="fa-solid fa-tags"></i> Categories
+                </a>
                 <a href="#" class="nav-item admin-nav-item" onclick="switchTab('system', this)">
                     <i class="fa-solid fa-sliders"></i> System
                 </a>
@@ -142,6 +145,10 @@
                 <h1 class="page-title">Admin Dashboard</h1>
                 <div class="stat-grid">
                     <div class="stat-card">
+                        <div class="stat-label">Registered Companies</div>
+                        <div class="stat-value" id="countCompanies">0</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-label">Total Registered Users</div>
                         <div class="stat-value" id="countTotalUsers">0</div>
                     </div>
@@ -153,6 +160,16 @@
                         <div class="stat-label">Pending Approvals</div>
                         <div class="stat-value" style="color: #f59e0b;" id="countPendingUsers">0</div>
                     </div>
+                </div>
+
+                <!-- Recent Activity List -->
+                <div class="glass-card" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity Log
+                    </h3>
+                    <ul id="adminActivityLog"
+                        style="list-style: none; padding: 0; color: #ccc; font-size: 0.9rem; max-height: 300px; overflow-y: auto;">
+                        <li style="text-align: center; padding: 1rem; color: #666;">Loading activities...</li>
+                    </ul>
                 </div>
             </div>
 
@@ -224,7 +241,35 @@
                 </div>
             </div>
 
-            <!-- 4. SYSTEM -->
+            <!-- 4. CATEGORIES -->
+            <div id="categories" class="view-section hidden">
+                <h1 class="page-title">Manage Categories</h1>
+
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Add New Category</h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="text" id="newCategoryName" class="form-input" placeholder="Enter category name"
+                            style="flex: 1;">
+                        <button class="btn" style="width: auto;" onclick="addCategory()">Add Category</button>
+                    </div>
+                </div>
+
+                <div class="glass-table-container">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Category Name</th>
+                                <th style="width: 100px; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryList">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 5. SYSTEM -->
             <div id="system" class="view-section hidden">
                 <h1 class="page-title">System Settings</h1>
                 <div class="glass-card" style="max-width: 600px;">

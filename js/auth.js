@@ -154,3 +154,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 });
+
+// Scroll-to-top button logic
+const scrollTopBtn = document.getElementById("scrollTopBtn");
+const heroLeft = document.querySelector('.hero-left');
+
+if (scrollTopBtn && heroLeft) {
+    // Show button when hero-left is scrolled down
+    heroLeft.addEventListener('scroll', () => {
+        if (heroLeft.scrollTop > 200) {
+            scrollTopBtn.style.display = "block";
+        } else {
+            scrollTopBtn.style.display = "none";
+        }
+    });
+
+    // Smooth scroll hero-left to top on click
+    scrollTopBtn.addEventListener("click", () => {
+        heroLeft.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
+}

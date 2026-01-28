@@ -3,7 +3,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
     loadDashboardStats();
+    loadRecentActivity(); // Load activity log
     loadUsers();
+    loadCategories(); // New: Load categories
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -91,23 +93,31 @@ async function loadUsers() {
     users.sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
     tbody.innerHTML = users.filter(u => u.role !== 'admin').map(user => `
-        <tr>
+    < tr class="user-row status-row-${user.status || 'pending'}" >
             <td>
-                <div style="font-weight: 600;">${user.name || user.username}</div>
-                <div style="font-size: 0.8rem; color: #aaa;">${user.username}</div>
+                <div style="font-weight: 600; color: white;">${user.name || user.username}</div>
+                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">${user.username}</div>
             </td>
-            <td>${user.company}</td>
-            <td><span class="status-badge status-${user.status || 'pending'}">${(user.status || 'pending').toUpperCase()}</span></td>
+            <td>${user.company || '-'}</td>
             <td>
-                ${user.status !== 'active' ?
+                <div style="font-size: 0.9rem;">${user.phone || '-'}</div>
+            </td>
+            <td>
+                <span class="status-badge status-${user.status || 'pending'}">
+                    ${(user.status === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : user.status === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
+                    ${(user.status || 'pending').toUpperCase()}
+                </span>
+            </td>
+            <td>
+                ${user.status !== 'active' && user.status !== 'locked' ?
             `<button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve"><i class="fa-solid fa-check"></i></button>` : ''
         }
-                <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="Lock/Unlock">
+                <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${user.status === 'locked' ? 'Unlock' : 'Lock'}">
                     <i class="fa-solid ${user.status === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
                 </button>
                 <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
             </td>
-        </tr>
+        </tr >
     `).join('');
 
     if (users.filter(u => u.role !== 'admin').length === 0) {
@@ -185,9 +195,48 @@ function loadDashboardStats() {
     const active = users.filter(u => u.role !== 'admin' && u.status === 'active').length;
     const pending = users.filter(u => u.role !== 'admin' && u.status === 'pending').length;
 
+    // Calculate unique companies
+    const companies = new Set(users.filter(u => u.role !== 'admin' && u.company).map(u => u.company.trim())).size;
+
+    document.getElementById('countCompanies').innerText = companies;
     document.getElementById('countTotalUsers').innerText = total;
     document.getElementById('countActiveUsers').innerText = active;
     document.getElementById('countPendingUsers').innerText = pending;
+}
+
+// 4b. Recent Activity
+async function loadRecentActivity() {
+    const list = document.getElementById('adminActivityLog');
+    if (!list) return;
+
+    try {
+        const res = await API.getActivities();
+        const activities = (res && res.activities) ? res.activities : [];
+
+        if (activities.length === 0) {
+            list.innerHTML = '<li style="text-align: center; padding: 1rem;">No detailed activity logs yet.</li>';
+            return;
+        }
+
+        list.innerHTML = activities.map(act => {
+            const dateStr = new Date(act.date).toLocaleString();
+            return `
+            <li style="margin-bottom: 0px; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0.8rem 0; display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <div style="color: white; font-weight: 500;">
+                        <span style="color: #3b82f6;">${act.user}</span> 
+                        <span style="color: #aaa; font-weight: 400;">- ${act.action}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">${act.details}</div>
+                </div>
+                <div style="font-size: 0.75rem; color: #666; white-space: nowrap; margin-left: 1rem;">${dateStr}</div>
+            </li>`;
+        }).join('');
+
+    } catch (e) {
+        console.error("Error loading activities", e);
+        list.innerHTML = `<li style="color: #ef4444; padding: 1rem;">Failed to load activity log.</li>`;
+    }
 }
 
 // 5. Banner Management
@@ -297,29 +346,81 @@ window.addBanner = async function () {
     if (!url) url = "https://via.placeholder.com/300x140?text=" + encodeURIComponent(title);
 
     currentBanners.push({ title, url, type: 'main' });
-
     await syncBanners();
     loadBanners(); // Refresh grid
 };
 
-window.deleteBanner = async function (visualIndex) {
-    if (!confirm("Delete this banner?")) return;
+window.loadCategories = async function () {
+    const tbody = document.getElementById('categoryList');
+    if (!tbody) return;
 
-    // The visual index corresponds to the 'mainBanners' list, not necessarily 'currentBanners' index
-    // We need to find the item in currentBanners
-    const mainBanners = currentBanners.filter(b => b.type === 'main' || !b.type);
-    const targetBanner = mainBanners[visualIndex];
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Loading...</td></tr>';
 
-    // Remove from main list
-    const indexInMain = currentBanners.indexOf(targetBanner);
-    if (indexInMain > -1) {
-        currentBanners.splice(indexInMain, 1);
-        await syncBanners();
-        loadBanners();
+    try {
+        const res = await API.getCategories();
+        let categories = [];
+        if (res && res.categories) {
+            categories = res.categories;
+        } else if (Array.isArray(res)) {
+            categories = res;
+        }
+
+        if (categories.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No categories found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = categories.map(cat => `
+            <tr>
+                <td>${cat.name}</td>
+                <td style="text-align: right;">
+                    <button class="action-btn btn-lock" onclick="deleteCategory('${cat.id}')" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color: red;">Error: ${e.message}</td></tr>`;
     }
 };
 
-// 6. System Settings
+window.addCategory = async function () {
+    const input = document.getElementById('newCategoryName');
+    const name = input.value.trim();
+    if (!name) return alert("Please enter a category name");
+
+    // Disable button to prevent double submit?
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+
+    const res = await API.addCategory(name);
+
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+
+    if (res.success || res.status === 'success') {
+        input.value = '';
+        loadCategories();
+    } else {
+        alert("Error adding category: " + (res.message || 'Unknown error'));
+    }
+};
+
+window.deleteCategory = async function (id) {
+    if (!confirm("Are you sure you want to delete this category? It will be hidden from new lists.")) return;
+
+    const res = await API.deleteCategory(id);
+    if (res.success || res.status === 'success') {
+        loadCategories();
+    } else {
+        alert("Error deleting category: " + (res.message || 'Unknown error'));
+    }
+};
+
+// 7. System Settings
 window.saveSystemSettings = function () {
     // const id = document.getElementById('sheetId').value; // Legacy
     const apiUrl = document.getElementById('sheetId').value; // Reusing field for Web App URL

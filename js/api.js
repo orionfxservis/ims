@@ -75,6 +75,14 @@ const API = {
         }
     },
 
+    async getActivities() {
+        if (this.isLive()) {
+            return this.get('getActivities');
+        } else {
+            return Promise.resolve([]);
+        }
+    },
+
     // --- Generic Helpers ---
     async post(data) {
         const controller = new AbortController();
@@ -184,6 +192,58 @@ const API = {
             items.push(item);
             localStorage.setItem('inventory', JSON.stringify(items));
             return Promise.resolve({ status: 'success' });
+        }
+    },
+
+    // --- Sales ---
+    async getSales() {
+        if (this.isLive()) {
+            return this.get('getSales');
+        } else {
+            return Promise.resolve(JSON.parse(localStorage.getItem('sales') || '[]'));
+        }
+    },
+
+    async saveSale(sale) {
+        if (this.isLive()) {
+            return this.post({ action: 'saveSale', ...sale });
+        } else {
+            const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+            sales.push({ ...sale, date: new Date().toISOString() });
+            localStorage.setItem('sales', JSON.stringify(sales));
+            return Promise.resolve({ status: 'success' });
+        }
+    },
+
+    // --- Categories ---
+    async getCategories() {
+        if (this.isLive()) {
+            return this.get('getCategories');
+            // Expected format from GS: { success: true, categories: [{id, name}, ...] }
+        } else {
+            return Promise.resolve({ success: true, categories: JSON.parse(localStorage.getItem('categories') || '[]') });
+        }
+    },
+
+    async addCategory(name) {
+        if (this.isLive()) {
+            return this.post({ action: 'addCategory', categoryName: name });
+        } else {
+            const cats = JSON.parse(localStorage.getItem('categories') || '[]');
+            cats.push({ id: new Date().getTime(), name: name });
+            localStorage.setItem('categories', JSON.stringify(cats));
+            return Promise.resolve({ success: true, message: 'Category added' });
+        }
+    },
+
+    async deleteCategory(id) {
+        if (this.isLive()) {
+            return this.post({ action: 'deleteCategory', id: id });
+        } else {
+            const cats = JSON.parse(localStorage.getItem('categories') || '[]');
+            const newCats = cats.filter(c => c.id != id);
+            localStorage.setItem('categories', JSON.stringify(newCats));
+            return Promise.resolve({ success: true, message: 'Category deleted' });
         }
     }
 };

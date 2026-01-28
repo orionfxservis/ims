@@ -83,24 +83,29 @@
 
             <!-- Dashboard View -->
             <section id="dashboard" class="view-section">
-                <div class="stat-grid">
+                <!-- Main Stats Grid -->
+                <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                     <div class="stat-card">
-                        <h3>Total Stock Value</h3>
-                        <div class="stat-value">Rs. 0</div>
+                        <h3>Total Inventory Value</h3>
+                        <div class="stat-value" id="dTotalValue">Rs. 0</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Total Sales</h3>
-                        <div class="stat-value">Rs. 0</div>
+                        <h3>Total Products</h3>
+                        <div class="stat-value" id="dTotalProducts">0</div>
+                    </div>
+                    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                        <h3>Low Stock Alerts</h3>
+                        <div class="stat-value" id="dLowStock" style="color: #f59e0b;">0</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Total Purchases</h3>
-                        <div class="stat-value">Rs. 0</div>
+                        <h3>Sales (Today)</h3>
+                        <div class="stat-value" id="dSalesToday">Rs. 0</div>
                     </div>
                 </div>
 
                 <!-- Quick Actions Grid ("Small Boxes") -->
                 <h3 style="margin-bottom: 1rem; color: #ddd; font-size: 1.1rem;">Quick Actions</h3>
-                <div class="quick-actions-grid">
+                <div class="quick-actions-grid" style="margin-bottom: 2rem;">
                     <div class="action-box" onclick="document.querySelector('[data-tab=purchase]').click()">
                         <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
                         <div>New Purchase</div>
@@ -123,6 +128,59 @@
                         <div>View Reports</div>
                     </div>
                 </div>
+
+                <!-- Secondary Stats & Tables Row -->
+                <div style="margin-bottom: 2rem;">
+
+                    <!-- Low Stock & Top Products Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+                        <!-- Low Stock Table -->
+                        <div class="glass-card">
+                            <h3 style="margin-bottom: 1rem; color: #f59e0b;"><i
+                                    class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h3>
+                            <table class="data-table" style="font-size: 0.9rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Qty</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowStockTableBody">
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; color: #aaa;">No alerts</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Top Selling -->
+                        <div class="glass-card">
+                            <h3 style="margin-bottom: 1rem; color: #22c55e;"><i class="fa-solid fa-arrow-trend-up"></i>
+                                Top Selling Products</h3>
+                            <div id="topSellingList">
+                                <p style="color: #aaa;">No sales data available</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Recent Activity (Hidden) -->
+                    <div class="glass-card" style="display: none;">
+                        <!-- Hidden as per request -->
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity
+                        </h3>
+                        <ul id="activityLog" style="list-style: none; padding: 0; color: #ccc; font-size: 0.9rem;">
+                            <li
+                                style="margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                                <div style="color: white; font-weight: 500;">System Login</div>
+                                <div style="font-size: 0.8rem;">Admin accessed dashboard</div>
+                            </li>
+                            <!-- Populated via JS (Mock or Real) -->
+                        </ul>
+                    </div>
+                </div>
+
 
                 <!-- Dashboard Banner Position -->
                 <div id="dashboardBannerContainer"
@@ -163,25 +221,75 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <h3>Purchase Entry</h3>
                     <form id="purchaseForm"
-                        style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        style="margin-top: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: end;">
+
+                        <!-- Row 1 -->
                         <div class="form-group">
-                            <label>Item</label>
-                            <select class="form-input" id="purItem"></select>
+                            <label style="font-size: 0.85rem;">Category</label>
+                            <select class="form-input" id="purCategorySelect" required style="padding: 0.4rem;">
+                                <option value="">Select Category</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" class="form-input" id="purQty">
+                            <label style="font-size: 0.85rem;">Vendor</label>
+                            <input type="text" class="form-input" id="purVendor" placeholder="Vendor Name"
+                                style="padding: 0.4rem;">
                         </div>
                         <div class="form-group">
-                            <label>Supplier</label>
-                            <input type="text" class="form-input" id="purSupplier">
+                            <label style="font-size: 0.85rem;">Item Name</label>
+                            <input type="text" class="form-input" id="purItem" placeholder="Item Name" required
+                                style="padding: 0.4rem;">
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Brand</label>
+                            <input type="text" class="form-input" id="purBrand" placeholder="Brand"
+                                style="padding: 0.4rem;">
                         </div>
                         <div class="form-group">
-                            <label>Cost Price</label>
-                            <input type="number" class="form-input" id="purPrice">
+                            <label style="font-size: 0.85rem;">Quantity</label>
+                            <input type="number" class="form-input" id="purQty" placeholder="0"
+                                style="padding: 0.4rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Unit Price</label>
+                            <input type="number" class="form-input" id="purPrice" placeholder="0.00"
+                                style="padding: 0.4rem;">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Total Price</label>
+                            <input type="number" class="form-input" id="purTotal" readonly
+                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.4rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Payment Mode</label>
+                            <select class="form-input" id="purMode"
+                                style="padding: 0.4rem; color: #333; background: white;">
+                                <option value="Cash" style="color: black;">Cash</option>
+                                <option value="Cheque" style="color: black;">Cheque</option>
+                                <option value="Online" style="color: black;">Online</option>
+                                <option value="Credit" style="color: black;">Credit (Unpaid)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Amount Paid</label>
+                            <input type="number" class="form-input" id="purPaid" placeholder="0.00"
+                                style="padding: 0.4rem;">
+                        </div>
+
+                        <!-- Row 4 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Balance Amount</label>
+                            <input type="number" class="form-input" id="purBalance" readonly
+                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.4rem;">
                         </div>
                         <div class="form-group" style="grid-column: span 2;">
-                            <button type="submit" class="btn">Record Purchase</button>
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn" style="width: 100%; padding: 0.5rem;">Record
+                                Purchase</button>
                         </div>
                     </form>
                 </div>
@@ -253,11 +361,47 @@
 
             <!-- Admin View -->
             <section id="admin" class="view-section hidden">
-                <div class="glass-card" style="max-width: 100%;">
-                    <h3>Pending User Approvals</h3>
-                    <div id="pendingUsersList">
-                        <p>Loading...</p>
+                <!-- Admin Header Stats -->
+                <div class="admin-stat-grid">
+                    <div class="stat-card admin-stat-card card-blue">
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <h3>Total Users</h3>
+                            <div class="stat-value" id="countTotalUsers">0</div>
+                        </div>
                     </div>
+                    <div class="stat-card admin-stat-card card-green">
+                        <div class="stat-icon"><i class="fa-solid fa-user-check"></i></div>
+                        <div>
+                            <h3>Active Users</h3>
+                            <div class="stat-value" id="countActiveUsers">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card admin-stat-card card-orange">
+                        <div class="stat-icon"><i class="fa-solid fa-user-clock"></i></div>
+                        <div>
+                            <h3>Pending</h3>
+                            <div class="stat-value" id="countPendingUsers">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="max-width: 100%; overflow-x: auto;">
+                    <h3 style="margin-bottom: 1rem;">User Management</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Username</th>
+                                <th>Company</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Populated by admin.js -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 

@@ -181,22 +181,43 @@ body {
 
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
+    /* Force 4 columns for desktop to keep in one line */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
 .stat-card {
     background: var(--glass-bg);
-    padding: 1.5rem;
+    padding: 1rem;
+    /* Reduced padding */
     border-radius: 12px;
     border: 1px solid var(--glass-border);
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    /* Reduced font size */
     font-weight: 700;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+/* Responsiveness for smaller screens */
+@media (max-width: 1024px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Utility to hide/show */
@@ -272,19 +293,21 @@ body {
 /* ... previous styles ... */
 
 /* HERO SECTION OVERRIDES - PROPERLY COMPACTED & RESPONSIVE */
+/* HERO SECTION OVERRIDES - PROPERLY COMPACTED & RESPONSIVE */
 .hero-container {
     display: flex;
     width: 100%;
     max-width: 100%;
     height: 100vh;
     padding: 0 2rem 0 3rem;
-    /* Adjusted horizontal padding */
     gap: 1rem;
     /* Reduced Gap */
-    align-items: center;
+    align-items: flex-start;
+    /* Align top for scrolling content */
     justify-content: space-between;
     z-index: 1;
     overflow: hidden;
+    /* Prevent body scroll, container fixed */
 }
 
 /* LEFT SIDE */
@@ -294,8 +317,29 @@ body {
     color: white;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    max-height: 100%;
+    justify-content: flex-start;
+    /* Start from top */
+    height: 100%;
+    /* Full height */
+    overflow-y: auto;
+    /* Scrollable */
+    padding-top: 2rem;
+    /* Initial padding */
+    padding-bottom: 2rem;
+    padding-right: 1rem;
+    /* Space for scrollbar */
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.hero-left::-webkit-scrollbar {
+    width: 6px;
+}
+
+.hero-left::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
 }
 
 .hero-subtitle {
@@ -385,6 +429,71 @@ body {
     color: #f59e0b;
     font-size: 1rem;
 }
+
+/* ================= HERO CTA SECTION ================= */
+.hero-cta-section {
+    padding: 0 0 2rem 0;
+    /* Updated padding */
+    display: flex;
+    justify-content: center;
+    /* Align Center */
+    position: relative;
+    z-index: 3;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: nowrap;
+    /* Prevent wrapping */
+    justify-content: center;
+    /* Align Center */
+    width: 100%;
+}
+
+/* Buttons */
+.hero-cta .btn {
+    padding: 14px 30px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    width: auto;
+    max-width: none;
+}
+
+/* Primary */
+.hero-cta .btn-primary {
+    background: linear-gradient(135deg, #5f9cff, #6a5cff);
+    color: #fff;
+}
+
+.hero-cta .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Secondary */
+.hero-cta .btn-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hero-cta .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 768px) {
+    .hero-cta .btn {
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
+    }
+}
+
 
 /* Stats Row */
 .stats-row {
@@ -612,6 +721,260 @@ body {
     margin-left: 10px;
 }
 
-.faq-item.active .faq-arrow {
-    transform: rotate(180deg);
+/* Admin Stat Grid - Tighter */
+.admin-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    /* Narrower columns */
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Admin Stat Cards - Compact & Colored */
+.admin-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    /* Even more compact */
+    min-height: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Subtle border */
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Glass shine effect overlay */
+}
+
+.admin-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.admin-stat-card h3 {
+    font-size: 0.8rem;
+    margin-bottom: 0.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.admin-stat-card .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 0;
+    line-height: 1;
+    color: white;
+}
+
+.admin-stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Color Variants (Deep rich filled colors matching space theme) */
+.card-blue {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    /* Navy to Blue */
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.4);
+}
+
+.card-green {
+    background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+    /* Dark Green to Emerald */
+    box-shadow: 0 4px 10px rgba(6, 78, 59, 0.4);
+}
+
+.card-orange {
+    background: linear-gradient(135deg, #7c2d12 0%, #f59e0b 100%);
+    /* Dark Orange/Red to Amber */
+    box-shadow: 0 4px 10px rgba(124, 45, 18, 0.4);
+}
+
+.card-purple {
+    background: linear-gradient(135deg, #581c87 0%, #a855f7 100%);
+    /* Deep Purple to Light Purple */
+    box-shadow: 0 4px 10px rgba(88, 28, 135, 0.4);
+}
+
+/* ================== SCROLL TO TOP BUTTON ================== */
+#scrollTopBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 80px;
+    z-index: 999;
+    background: linear-gradient(135deg, #2c2c3e, #3a3a50);
+    /* matches social box & features */
+    color: #fff;
+    border: none;
+    outline: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: none;
+    /* hidden by default */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+#scrollTopBtn:hover {
+    transform: translateY(-3px) scale(1.1);
+    background: linear-gradient(135deg, #1e1e2f, #2b2b3d);
+    /* subtle hover gradient */
+    color: var(--accent-color);
+}
+
+/* ================== FOOTER (MATCH FAQ BOX) ================== */
+.site-footer {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+
+    color: #fff;
+    padding: 25px 20px;
+    /* Reduced padding */
+    margin-top: 40px;
+    /* Reduced margin */
+    text-align: center;
+    transition: all 0.3s ease;
+    width: 100%;
+    /* Ensure full width in container */
+}
+
+/* Footer Box Hover Effect */
+.site-footer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* Footer links */
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    /* Slightly tighter gap */
+    margin-bottom: 20px;
+}
+
+.footer-links a {
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+/* Orange Hover for Links */
+.footer-links a:hover {
+    color: #f59e0b;
+    /* Orange */
+    opacity: 1;
+    transform: scale(1.05);
+    /* Slight grow */
+}
+
+/* Social icons inner box (same card feel) */
+.footer-social-box {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.10),
+            rgba(255, 255, 255, 0.04));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+
+    padding: 16px 28px;
+    display: inline-flex;
+    gap: 18px;
+    margin-bottom: 26px;
+}
+
+/* Social icons */
+.footer-social-box .social-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 18px;
+
+    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+.footer-social-box .social-icon:hover {
+    transform: translateY(-3px) scale(1.1);
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--accent-color);
+}
+
+/* Tagline */
+.footer-tagline {
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-bottom: 10px;
+}
+
+/* Copyright */
+.footer-copyright {
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .footer-links {
+        flex-direction: column;
+        gap: 14px;
+    }
+}
+
+
+.faq-item {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }

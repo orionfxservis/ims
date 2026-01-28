@@ -21,6 +21,18 @@ function doGet(e) {
     return getInventory();
   }
 
+  if (action === 'getCategories') {
+    return getCategories();
+  }
+
+  if (action === 'getSales') {
+    return getSales();
+  }
+
+  if (action === 'getActivities') {
+    return getActivities();
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action' })).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -34,6 +46,9 @@ function doPost(e) {
       if (data.action === 'updateUserStatus') return updateUserStatus(data);
       if (data.action === 'saveBanners') return saveBanners(data);
       if (data.action === 'saveInventory') return saveInventory(data.data);
+      if (data.action === 'saveSale') return saveSale(data);
+      if (data.action === 'addCategory') return addCategory(data);
+      if (data.action === 'deleteCategory') return deleteCategory(data);
       if (data.action === 'test') return response({ status: 'success', message: 'Connection OK' });
     }
     
@@ -80,6 +95,7 @@ function loginUser(data) {
      return response({ status: 'error', message: 'Account not active. Please wait for Admin approval.' });
   }
 
+  logActivity(user.username, 'Login', 'User logged in');
   return response({ status: 'success', user: user });
 }
 
@@ -172,4 +188,183 @@ function setup() {
     const sheet = ss.insertSheet('Banners');
     sheet.appendRow(['Title', 'URL', 'Type']);
   }
+  
+  if (!ss.getSheetByName('Categories')) {
+    const sheet = ss.insertSheet('Categories');
+    sheet.appendRow(['ID', 'Name', 'Status']);
+  }
+
+  if (!ss.getSheetByName('ActivityLog')) {
+    const sheet = ss.insertSheet('ActivityLog');
+    sheet.appendRow(['Date', 'User', 'Action', 'Details']);
+  }
+
+  if (!ss.getSheetByName('Inventory')) {
+    const sheet = ss.insertSheet('Inventory');
+    sheet.appendRow(['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Mode', 'Balance']);
+  }
+
+  if (!ss.getSheetByName('Sales')) {
+    const sheet = ss.insertSheet('Sales');
+    sheet.appendRow(['Date', 'Item Name', 'Quantity', 'Customer', 'Price', 'Total', 'Mode']);
+  }
+}
+
+// --- Activity Logging ---
+
+// --- Inventory Functions ---
+
+function getInventory() {
+  const data = getSheetData('Inventory');
+  return response(data); // Returns array of objects
+}
+
+function saveInventory(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Inventory');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Inventory');
+  }
+  
+  // Data: date, category, vendor, item, brand, qty, price, total, paid, mode, balance
+  // Append Row
+  sheet.appendRow([
+    data.date,
+    data.category,
+    data.vendor,
+    data.item,
+    data.brand,
+    "'" + data.qty, // Force string to avoid scientific notation if needed, or just data.qty
+    data.price,
+    data.total,
+    data.paid,
+    data.mode,
+    data.balance
+  ]);
+  
+  return response({ status: 'success', message: 'Inventory added' });
+}
+
+// --- Sales Functions ---
+
+function getSales() {
+  const data = getSheetData('Sales');
+  return response(data);
+}
+
+function saveSale(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Sales');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Sales');
+  }
+  
+  sheet.appendRow([
+    new Date(),
+    data.item,
+    data.qty,
+    data.customer,
+    data.price,
+    data.qty * data.price, // Total
+    'Cash' // Default mode for now
+  ]);
+  
+  return response({ status: 'success', message: 'Sale recorded' });
+}
+
+// --- Activity Logging ---
+
+function logActivity(user, action, details) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ActivityLog');
+    if (sheet) {
+      sheet.appendRow([new Date(), user, action, details]);
+    }
+  } catch (e) {
+    // Silent fail to not disrupt main flow
+    Logger.log("Error logging activity: " + e.toString());
+  }
+}
+
+function getActivities() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ActivityLog');
+  if (!sheet) return response({ success: true, activities: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const activities = [];
+  
+  // Return last 20 activities (reverse order)
+  // Skip header (row 0), start from end
+  for (let i = data.length - 1; i >= 1 && activities.length < 20; i--) {
+    activities.push({
+      date: data[i][0],
+      user: data[i][1],
+      action: data[i][2],
+      details: data[i][3]
+    });
+  }
+  
+  return response({ success: true, activities: activities });
+}
+
+// --- Category Functions ---
+
+function getCategories() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Categories");
+  if (!sheet) return response({ success: false, categories: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const result = [];
+  
+  // Start from 1 to skip header
+  for (let i = 1; i < data.length; i++) {
+    // Check if status is Active (case insensitive check for robustness, though we write "Active")
+    if (String(data[i][2]).toLowerCase() === "active") {
+      result.push({
+        id: data[i][0],
+        name: data[i][1]
+      });
+    }
+  }
+
+  return response({ success: true, categories: result });
+}
+
+function addCategory(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("Categories");
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName("Categories");
+  }
+
+  // Simple ID generation: Timestamp or just Row Index?
+  // Let's use Timestamp for uniqueness
+  const id = new Date().getTime(); 
+  sheet.appendRow([id, data.categoryName, "Active"]);
+
+  return response({ success: true, message: "Category added" });
+}
+
+function deleteCategory(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Categories");
+  if (!sheet) return response({ success: false, message: "Sheet not found" });
+  
+  const dataRange = sheet.getDataRange().getValues();
+  let found = false;
+
+  for (let i = 1; i < dataRange.length; i++) {
+    // Compare IDs (column 0)
+    if (String(dataRange[i][0]) === String(data.id)) {
+      // Set status to Inactive (Column 2 -> index 2, +1 for 1-based row)
+      sheet.getRange(i + 1, 3).setValue("Inactive");
+      found = true;
+      break;
+    }
+  }
+
+  if (found) return response({ success: true, message: "Category removed" });
+  return response({ success: false, message: "Category not found" });
 }
