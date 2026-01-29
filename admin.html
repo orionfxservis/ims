@@ -176,24 +176,47 @@
             <!-- 2. USER MANAGEMENT -->
             <div id="users" class="view-section hidden">
                 <h1 class="page-title">User Management</h1>
-                <div class="glass-table-container">
-                    <!-- Hidden File Input for Profile Upload -->
-                    <input type="file" id="profileUpload" accept="image/*" style="display:none">
 
-                    <table class="glass-table">
-                        <thead>
-                            <tr>
-                                <th>Profile</th>
-                                <th>Name</th>
-                                <th>Company</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <!-- Hidden File Input for Profile Upload -->
+                <input type="file" id="profileUpload" accept="image/*" style="display:none">
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: #60a5fa;">Regular Users</h3>
+                    <div class="glass-table-container">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Picture</th>
+                                    <th>User Name</th>
+                                    <th>Company Name</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="regularUserTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: #f59e0b;">System Users (Admin / Guest)</h3>
+                    <div class="glass-table-container">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Picture</th>
+                                    <th>Role</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="systemUserTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

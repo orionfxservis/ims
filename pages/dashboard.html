@@ -391,18 +391,33 @@
                     <!-- Hidden File Input for Profile Upload -->
                     <input type="file" id="profileUpload" accept="image/*" style="display:none">
 
-                    <table class="data-table">
+                    <h4 style="margin: 1rem 0 0.5rem 0; color: #60a5fa;">Regular Users</h4>
+                    <table class="data-table" style="margin-bottom: 2rem;">
                         <thead>
                             <tr>
-                                <th>Profile</th>
-                                <th>Name / Username</th>
+                                <th>Picture</th>
+                                <th>User Name</th>
                                 <th>Company</th>
-                                <th>Contact</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="userTableBody">
+                        <tbody id="regularUserTableBody">
+                            <!-- Populated by admin.js -->
+                        </tbody>
+                    </table>
+
+                    <h4 style="margin: 1rem 0 0.5rem 0; color: #f59e0b;">System Users</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Picture</th>
+                                <th>Role</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="systemUserTableBody">
                             <!-- Populated by admin.js -->
                         </tbody>
                     </table>

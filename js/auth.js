@@ -44,8 +44,52 @@ window.loginAsTrial = function () {
 document.addEventListener('DOMContentLoaded', () => {
 
     // Load Hero Banner
-    // Load Hero Banner
     loadHeroBanner();
+    loadPublicStats();
+
+    async function loadPublicStats() {
+        // Fetch Users (Registered Companies, Users, Active)
+        try {
+            const users = await API.getUsers();
+
+            // 1. Registered Companies
+            const companies = new Set(users.map(u => (u.company || '').trim().toLowerCase()));
+            const companyCount = companies.size;
+
+            // 2. Registered Users & Active
+            const userCount = users.length;
+            const activeCount = users.filter(u => u.status === 'active').length;
+
+            animateValue(document.getElementById('lpCountCompanies'), 0, companyCount, 2000);
+            animateValue(document.getElementById('lpCountUsers'), 0, userCount, 2000);
+            animateValue(document.getElementById('lpCountActive'), 0, activeCount, 2000);
+        } catch (e) {
+            console.error("Failed to load public user stats", e);
+        }
+
+        // Fetch Inventory (Items in Stock)
+        try {
+            const inventory = await API.getInventory();
+            const itemCount = inventory.length;
+            animateValue(document.getElementById('lpCountItems'), 0, itemCount, 2000);
+        } catch (e) {
+            console.error("Failed to load public inventory stats", e);
+        }
+    }
+
+    function animateValue(obj, start, end, duration) {
+        if (!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
 
     async function loadHeroBanner() {
         try {
@@ -135,11 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = {
                 company: document.getElementById('regCompanyName').value,
-                username: document.getElementById('regUsername').value,
+                username: document.getElementById('regUsername').value, // Used as Name in form
                 password: password,
                 phone: document.getElementById('regPhone').value,
+                email: document.getElementById('regEmail').value,
+                address: document.getElementById('regAddress').value,
                 role: 'user',
-                name: document.getElementById('regUsername').value // Default name to username
+                name: document.getElementById('regUsername').value // Sync name/username
             };
 
             // Call API
@@ -148,10 +194,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerHTML = originalText;
 
                 if (response.status === 'success') {
-                    showToast("Registration successful! Please wait for Admin approval.");
+                    showToast("Registration successful! sending request to Admin...");
                     registerForm.reset();
-                    // Optional: Switch to login view after successful registration after a delay
-                    setTimeout(() => toggleAuth('login'), 2000);
+
+                    // WhatsApp to Admin
+                    const adminPhone = "923123456789"; // Replace with Admin's actual number
+                    const msg = `*New Registration Request*\n\nName: ${data.name}\nCompany: ${data.company}\nMobile: ${data.phone}\nAddress: ${data.address}\nEmail: ${data.email}\n\nPlease approve this user.`;
+                    const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`;
+
+                    setTimeout(() => {
+                        window.open(url, '_blank');
+                        toggleAuth('login');
+                    }, 1500);
+
                 } else {
                     showToast(response.message, true);
                 }

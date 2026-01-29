@@ -58,46 +58,46 @@
                 <div class="stat-box-glass">
                     <div class="stat-top">
                         <i class="fa-solid fa-building stat-box-icon"></i>
-                        <div class="stat-box-number">0</div>
+                        <div class="stat-box-number" id="lpCountCompanies">0</div>
                     </div>
                     <div class="stat-box-label">Registered Companies</div>
                 </div>
                 <div class="stat-box-glass">
                     <div class="stat-top">
                         <i class="fa-solid fa-users stat-box-icon"></i>
-                        <div class="stat-box-number">0</div>
+                        <div class="stat-box-number" id="lpCountUsers">0</div>
                     </div>
                     <div class="stat-box-label">Registered Users</div>
                 </div>
                 <div class="stat-box-glass">
                     <div class="stat-top">
                         <i class="fa-solid fa-user-check stat-box-icon"></i>
-                        <div class="stat-box-number">0</div>
+                        <div class="stat-box-number" id="lpCountActive">0</div>
                     </div>
-                    <div class="stat-box-label">Login Users</div>
+                    <div class="stat-box-label">Active Users</div>
                 </div>
                 <div class="stat-box-glass">
                     <div class="stat-top">
                         <i class="fa-solid fa-box-open stat-box-icon"></i>
-                        <div class="stat-box-number">0</div>
+                        <div class="stat-box-number" id="lpCountItems">0</div>
                     </div>
                     <div class="stat-box-label">Items in Stock</div>
                 </div>
             </div>
-            <!-- Hero Banner -->
-            <div id="heroBannerContainer"
-                style="margin-top: 2rem; width: 100%; display: flex; justify-content: center; padding-bottom: 2rem;">
-                <!-- Injected via JS -->
-            </div>
-
-            <!-- ================= HERO CTA ================= -->
-            <div class="hero-cta-section" style="padding: 0 0 4rem 0; justify-content: flex-start;">
+            <!-- ================= HERO CTA (Buttons) ================= -->
+            <div class="hero-cta-section" style="padding: 0 0 2rem 0; justify-content: flex-start; margin-top: 1.5rem;">
                 <div class="hero-cta">
                     <a href="#" onclick="loginAsTrial(); return false;" class="btn btn-primary">Start Free / Login</a>
-                    <a href="https://wa.me/923001234567" target="_blank" class="btn btn-secondary">
-                        WhatsApp Demo
+                    <a href="#" onclick="toggleAuth('register'); return false;" class="btn btn-secondary">
+                        Register Now
                     </a>
                 </div>
+            </div>
+
+            <!-- Hero Banner -->
+            <div id="heroBannerContainer"
+                style="margin-top: 0rem; width: 100%; display: flex; justify-content: center; padding-bottom: 2rem;">
+                <!-- Injected via JS -->
             </div>
 
             <!-- ================== FOOTER ================== -->
@@ -177,24 +177,35 @@
 
             <!-- REGISTER CONTAINER (Hidden by default) -->
             <div class="glass-card" id="registerContainer" style="display: none;">
-                <h1 class="title">Create Account</h1>
+                <h1 class="title">Register Now</h1>
                 <p class="subtitle">Join the organization</p>
 
                 <form id="registerForm">
                     <div class="form-group">
-                        <label for="regCompanyName">Company Name</label>
-                        <input type="text" id="regCompanyName" class="form-input" placeholder="Your Company Ltd."
+                        <label for="regUsername">User Name</label>
+                        <input type="text" id="regUsername" class="form-input" placeholder="Full Name / Username"
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label for="regUsername">Username</label>
-                        <input type="text" id="regUsername" class="form-input" placeholder="Choose a username" required>
+                        <label for="regPhone">Mobile No</label>
+                        <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 923001234567" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="regPhone">Phone Number (WhatsApp)</label>
-                        <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 923001234567" required>
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" class="form-input" placeholder="name@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regAddress">Office / Shop Address</label>
+                        <input type="text" id="regAddress" class="form-input" placeholder="Shop #1, Market...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regCompanyName">Company Name</label>
+                        <input type="text" id="regCompanyName" class="form-input" placeholder="Your Company Ltd."
+                            required>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -211,7 +222,7 @@
                     </div>
 
                     <button type="submit" class="btn" id="registerBtn">
-                        <span class="btn-text">Register Account</span>
+                        <span class="btn-text">Submit Registration</span>
                     </button>
 
                     <p class="link-text" style="margin-top: 1rem;">

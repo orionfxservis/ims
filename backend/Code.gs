@@ -179,7 +179,7 @@ function setup() {
   
   if (!ss.getSheetByName('Users')) {
     const sheet = ss.insertSheet('Users');
-    sheet.appendRow(['Date', 'Username', 'Password', 'Name', 'Company', 'Role', 'Status', 'Phone']);
+    sheet.appendRow(['Date', 'Username', 'Password', 'Name', 'Company', 'Role', 'Status', 'Phone', 'Email', 'Address', 'ProfileImage']);
     // Default Admin
     sheet.appendRow([new Date(), 'admin', 'admin123', 'Super Admin', 'System', 'admin', 'active']);
   }

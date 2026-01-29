@@ -84,50 +84,84 @@ window.switchTab = function (tabId, navItem) {
 
 // 3. User Management
 async function loadUsers() {
-    const tbody = document.getElementById('userTableBody');
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading users...</td></tr>';
+    const regularTbody = document.getElementById('regularUserTableBody');
+    const systemTbody = document.getElementById('systemUserTableBody');
+
+    // Safety check if elements exist (in case dashboard.html mismatch)
+    if (regularTbody) regularTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
+    if (systemTbody) systemTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
 
     const users = await API.getUsers();
 
-    // Sort: Pending first
-    users.sort((a, b) => (a.status === 'pending' ? -1 : 1));
+    // Sort: Pending first for regular users
+    const regularUsers = users.filter(u => u.role !== 'admin' && u.role !== 'trial' && u.company !== 'System');
+    regularUsers.sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
-    tbody.innerHTML = users.filter(u => u.role !== 'admin').map(user => `
-    <tr class="user-row status-row-${user.status || 'pending'}">
-            <td>
-                <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
-                     style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
-                    ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user" style="color: #666;"></i>'}
-                </div>
-            </td>
-            <td>
-                <div style="font-weight: 600; color: white;">${user.name || user.username}</div>
-                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">${user.username}</div>
-            </td>
-            <td>${user.company || '-'}</td>
-            <td>
-                <div style="font-size: 0.9rem;">${user.phone || '-'}</div>
-            </td>
-            <td>
-                <span class="status-badge status-${user.status || 'pending'}">
-                    ${(user.status === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : user.status === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
-                    ${(user.status || 'pending').toUpperCase()}
-                </span>
-            </td>
-            <td>
-                ${user.status !== 'active' && user.status !== 'locked' ?
-            `<button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve"><i class="fa-solid fa-check"></i></button>` : ''
+    const systemUsers = users.filter(u => u.role === 'admin' || u.role === 'trial' || u.company === 'System');
+
+    // 1. Regular Users Table
+    if (regularTbody) {
+        if (regularUsers.length > 0) {
+            regularTbody.innerHTML = regularUsers.map(user => `
+            <tr class="user-row status-row-${user.status || 'pending'}">
+                <td>
+                    <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
+                         style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                        ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user" style="color: #666;"></i>'}
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: white;">${user.name || user.username}</div>
+                </td>
+                <td>
+                    <div style="font-size: 0.9rem;">${user.phone || '-'}</div>
+                </td>
+                <td>
+                    <div style="font-size: 0.9rem; color: #aaa;">${user.address || '-'}</div> 
+                </td>
+                <td>${user.company || '-'}</td>
+                <td>
+                    <span class="status-badge status-${user.status || 'pending'}">
+                        ${(user.status === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : user.status === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
+                        ${(user.status || 'pending').toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    ${user.status !== 'active' && user.status !== 'locked' ?
+                    `<button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve"><i class="fa-solid fa-check"></i></button>` : ''
+                }
+                    <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${user.status === 'locked' ? 'Unlock' : 'Lock'}">
+                        <i class="fa-solid ${user.status === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
+                    </button>
+                    <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
+                    <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+            `).join('');
+        } else {
+            regularTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No regular users found.</td></tr>`;
         }
-                <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${user.status === 'locked' ? 'Unlock' : 'Lock'}">
-                    <i class="fa-solid ${user.status === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
-                </button>
-                <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    }
 
-    if (users.filter(u => u.role !== 'admin').length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem;">No users found.</td></tr>`;
+    // 2. System Users Table
+    if (systemTbody) {
+        if (systemUsers.length > 0) {
+            systemTbody.innerHTML = systemUsers.map(user => `
+            <tr>
+                <td>
+                    <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
+                         style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                        ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user-shield" style="color: #666;"></i>'}
+                    </div>
+                </td>
+                <td><span style="font-weight:bold; color:${user.role === 'admin' ? '#ef4444' : '#f59e0b'}">${user.role.toUpperCase()}</span></td>
+                <td>${user.name}</td>
+                <td><span class="status-badge status-active">Active</span></td>
+            </tr>
+            `).join('');
+        } else {
+            systemTbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No system users.</td></tr>`;
+        }
     }
 }
 
@@ -182,44 +216,32 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.approveUser = async function (username) {
-    // Optimistic update or wait? Let's wait
     const res = await API.updateUserStatus(username, 'active');
+
     if (res.status === 'success') {
-        loadUsers();
-        loadDashboardStats();
+        // Fetch user details for WhatsApp message
+        try {
+            const users = await API.getUsers();
+            const user = users.find(u => u.username === username);
 
-        // Find user to get phone
-        // We know we just loaded them, so we can find in local list if we had it, or just use what we assume
-        // Better: loadUsers refreshes the list, so we might lose the 'pending' one if we filter. 
-        // Actually loadUsers re-fetches.
-
-        // Let's assume we want to message the user we just approved.
-        // We need their phone number. Since we don't have the user object here easily without re-fetching or passing it,
-        // let's grab it from the table before it refreshes? Or rely on API. 
-        // Simplest: The user list is already in memory if we used a global variable, or we can just fetch again.
-
-        // For now, let's just use a generic link if phone missing, or try to find it.
-        // But since we just called API.updateUserStatus, we don't have the phone back.
-
-        // Hack: The user row is still there until loadUsers finishes. But loadUsers is async.
-        // Let's just alert success for now, or improve this later. Use generic link.
-
-        // User request: "not confirmation message that you account is approve".
-        // Improved:
-        const users = await API.getUsers();
-        const user = users.find(u => u.username === username);
-        let waLink = `https://wa.me/?text=`;
-        if (user && user.phone) {
-            waLink = `https://wa.me/${user.phone}?text=`;
+            if (user && user.phone) {
+                const msg = `*Welcome to IMS Cloud!* \n\nHi ${user.name || username},\nYour account has been approved and activated.\n\n*Details:*\nCompany: ${user.company}\nUsername: ${user.username}\n\nYou can now login at: https://ims-cloud.demo/`;
+                const url = `https://wa.me/${user.phone}?text=${encodeURIComponent(msg)}`;
+                window.open(url, '_blank');
+            } else {
+                alert("User approved, but phone number not found for WhatsApp notification.");
+            }
+        } catch (e) {
+            console.error("Error fetching user for WA:", e);
         }
 
-        const msg = `Hi ${username}, Your account for IMS Cloud has been approved! You can login now.`;
-        window.open(waLink + encodeURIComponent(msg), '_blank');
-
+        loadUsers();
+        loadDashboardStats();
     } else {
-        alert(res.message);
+        alert("Failed to approve user: " + res.message);
     }
 };
+
 
 window.toggleLock = async function (username, currentStatus) {
     const newStatus = (currentStatus === 'locked') ? 'active' : 'locked';
@@ -245,19 +267,20 @@ window.resetPassword = function (username) {
 };
 
 // 4. Dashboard Stats
-function loadDashboardStats() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const total = users.filter(u => u.role !== 'admin').length;
-    const active = users.filter(u => u.role !== 'admin' && u.status === 'active').length;
-    const pending = users.filter(u => u.role !== 'admin' && u.status === 'pending').length;
+// 4. Dashboard Stats
+async function loadDashboardStats() {
+    const users = await API.getUsers();
 
-    // Calculate unique companies
-    const companies = new Set(users.filter(u => u.role !== 'admin' && u.company).map(u => u.company.trim())).size;
+    // Filter out Admin and Trial from stats
+    const realUsers = users.filter(u => u.role !== 'admin' && u.role !== 'trial' && u.username !== 'trial');
 
-    document.getElementById('countCompanies').innerText = companies;
-    document.getElementById('countTotalUsers').innerText = total;
-    document.getElementById('countActiveUsers').innerText = active;
-    document.getElementById('countPendingUsers').innerText = pending;
+    // Companies
+    const companies = new Set(realUsers.map(u => (u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
+
+    document.getElementById('countCompanies').innerText = companies.size;
+    document.getElementById('countTotalUsers').innerText = realUsers.length;
+    document.getElementById('countActiveUsers').innerText = realUsers.filter(u => u.status === 'active').length;
+    document.getElementById('countPendingUsers').innerText = realUsers.filter(u => u.status === 'pending').length;
 }
 
 // 4b. Recent Activity
