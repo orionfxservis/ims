@@ -25,6 +25,32 @@ function checkAuth() {
         document.getElementById('adminTab').classList.remove('hidden');
     }
 
+    // Profile Image Rendering
+    if (user.profileImage) {
+        let imgPath = user.profileImage;
+        // Fix path for pages/ directory if needed
+        if (imgPath.startsWith('assets/') && !imgPath.startsWith('../')) {
+            imgPath = '../' + imgPath;
+        }
+
+        const profileIcon = document.querySelector('.user-profile div');
+        if (profileIcon) {
+            profileIcon.innerHTML = `<img src="${imgPath}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            profileIcon.style.background = 'none'; // Remove background color
+            profileIcon.style.border = '2px solid rgba(255,255,255,0.2)';
+        }
+    }
+
+    // Trial Mode Indicator
+    if (user.role === 'trial') {
+        const profile = document.querySelector('.user-profile');
+        const badge = document.createElement('span');
+        badge.className = 'status-badge status-pending'; // Reusing existing class for yellow/orange look
+        badge.style.marginRight = '1rem';
+        badge.innerHTML = '<i class="fa-solid fa-flask"></i> Trial Mode';
+        profile.insertBefore(badge, profile.firstChild);
+    }
+
     // Logout Handler
     document.getElementById('logoutBtn').addEventListener('click', (e) => {
         e.preventDefault();

@@ -18,6 +18,29 @@ window.toggleAuth = function (view) {
     }
 };
 
+window.loginAsTrial = function () {
+    const trialUser = {
+        username: 'trial',
+        name: 'Guest User',
+        role: 'trial',
+        company: 'Demo Company Ltd.',
+        status: 'active',
+        profileImage: 'assets/trial_avatar.jpg'
+    };
+
+    // Slight delay to simulate login
+    const btn = document.querySelector('.hero-cta .btn-primary');
+    const originalText = btn ? btn.innerHTML : 'Start Free / Login';
+    if (btn) btn.innerText = 'Setting up Demo...';
+
+    setTimeout(() => {
+        localStorage.setItem('user', JSON.stringify(trialUser));
+        localStorage.setItem('currentUser', JSON.stringify(trialUser));
+        window.location.href = 'pages/dashboard.html';
+        if (btn) btn.innerHTML = originalText;
+    }, 800);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Load Hero Banner

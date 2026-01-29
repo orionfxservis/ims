@@ -4,7 +4,40 @@
 const API = {
     // Config
     getUrl: () => localStorage.getItem('apiUrl'),
-    isLive: () => !!localStorage.getItem('apiUrl'),
+    isLive: () => {
+        // If trial user, force non-live (mock) mode, but specific for trial
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.role === 'trial') return false;
+        return !!localStorage.getItem('apiUrl');
+    },
+    isTrial: () => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        return user && user.role === 'trial';
+    },
+
+    // --- Dummy Data for Trial ---
+    DUMMY_DATA: {
+        inventory: [
+            { date: '2026-01-20', category: 'Electronics', item: 'Samsung TV 55"', brand: 'Samsung', model: 'UE55', qty: 15, price: 85000, total: 1275000, paid: 1275000, balance: 0, mode: 'Online' },
+            { date: '2026-01-21', category: 'Electronics', item: 'Apple iPhone 14', brand: 'Apple', model: '128GB', qty: 8, price: 210000, total: 1680000, paid: 1500000, balance: 180000, mode: 'Cheque' },
+            { date: '2026-01-22', category: 'Furniture', item: 'Office Chair', brand: 'Interwood', model: 'Ergo-X', qty: 25, price: 18000, total: 450000, paid: 450000, balance: 0, mode: 'Cash' },
+            { date: '2026-01-22', category: 'Electronics', item: 'Dell Laptop', brand: 'Dell', model: 'Inspiron', qty: 2, price: 120000, total: 240000, paid: 240000, balance: 0, mode: 'Online' }
+        ],
+        sales: [
+            { date: '2026-01-28', item: 'Samsung TV 55"', qty: 2, price: 95000, total: 190000, customer: 'John Doe' },
+            { date: '2026-01-28', item: 'Office Chair', qty: 5, price: 25000, total: 125000, customer: 'ABC Corp' }
+        ],
+        categories: [
+            { id: 1, name: 'Electronics' },
+            { id: 2, name: 'Furniture' },
+            { id: 3, name: 'Stationery' },
+            { id: 4, name: 'Groceries' }
+        ],
+        banners: [
+            { type: 'main', url: 'https://via.placeholder.com/600x300?text=Summer+Sale', title: 'Summer Sale' },
+            { type: 'hero', url: 'https://via.placeholder.com/800x400?text=Welcome+Trial+User', title: 'Hero' }
+        ]
+    },
 
     // --- Auth ---
     async login(username, password) {
@@ -52,12 +85,35 @@ const API = {
 
     // --- Admin ---
     async getUsers() {
+        // Ensure Trial User is visible in Admin List
+        const trialUser = {
+            username: 'trial',
+            name: 'Guest Trial User',
+            role: 'trial',
+            company: 'Demo Company Ltd.',
+            status: 'active',
+            profileImage: 'assets/trial_avatar.jpg' // Default trial avatar
+        };
+
+        let users = [];
         if (this.isLive()) {
-            return this.get('getUsers');
+            try {
+                users = await this.get('getUsers');
+                if (!Array.isArray(users)) users = [];
+            } catch (e) {
+                console.error("Error fetching users", e);
+                users = [];
+            }
         } else {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            return Promise.resolve(users);
+            users = JSON.parse(localStorage.getItem('users') || '[]');
         }
+
+        // Add mock trial user to list if not present (just for display)
+        if (!users.find(u => u.username === 'trial')) {
+            users.push(trialUser);
+        }
+
+        return Promise.resolve(users);
     },
 
     async updateUserStatus(username, status) {
@@ -69,6 +125,32 @@ const API = {
             if (user) {
                 user.status = status;
                 localStorage.setItem('users', JSON.stringify(users));
+                return Promise.resolve({ status: 'success' });
+            }
+            return Promise.resolve({ status: 'error', message: 'User not found' });
+        }
+    },
+
+    async updateUserProfile(username, data) { // data: { profileImage: base64 }
+        if (this.isLive()) {
+            // Backend support needed, for now mock success or implement if backend ready
+            // Assuming backend might not have this yet, return success mock or try post
+            // return this.post({ action: 'updateUserProfile', username, ...data });
+            return Promise.resolve({ status: 'success', message: 'Backend upload not yet implemented' });
+        } else {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username);
+            if (user) {
+                if (data.profileImage) user.profileImage = data.profileImage;
+                localStorage.setItem('users', JSON.stringify(users));
+
+                // If current user is this user, update session too
+                const current = JSON.parse(localStorage.getItem('user'));
+                if (current && current.username === username) {
+                    current.profileImage = data.profileImage;
+                    localStorage.setItem('user', JSON.stringify(current));
+                }
+
                 return Promise.resolve({ status: 'success' });
             }
             return Promise.resolve({ status: 'error', message: 'User not found' });
@@ -145,6 +227,10 @@ const API = {
 
     // --- Banners ---
     async getBanners() {
+        if (this.isTrial()) {
+            return Promise.resolve(this.DUMMY_DATA.banners);
+        }
+
         if (this.isLive()) {
             return this.get('getBanners');
         } else {
@@ -158,6 +244,8 @@ const API = {
     },
 
     async saveBanners(banners) {
+        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo Mode: Changes not saved.' });
+
         if (this.isLive()) {
             return this.post({ action: 'saveBanners', banners });
         } else {
@@ -176,6 +264,8 @@ const API = {
 
     // --- Inventory ---
     async getInventory() {
+        if (this.isTrial()) return Promise.resolve(this.DUMMY_DATA.inventory);
+
         if (this.isLive()) {
             return this.get('getInventory');
         } else {
@@ -185,6 +275,8 @@ const API = {
     },
 
     async saveInventory(item) {
+        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo: Inventory item not saved.' });
+
         if (this.isLive()) {
             return this.post({ action: 'saveInventory', data: item });
         } else {
@@ -197,6 +289,8 @@ const API = {
 
     // --- Sales ---
     async getSales() {
+        if (this.isTrial()) return Promise.resolve(this.DUMMY_DATA.sales);
+
         if (this.isLive()) {
             return this.get('getSales');
         } else {
@@ -205,6 +299,8 @@ const API = {
     },
 
     async saveSale(sale) {
+        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo: Sale not saved.' });
+
         if (this.isLive()) {
             return this.post({ action: 'saveSale', ...sale });
         } else {
@@ -217,6 +313,8 @@ const API = {
 
     // --- Categories ---
     async getCategories() {
+        if (this.isTrial()) return Promise.resolve({ success: true, categories: this.DUMMY_DATA.categories });
+
         if (this.isLive()) {
             return this.get('getCategories');
             // Expected format from GS: { success: true, categories: [{id, name}, ...] }
@@ -226,6 +324,8 @@ const API = {
     },
 
     async addCategory(name) {
+        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Category mock added.' });
+
         if (this.isLive()) {
             return this.post({ action: 'addCategory', categoryName: name });
         } else {
@@ -237,6 +337,8 @@ const API = {
     },
 
     async deleteCategory(id) {
+        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Category mock deleted.' });
+
         if (this.isLive()) {
             return this.post({ action: 'deleteCategory', id: id });
         } else {

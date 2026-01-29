@@ -93,7 +93,13 @@ async function loadUsers() {
     users.sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
     tbody.innerHTML = users.filter(u => u.role !== 'admin').map(user => `
-    < tr class="user-row status-row-${user.status || 'pending'}" >
+    <tr class="user-row status-row-${user.status || 'pending'}">
+            <td>
+                <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
+                     style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                    ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user" style="color: #666;"></i>'}
+                </div>
+            </td>
             <td>
                 <div style="font-weight: 600; color: white;">${user.name || user.username}</div>
                 <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">${user.username}</div>
@@ -117,13 +123,63 @@ async function loadUsers() {
                 </button>
                 <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
             </td>
-        </tr >
+        </tr>
     `).join('');
 
     if (users.filter(u => u.role !== 'admin').length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem;">No users found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem;">No users found.</td></tr>`;
     }
 }
+
+// Global variable to track which user is being edited
+let userToUploadProfile = null;
+
+window.triggerProfileUpload = function (username) {
+    // if (username === 'trial') return alert("Cannot change profile for Guest Trial User."); // Allowed now
+    userToUploadProfile = username;
+    document.getElementById('profileUpload').click();
+};
+
+// Initialize file input listener once
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('profileUpload');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files && e.target.files[0] && userToUploadProfile) {
+                const file = e.target.files[0];
+
+                // Basic validation
+                if (file.size > 1024 * 1024) { // 1MB limit for mock localstorage safety
+                    alert("Image too large. Please use an image under 1MB.");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async function (evt) {
+                    const base64 = evt.target.result;
+
+                    // Call API
+                    // Show some loading indicator if we could, but for now just wait
+                    const res = await API.updateUserProfile(userToUploadProfile, { profileImage: base64 });
+
+                    if (res.status === 'success') {
+                        alert("Profile picture updated!");
+                        loadUsers(); // Refresh list
+                    } else {
+                        alert("Error updating profile: " + res.message);
+                    }
+
+                    // Reset
+                    userToUploadProfile = null;
+                    fileInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // ... existing listeners
+});
 
 window.approveUser = async function (username) {
     // Optimistic update or wait? Let's wait
