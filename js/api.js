@@ -57,7 +57,9 @@ const API = {
 
     // --- Auth ---
     async login(username, password) {
-        if (this.isLive()) {
+        // Force check URL directly -> if URL exists, we try live login regardless of current "Trial" session
+        const url = this.getUrl();
+        if (url && url.length > 0) {
             return this.post({ action: 'login', username, password });
         } else {
             // Mock Implementation (from old auth.js logic)
