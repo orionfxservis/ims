@@ -33,6 +33,14 @@ function doGet(e) {
     return getActivities();
   }
 
+  if (action === 'getExpenses') {
+    return getExpenses();
+  }
+
+  if (action === 'getVersion') {
+    return ContentService.createTextOutput(JSON.stringify({ version: '1.2' })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action' })).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -49,6 +57,7 @@ function doPost(e) {
       if (data.action === 'saveSale') return saveSale(data);
       if (data.action === 'addCategory') return addCategory(data);
       if (data.action === 'deleteCategory') return deleteCategory(data);
+      if (data.action === 'saveExpense') return saveExpense(data);
       if (data.action === 'test') return response({ status: 'success', message: 'Connection OK' });
     }
     
@@ -150,8 +159,11 @@ function getSheetData(sheetName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
-      if (sheetName === 'Users') setup();
-      sheet = ss.getSheetByName(sheetName);
+      // Auto-run setup if critical sheets are missing
+      if (['Users', 'Inventory', 'Sales', 'Categories', 'Banners', 'Expenses'].includes(sheetName)) {
+        setup();
+        sheet = ss.getSheetByName(sheetName);
+      }
       if (!sheet) return [];
   }
 
@@ -201,14 +213,50 @@ function setup() {
 
   if (!ss.getSheetByName('Inventory')) {
     const sheet = ss.insertSheet('Inventory');
-    sheet.appendRow(['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Mode', 'Balance']);
+    // Updated Column Order as requested: Date, Category, Vendor, Item Name, Brand, Model, Quantity, Unit Price, Total, Paid, Mode, Balance
+    // Extras appended after: Generation, Ram, HDD, Display, Touch, UpdateDate, Volt
+    sheet.appendRow(['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Mode', 'Balance', 'Generation', 'Ram', 'HDD', 'Display', 'Touch', 'UpdateDate', 'Volt']);
+  }
+
+  if (!ss.getSheetByName('Expenses')) {
+    const sheet = ss.insertSheet('Expenses');
+    sheet.appendRow(['Date', 'Title', 'Description', 'Amount', 'Mode']);
   }
 
   if (!ss.getSheetByName('Sales')) {
     const sheet = ss.insertSheet('Sales');
-    sheet.appendRow(['Date', 'Item Name', 'Quantity', 'Customer', 'Price', 'Total', 'Mode']);
+    sheet.appendRow(['Date', 'Customer Name', 'Item Name', 'Unit Price', 'Quantity', 'Total', 'Paid', 'Mode', 'Balance', 'User']);
   }
 }
+
+// --- Expenses ---
+
+function getExpenses() {
+  const data = getSheetData('Expenses');
+  return response(data);
+}
+
+function saveExpense(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Expenses');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Expenses');
+  }
+  if (!sheet) return { success: false, message: 'Expenses sheet could not be created' };
+  
+  sheet.appendRow([
+    data.date,
+    data.title,
+    data.description,
+    data.amount,
+    data.mode
+  ]);
+  
+  return { success: true, message: 'Expense saved' };
+}
+
+
 
 // --- Activity Logging ---
 
@@ -228,22 +276,36 @@ function saveInventory(data) {
   }
   
   // Data: date, category, vendor, item, brand, qty, price, total, paid, mode, balance
-  // Append Row
+  // Append Row in Request Order
+  sheet.appendRow([
+    data.date,
+    data.category,
+    data.vendor,
+  // Data: date, category, vendor, item, brand, model, qty, price, total, paid, mode, balance
+  // Append Row in Request Order
   sheet.appendRow([
     data.date,
     data.category,
     data.vendor,
     data.item,
     data.brand,
-    "'" + data.qty, // Force string to avoid scientific notation if needed, or just data.qty
+    data.model || '',
+    "'" + data.qty,
     data.price,
     data.total,
     data.paid,
     data.mode,
-    data.balance
+    data.balance,
+    data.generation || '',
+    data.ram || '',
+    data.hdd || '',
+    data.display || '',
+    data.touch || '',
+    data.updateDate || '',
+    data.volt || ''
   ]);
   
-  return response({ status: 'success', message: 'Inventory added' });
+  return { success: true, message: 'Item saved', item: data };
 }
 
 // --- Sales Functions ---
@@ -261,14 +323,21 @@ function saveSale(data) {
     sheet = ss.getSheetByName('Sales');
   }
   
+  // Header: Date, Customer, Item, Price, Qty, Total, Paid, Mode, Balance, User
+  // User requested Table Order: Date, Customer, Item, Unit Price, Qty, Total, Paid, Mode, Balance
+  // We will save in that order. Use ' to force string for IDs/Phone numbers if needed.
+  
   sheet.appendRow([
-    new Date(),
-    data.item,
-    data.qty,
-    data.customer,
-    data.price,
-    data.qty * data.price, // Total
-    'Cash' // Default mode for now
+    data.date,                  // Date
+    data.customer,              // Customer Name
+    data.item,                  // Item Name
+    data.price,                 // Unit Price
+    data.qty,                   // Quantity
+    data.total,                 // Total Amount
+    data.paid,                  // Amount Paid
+    data.mode,                  // Payment Mode
+    data.balance,               // Balance
+    data.user || 'Unknown'      // User
   ]);
   
   return response({ status: 'success', message: 'Sale recorded' });
@@ -321,7 +390,8 @@ function getCategories() {
   // Start from 1 to skip header
   for (let i = 1; i < data.length; i++) {
     // Check if status is Active (case insensitive check for robustness, though we write "Active")
-    if (String(data[i][2]).toLowerCase() === "active") {
+    // Added trim() to handle potential whitespace issues
+    if (String(data[i][2]).trim().toLowerCase() === "active") {
       result.push({
         id: data[i][0],
         name: data[i][1]

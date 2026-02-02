@@ -133,6 +133,7 @@ async function loadUsers() {
                     <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${user.status === 'locked' ? 'Unlock' : 'Lock'}">
                         <i class="fa-solid ${user.status === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
                     </button>
+                    <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6;"><i class="fa-solid fa-chart-column"></i></button>
                     <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
                     <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444;"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -263,6 +264,43 @@ window.resetPassword = function (username) {
             localStorage.setItem('users', JSON.stringify(users));
             alert("Password updated.");
         }
+    }
+};
+
+window.viewUserProfile = async function (username) {
+    // Switch to profile view (reusing logic from app.js but need to access it)
+    // Since admin.js is loaded after app.js, we can try to reuse DOM manipulation or call a shared function if available.
+    // We'll manually switch view here to be safe.
+
+    document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('profile').classList.remove('hidden');
+    document.getElementById('pageTitle').textContent = 'User Stats: ' + username;
+
+    // Fetch user details to populate header
+    const users = await API.getUsers();
+    const user = users.find(u => u.username === username);
+
+    if (user) {
+        document.getElementById('pName').innerText = user.name || user.username;
+        document.getElementById('pCompany').innerText = user.company || 'Unknown Company';
+        document.getElementById('pRole').innerText = (user.role || 'User').toUpperCase();
+
+        const pAvatar = document.getElementById('pAvatar');
+        if (user.profileImage) {
+            let imgPath = user.profileImage;
+            if (imgPath.startsWith('assets/') && !imgPath.startsWith('../')) imgPath = '../' + imgPath;
+            pAvatar.innerHTML = `<img src="${imgPath}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            pAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+        }
+    }
+
+    // Render Chart using app.js function (global scope)
+    if (window.loadUserSalesChart) {
+        await window.loadUserSalesChart(username);
+    } else {
+        console.error("loadUserSalesChart function not found");
     }
 };
 

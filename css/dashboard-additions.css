@@ -1,57 +1,167 @@
-/* Navigation */
-.nav-menu {
+/* New Dashboard Stat Card Style - Infographic Pill (Compact) */
+.stat-card {
+    position: relative;
+    background: #f0f4f8;
+    /* Light gray/whiteish */
+    border-radius: 40px;
+    /* Smaller Pill */
+    padding: 0.75rem 1rem 0.75rem 3.5rem;
+    /* Reduced padding */
+    box-shadow:
+        4px 4px 8px rgba(0, 0, 0, 0.1),
+        -4px -4px 8px rgba(255, 255, 255, 0.8);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    height: 100%;
+    justify-content: center;
+    border: none;
+    min-height: 60px;
+    /* Reduced Height */
+    margin-left: 20px;
+    overflow: visible;
+    transition: transform 0.3s ease;
 }
 
-.nav-item {
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Action Button Variant (Clickable) */
+.stat-card.action-btn {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stat-card.action-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Floating 3D Icon Container (Smaller) */
+.stat-icon-wrapper {
+    position: absolute;
+    left: -20px;
+    /* Reduced float */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    /* Reduced Size */
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #1e3a8a, #3b82f6);
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    color: var(--text-dim);
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-
-.nav-item:hover,
-.nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
+    justify-content: center;
     color: white;
+    font-size: 1.2rem;
+    /* Reduced Icon Size */
+    box-shadow:
+        3px 3px 6px rgba(0, 0, 0, 0.2),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.nav-item.active {
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 100%);
-    border-left: 3px solid #3b82f6;
+/* Specific Card Colors */
+.stat-card.blue .stat-icon-wrapper {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
 }
 
-/* Tables */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+.stat-card.green .stat-icon-wrapper {
+    background: linear-gradient(135deg, #a8ff78, #78ffd6);
+    color: #006400;
 }
 
-.data-table th,
-.data-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--glass-border);
+.stat-card.orange .stat-icon-wrapper {
+    background: linear-gradient(135deg, #fce38a, #f38181);
+    color: #6b2d00;
 }
 
-.data-table th {
-    color: var(--text-dim);
+.stat-card.red .stat-icon-wrapper {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    color: #880e4f;
+}
+
+.stat-card.purple .stat-icon-wrapper {
+    background: linear-gradient(135deg, #c2e59c, #64b3f4);
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    padding-left: 5px;
+}
+
+/* Typography Overrides (Compact) */
+.stat-label {
+    font-size: 0.65rem;
+    /* Smaller Label */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
     font-weight: 600;
+    margin-bottom: 0px;
+    white-space: nowrap;
+    /* Prevent wrap */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.data-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+.stat-value {
+    font-size: 1.1rem;
+    /* Smaller Value */
+    font-weight: 800;
+    color: #1e293b;
+    text-shadow: none;
+    line-height: 1.2;
 }
 
-/* View Sections */
-.view-section {
-    animation: fadeIn 0.3s ease-out;
+/* FORCED HORIZONTAL LAYOUT */
+/* Override the grid specific to dashboard.html to be strict 4 columns */
+.stat-grid-override {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 1.5rem !important;
+    padding-left: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Override for Quick Actions (5 items) */
+.quick-actions-override {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 1.2rem !important;
+    padding-left: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1200px) {
+    .quick-actions-override {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Compact Table Style */
+.data-table.compact th,
+.data-table.compact td {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+    .stat-grid-override {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .quick-actions-override {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .stat-grid-override,
+    .quick-actions-override {
+        grid-template-columns: 1fr !important;
+    }
 }

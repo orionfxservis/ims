@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard-additions.css">
+    <script src="https://cdgn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* specific dashboard overrides */
         body {
@@ -16,10 +18,7 @@
             /* Override flex center */
         }
 
-        .bg-image {
-            opacity: 0.1;
-            /* Dim background more for dashboard readability */
-        }
+        /* ... existing styles ... */
     </style>
 </head>
 
@@ -32,7 +31,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="title" style="font-size: 1.5rem; text-align: left; margin-bottom: 2rem;">
-                <i class="fa-solid fa-cube"></i> IMS Cloud
+                <i class="fa-solid fa-cube"></i> IMS Cloud <span id="modeBadge" class="mode-badge">DEMO</span>
             </div>
 
             <nav class="nav-menu">
@@ -72,7 +71,8 @@
         <main class="main-content">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <h2 id="pageTitle" style="font-size: 1.75rem;">Dashboard</h2>
-                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="openUserProfile()">
                     <span id="userNameDisplay">User Name</span>
                     <div
                         style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
@@ -84,49 +84,120 @@
             <!-- Dashboard View -->
             <section id="dashboard" class="view-section">
                 <!-- Main Stats Grid -->
-                <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                    <div class="stat-card">
-                        <h3>Total Inventory Value</h3>
-                        <div class="stat-value" id="dTotalValue">Rs. 0</div>
+                <!-- Use override class for strict 4 columns single line -->
+                <div class="stat-grid-override">
+
+                    <!-- Total Inventory Value -->
+                    <div class="stat-card blue">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Inventory Value</div>
+                            <div class="stat-value" id="dTotalValue">Rs. 0</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Total Products</h3>
-                        <div class="stat-value" id="dTotalProducts">0</div>
+
+                    <!-- Total Products -->
+                    <div class="stat-card orange">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Products</div>
+                            <div class="stat-value" id="dTotalProducts">0</div>
+                        </div>
                     </div>
-                    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
-                        <h3>Low Stock Alerts</h3>
-                        <div class="stat-value" id="dLowStock" style="color: #f59e0b;">0</div>
+
+                    <!-- Sales Today -->
+                    <div class="stat-card green">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Sales (Today)</div>
+                            <div class="stat-value" id="dSalesToday">Rs. 0</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Sales (Today)</h3>
-                        <div class="stat-value" id="dSalesToday">Rs. 0</div>
+
+                    <!-- SOP (Sales/Profit) -->
+                    <div class="stat-card red">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">SOP (Month)</div>
+                            <div class="stat-value" id="dSoPMonth">Rs. 0</div>
+                        </div>
                     </div>
+
                 </div>
 
                 <!-- Quick Actions Grid ("Small Boxes") -->
                 <h3 style="margin-bottom: 1rem; color: #ddd; font-size: 1.1rem;">Quick Actions</h3>
-                <div class="quick-actions-grid" style="margin-bottom: 2rem;">
-                    <div class="action-box" onclick="document.querySelector('[data-tab=purchase]').click()">
-                        <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
-                        <div>New Purchase</div>
-                    </div>
-                    <div class="action-box" onclick="document.querySelector('[data-tab=sales]').click()">
-                        <div class="action-icon" style="color: #22c55e;"><i class="fa-solid fa-cash-register"></i></div>
-                        <div>New Sale</div>
-                    </div>
-                    <div class="action-box" onclick="document.querySelector('[data-tab=expenses]').click()">
-                        <div class="action-icon" style="color: #f59e0b;"><i class="fa-solid fa-money-bill-wave"></i>
+                <!-- Used same override grid for single line layout -->
+                <div class="quick-actions-override" style="margin-bottom: 2rem;">
+
+                    <!-- New Purchase -->
+                    <div class="stat-card action-btn blue"
+                        onclick="document.querySelector('[data-tab=purchase]').click()">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-cart-shopping"></i>
                         </div>
-                        <div>Add Expense</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Action</div>
+                            <div class="stat-value" style="font-size: 1rem;">New Purchase</div>
+                        </div>
                     </div>
-                    <div class="action-box" onclick="document.querySelector('[data-tab=inventory]').click()">
-                        <div class="action-icon" style="color: #6366f1;"><i class="fa-solid fa-boxes-stacked"></i></div>
-                        <div>View Inventory</div>
+
+                    <!-- New Sale -->
+                    <div class="stat-card action-btn green"
+                        onclick="document.querySelector('[data-tab=sales]').click()">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-cash-register"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Action</div>
+                            <div class="stat-value" style="font-size: 1rem;">New Sale</div>
+                        </div>
                     </div>
-                    <div class="action-box" onclick="document.querySelector('[data-tab=reports]').click()">
-                        <div class="action-icon" style="color: #a855f7;"><i class="fa-solid fa-file-invoice"></i></div>
-                        <div>View Reports</div>
+
+                    <!-- Add Expense -->
+                    <div class="stat-card action-btn orange"
+                        onclick="document.querySelector('[data-tab=expenses]').click()">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Action</div>
+                            <div class="stat-value" style="font-size: 1rem;">Add Expense</div>
+                        </div>
                     </div>
+
+                    <!-- View Inventory -->
+                    <div class="stat-card action-btn purple"
+                        onclick="document.querySelector('[data-tab=inventory]').click()">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">View</div>
+                            <div class="stat-value" style="font-size: 1rem;">Inventory</div>
+                        </div>
+                    </div>
+
+                    <!-- View Reports (If kept, it might wrap to next line or we can use 5 columns if space permits, but strict 4 requested. Maybe leave reports out or let it wrap?) - User said "same as image", usually 4. I will put 4 main actions. Reports is 5th. Let's add it, grid will likely wrap. -->
+                    <div class="stat-card action-btn red"
+                        onclick="document.querySelector('[data-tab=reports]').click()">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">View</div>
+                            <div class="stat-value" style="font-size: 1rem;">Reports</div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Secondary Stats & Tables Row -->
@@ -194,19 +265,22 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                         <h3>Available Inventory</h3>
-                        <button class="btn" style="width: auto;" onclick="openModal('addItemModal')"><i
-                                class="fa-solid fa-plus"></i> Add Item</button>
                     </div>
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Category</th>
+                                <th>Vendor</th>
                                 <th>Item Name</th>
                                 <th>Brand</th>
                                 <th>Model</th>
-                                <th>Qty Available</th>
-                                <th>Action</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Mode</th>
+                                <th>Balance</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryTableBody">
@@ -221,53 +295,168 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <h3>Purchase Entry</h3>
                     <form id="purchaseForm"
-                        style="margin-top: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: end;">
+                        style="margin-top: 0.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; align-items: end;">
 
-                        <!-- Row 1 -->
+                        <!-- Row 1: Basic Info -->
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Category</label>
-                            <select class="form-input" id="purCategorySelect" required style="padding: 0.4rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Date</label>
+                            <input type="date" class="form-input" id="purDate" readonly
+                                style="padding: 0.25rem; font-size: 0.85rem; background: rgba(255,255,255,0.05);">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Category</label>
+                            <select class="form-input" id="purCategorySelect" required
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
                                 <option value="">Select Category</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Vendor</label>
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Vendor Name</label>
                             <input type="text" class="form-input" id="purVendor" placeholder="Vendor Name"
-                                style="padding: 0.4rem;">
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.85rem;">Item Name</label>
+
+                        <!-- Row 2: Standard Items (Hidden if Laptop) -->
+                        <div class="form-group group-standard">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item Name</label>
                             <input type="text" class="form-input" id="purItem" placeholder="Item Name" required
-                                style="padding: 0.4rem;">
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-
-                        <!-- Row 2 -->
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Brand</label>
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Brand</label>
                             <input type="text" class="form-input" id="purBrand" placeholder="Brand"
-                                style="padding: 0.4rem;">
-                        </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.85rem;">Quantity</label>
-                            <input type="number" class="form-input" id="purQty" placeholder="0"
-                                style="padding: 0.4rem;">
-                        </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.85rem;">Unit Price</label>
-                            <input type="number" class="form-input" id="purPrice" placeholder="0.00"
-                                style="padding: 0.4rem;">
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
 
-                        <!-- Row 3 -->
+                        <!-- Specialized Laptop Fields (Hidden by default) -->
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Generation / Class</label>
+                            <select class="form-input" id="purGen"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Generation</option>
+                                <option value="Chromebook">Chromebook</option>
+                                <option value="1st Gen">1st Gen</option>
+                                <option value="2nd Gen">2nd Gen</option>
+                                <option value="3rd Gen">3rd Gen</option>
+                                <option value="4th Gen">4th Gen</option>
+                                <option value="5th Gen">5th Gen</option>
+                                <option value="6th Gen">6th Gen</option>
+                                <option value="7th Gen">7th Gen</option>
+                                <option value="8th Gen">8th Gen</option>
+                                <option value="9th Gen">9th Gen</option>
+                                <option value="10th Gen">10th Gen</option>
+                                <option value="11th Gen">11th Gen</option>
+                                <option value="12th Gen">12th Gen</option>
+                                <option value="AMD">AMD</option>
+                                <option value="MacBook">MacBook</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Model</label>
+                            <input type="text" class="form-input" id="purModel" placeholder="e.g. Latitude 7480"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">RAM</label>
+                            <select class="form-input" id="purRam"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select RAM</option>
+                                <option value="4GB">4GB</option>
+                                <option value="8GB">8GB</option>
+                                <option value="16GB">16GB</option>
+                                <option value="32GB">32GB</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">HDD/SSD</label>
+                            <select class="form-input" id="purHdd"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Storage</option>
+                                <option value="16GB">16GB</option>
+                                <option value="32GB">32GB</option>
+                                <option value="64GB">64GB</option>
+                                <option value="128GB SSD">128GB SSD</option>
+                                <option value="256GB SSD">256GB SSD</option>
+                                <option value="512GB SSD">512GB SSD</option>
+                                <option value="1TB HDD">1TB HDD</option>
+                                <option value="1TB SSD">1TB SSD</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Display Size</label>
+                            <select class="form-input" id="purDisplay"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Size</option>
+                                <option value="11.6 inch">11.6 inch</option>
+                                <option value="12.5 inch">12.5 inch</option>
+                                <option value="13.3 inch">13.3 inch</option>
+                                <option value="14 inch">14 inch</option>
+                                <option value="15.6 inch">15.6 inch</option>
+                                <option value="17 inch">17 inch</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Touch Screen</label>
+                            <select class="form-input" id="purTouch"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Non-Touch">Non-Touch</option>
+                                <option value="Touch">Touch</option>
+                                <option value="360 Rotation">360 Rotation</option>
+                            </select>
+                        </div>
+                        <!-- Chromebook Only -->
+                        <div class="form-group group-chromebook hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Auto Update Expiry</label>
+                            <input type="text" class="form-input" id="purUpdate" placeholder="Jun 2028"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+
+                        <!-- Keyboard & Mouse Only -->
+                        <div class="form-group group-kbmouse hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item Type</label>
+                            <select class="form-input" id="purKbType"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Keyboard">Keyboard</option>
+                                <option value="Mouse">Mouse</option>
+                                <option value="Keyboard & Mouse">Keyboard & Mouse</option>
+                            </select>
+                        </div>
+
+                        <!-- Charger Only -->
+                        <div class="form-group group-charger hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Volt / Watt</label>
+                            <input type="text" class="form-input" id="purVolt" placeholder="e.g. 65W, 19V"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 3: Financials (Shared) -->
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Total Price</label>
-                            <input type="number" class="form-input" id="purTotal" readonly
-                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.4rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Unit Price</label>
+                            <input type="number" class="form-input" id="purPrice" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Payment Mode</label>
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
+                            <input type="number" class="form-input" id="purQty" placeholder="0"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Total Price</label>
+                            <input type="number" class="form-input" id="purTotal" readonly
+                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 4: Payment -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount Paid</label>
+                            <input type="number" class="form-input" id="purPaid" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
                             <select class="form-input" id="purMode"
-                                style="padding: 0.4rem; color: #333; background: white;">
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
                                 <option value="Cash" style="color: black;">Cash</option>
                                 <option value="Cheque" style="color: black;">Cheque</option>
                                 <option value="Online" style="color: black;">Online</option>
@@ -275,23 +464,38 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Amount Paid</label>
-                            <input type="number" class="form-input" id="purPaid" placeholder="0.00"
-                                style="padding: 0.4rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Balance Amount</label>
+                            <input type="number" class="form-input" id="purBalance" readonly
+                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
                         </div>
 
-                        <!-- Row 4 -->
-                        <div class="form-group">
-                            <label style="font-size: 0.85rem;">Balance Amount</label>
-                            <input type="number" class="form-input" id="purBalance" readonly
-                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.4rem;">
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn" style="width: 100%; padding: 0.5rem;">Record
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                            <button type="submit" class="btn"
+                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Record
                                 Purchase</button>
                         </div>
                     </form>
+
+                    <!-- Recent Purchases Table -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #ccc;">Recent Entries (This Session)</h4>
+                        <table class="data-table compact" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentPurchasesTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #666;">No entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -300,27 +504,94 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <h3>New Sale</h3>
                     <form id="salesForm"
-                        style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; align-items: end;">
+
+                        <!-- Row 1 -->
                         <div class="form-group">
-                            <label>Item</label>
-                            <select class="form-input" id="saleItem"></select>
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Date</label>
+                            <input type="date" class="form-input" id="saleDate" readonly
+                                style="background: rgba(255,255,255,0.05); padding: 0.25rem;">
                         </div>
                         <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" class="form-input" id="saleQty">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Customer Name</label>
+                            <input type="text" class="form-input" id="saleCustomer" placeholder="Walk-in / Name"
+                                style="padding: 0.25rem;">
                         </div>
                         <div class="form-group">
-                            <label>Customer Name</label>
-                            <input type="text" class="form-input" id="saleCustomer">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
+                            <select class="form-input" id="saleItem"
+                                style="padding: 0.25rem; background: white; color: #333;"></select>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
+                            <input type="number" class="form-input" id="saleQty" placeholder="0"
+                                style="padding: 0.25rem;">
                         </div>
                         <div class="form-group">
-                            <label>Selling Price</label>
-                            <input type="number" class="form-input" id="salePrice">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Unit Price</label>
+                            <input type="number" class="form-input" id="salePrice" placeholder="0.00"
+                                style="padding: 0.25rem;">
                         </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <button type="submit" class="btn">Record Sale</button>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Total Amount</label>
+                            <input type="number" class="form-input" id="saleTotal" readonly
+                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.25rem;">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount Paid</label>
+                            <input type="number" class="form-input" id="salePaid" placeholder="0.00"
+                                style="padding: 0.25rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
+                            <select class="form-input" id="saleMode"
+                                style="padding: 0.25rem; background: white; color: #333;">
+                                <option value="Cash">Cash</option>
+                                <option value="Online">Online</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Credit">Credit (Unpaid)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Balance</label>
+                            <input type="number" class="form-input" id="saleBalance" readonly
+                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.25rem;">
+                        </div>
+
+                        <!-- Row 4: Button -->
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                            <button type="submit" class="btn" style="width: 100%; padding: 0.4rem;">Record Sale</button>
                         </div>
                     </form>
+
+                    <!-- Recent Sales Table -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #ccc;">Recent Sales (This Session)</h4>
+                        <table class="data-table compact" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Item Name</th>
+                                    <th>Unit Price</th>
+                                    <th>Qty</th>
+                                    <th>Total Amount</th>
+                                    <th>Amount Paid</th>
+                                    <th>Payment Mode</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentSalesTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; color: #666;">No entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -329,33 +600,76 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <h3>Record Expense</h3>
                     <form id="expenseForm"
-                        style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        style="margin-top: 0.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; align-items: end;">
+
+                        <!-- Row 1 -->
                         <div class="form-group">
-                            <label>Expense Title</label>
-                            <input type="text" class="form-input" id="expTitle" placeholder="e.g. Electricity Bill">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Date</label>
+                            <input type="date" class="form-input" id="expDate"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
                         <div class="form-group">
-                            <label>Category</label>
-                            <select class="form-input" id="expCategory">
-                                <option>Utilities</option>
-                                <option>Rent</option>
-                                <option>Salaries</option>
-                                <option>Maintenance</option>
-                                <option>Other</option>
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Expense Title</label>
+                            <select class="form-input" id="expTitle"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Expense</option>
+                                <option value="Daily Expense">Daily Expense</option>
+                                <option value="Lunch">Lunch</option>
+                                <option value="Daily Wages">Daily Wages</option>
+                                <option value="Salary">Salary</option>
+                                <option value="Electric">Electric</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Phone Bill">Phone Bill</option>
+                                <option value="Shop Rent">Shop Rent</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Amount</label>
-                            <input type="number" class="form-input" id="expAmount">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Description (Optional)</label>
+                            <input type="text" class="form-input" id="expDesc" placeholder="Details..."
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount</label>
+                            <input type="number" class="form-input" id="expAmount" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
                         <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" class="form-input" id="expDate">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
+                            <select class="form-input" id="expMode"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Cash">Cash</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Online">Online</option>
+                            </select>
                         </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <button type="submit" class="btn">Save Expense</button>
+                        <div class="form-group">
+                            <button type="submit" class="btn"
+                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Save
+                                Expense</button>
                         </div>
                     </form>
+
+                    <!-- Recent Expenses Table -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #ccc;">Recent Expenses</h4>
+                        <table class="data-table compact" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Expense Title</th>
+                                    <th>Amount Paid</th>
+                                    <th>Payment Mode</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentExpensesTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; color: #666;">No entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -429,6 +743,32 @@
                 <div class="glass-card" style="max-width: 100%;">
                     <h3>Generate Reports</h3>
                     <p>Select report type...</p>
+                </div>
+            </section>
+
+            <!-- User Profile View -->
+            <section id="profile" class="view-section hidden">
+                <div class="glass-card" style="max-width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div id="pAvatar"
+                            style="width: 80px; height: 80px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 3px solid var(--primary);">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h2 id="pName" style="margin: 0; font-size: 1.8rem;">User Name</h2>
+                            <p id="pCompany" style="color: #aaa; margin: 0;">Company Name</p>
+                            <span id="pRole" class="status-badge status-active"
+                                style="margin-top: 0.5rem; display: inline-block;">User</span>
+                        </div>
+                    </div>
+
+                    <h3
+                        style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                        <i class="fa-solid fa-chart-bar" style="color: #60a5fa;"></i> Bar Chart Heading
+                    </h3>
+                    <div style="height: 350px; width: 100%;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
                 </div>
             </section>
 

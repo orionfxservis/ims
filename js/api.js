@@ -18,14 +18,15 @@ const API = {
     // --- Dummy Data for Trial ---
     DUMMY_DATA: {
         inventory: [
-            { date: '2026-01-20', category: 'Electronics', item: 'Samsung TV 55"', brand: 'Samsung', model: 'UE55', qty: 15, price: 85000, total: 1275000, paid: 1275000, balance: 0, mode: 'Online' },
-            { date: '2026-01-21', category: 'Electronics', item: 'Apple iPhone 14', brand: 'Apple', model: '128GB', qty: 8, price: 210000, total: 1680000, paid: 1500000, balance: 180000, mode: 'Cheque' },
-            { date: '2026-01-22', category: 'Furniture', item: 'Office Chair', brand: 'Interwood', model: 'Ergo-X', qty: 25, price: 18000, total: 450000, paid: 450000, balance: 0, mode: 'Cash' },
-            { date: '2026-01-22', category: 'Electronics', item: 'Dell Laptop', brand: 'Dell', model: 'Inspiron', qty: 2, price: 120000, total: 240000, paid: 240000, balance: 0, mode: 'Online' }
+            { date: '2026-01-20', category: 'Electronics', vendor: 'Samsung World', item: 'Samsung TV 55"', brand: 'Samsung', model: 'UE55', qty: 15, price: 85000, total: 1275000, paid: 1275000, balance: 0, mode: 'Online' },
+            { date: '2026-01-21', category: 'Electronics', vendor: 'Apple Store', item: 'Apple iPhone 14', brand: 'Apple', model: '128GB', qty: 8, price: 210000, total: 1680000, paid: 1500000, balance: 180000, mode: 'Cheque' },
+            { date: '2026-01-22', category: 'Furniture', vendor: 'Interwood Plus', item: 'Office Chair', brand: 'Interwood', model: 'Ergo-X', qty: 25, price: 18000, total: 450000, paid: 450000, balance: 0, mode: 'Cash' },
+            { date: '2026-01-22', category: 'Electronics', vendor: 'Dell Official', item: 'Dell Laptop', brand: 'Dell', model: 'Inspiron', qty: 2, price: 120000, total: 240000, paid: 240000, balance: 0, mode: 'Online' }
         ],
         sales: [
-            { date: '2026-01-28', item: 'Samsung TV 55"', qty: 2, price: 95000, total: 190000, customer: 'John Doe' },
-            { date: '2026-01-28', item: 'Office Chair', qty: 5, price: 25000, total: 125000, customer: 'ABC Corp' }
+            { date: '2026-01-28', item: 'Samsung TV 55"', qty: 2, price: 95000, total: 190000, customer: 'John Doe', user: 'admin' },
+            { date: '2026-02-15', item: 'Office Chair', qty: 5, price: 25000, total: 125000, customer: 'ABC Corp', user: 'admin' },
+            { date: '2026-01-15', item: 'Mouse', qty: 10, price: 500, total: 5000, customer: 'X', user: 'testuser' }
         ],
         categories: [
             { id: 1, name: 'Electronics' },
@@ -305,7 +306,7 @@ const API = {
             return this.post({ action: 'saveSale', ...sale });
         } else {
             const sales = JSON.parse(localStorage.getItem('sales') || '[]');
-            sales.push({ ...sale, date: new Date().toISOString() });
+            sales.push({ ...sale, date: new Date().toISOString(), user: sale.user || 'unknown' });
             localStorage.setItem('sales', JSON.stringify(sales));
             return Promise.resolve({ status: 'success' });
         }
@@ -346,6 +347,30 @@ const API = {
             const newCats = cats.filter(c => c.id != id);
             localStorage.setItem('categories', JSON.stringify(newCats));
             return Promise.resolve({ success: true, message: 'Category deleted' });
+        }
+    },
+
+    // --- Expenses ---
+    async getExpenses() {
+        if (this.isTrial()) return Promise.resolve([]);
+
+        if (this.isLive()) {
+            return this.get('getExpenses');
+        } else {
+            return Promise.resolve(JSON.parse(localStorage.getItem('expenses') || '[]'));
+        }
+    },
+
+    async saveExpense(data) {
+        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Expense not saved.' });
+
+        if (this.isLive()) {
+            return this.post({ action: 'saveExpense', ...data });
+        } else {
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            expenses.push({ ...data, date: data.date || new Date().toISOString() });
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            return Promise.resolve({ success: true, message: 'Expense saved' });
         }
     }
 };
