@@ -258,57 +258,13 @@
 
 
 
-    <!-- API Configuration Modal -->
-    <div id="apiConfigModal" class="glass-card"
-        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; width: 90%; max-width: 400px; padding: 2rem; border: 1px solid var(--primary);">
-        <h3 class="title" style="font-size: 1.25rem;">System Configuration</h3>
-        <p class="subtitle" style="margin-bottom: 1rem;">Connect to Google App Script</p>
 
-        <div class="form-group">
-            <label>Web App URL</label>
-            <input type="text" id="apiUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/..."
-                style="font-size: 0.8rem;">
-            <small style="color: var(--text-dim); display: block; margin-top: 0.5rem;">The URL from your Google Apps
-                Script Deployment.</small>
-        </div>
 
-        <div style="display: flex; gap: 1rem;">
-            <button class="btn btn-secondary"
-                onclick="document.getElementById('apiConfigModal').style.display='none'">Cancel</button>
-            <button class="btn" onclick="saveApiUrl()">Save & Reload</button>
-        </div>
-    </div>
 
-    <!-- Settings Gear Icon -->
-    <div onclick="openApiConfig()"
-        style="position: fixed; top: 20px; right: 20px; z-index: 1000; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 1.5rem;">
-        <i class="fa-solid fa-gear"></i>
-    </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script>
-        // Inline script for API Config to ensure availability
-        function openApiConfig() {
-            const currentUrl = localStorage.getItem('apiUrl') || '';
-            document.getElementById('apiUrlInput').value = currentUrl;
-            document.getElementById('apiConfigModal').style.display = 'block';
-        }
 
-        function saveApiUrl() {
-            const url = document.getElementById('apiUrlInput').value.trim();
-            if (url) {
-                localStorage.setItem('apiUrl', url);
-                alert("URL Saved! Reloading...");
-                window.location.reload();
-            } else {
-                if (confirm("Clear API URL and switch to Offline Mode?")) {
-                    localStorage.removeItem('apiUrl');
-                    window.location.reload();
-                }
-            }
-        }
-    </script>
 </body>
 
 </html>
