@@ -165,3 +165,16 @@
         grid-template-columns: 1fr !important;
     }
 }
+
+/* Hide Banner on Mobile & Tablet */
+@media (max-width: 1024px) {
+
+    #dashboardBannerContainer,
+    #heroBannerContainer {
+        display: none !important;
+    }
+
+    .view-section {
+        padding-bottom: 1rem;
+    }
+}
