@@ -9,21 +9,30 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTXZnDHfEpZZ
 const API = {
     // Config
     getUrl: () => {
-        // 1. Use Hardcoded URL if present (Secure/Production)
-        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
-            return GOOGLE_SCRIPT_URL;
+        // 1. Use Hardcoded URL (Simplest & Most Reliable for Deployment)
+        const hardcoded = GOOGLE_SCRIPT_URL ? GOOGLE_SCRIPT_URL.trim() : "";
+        if (hardcoded && hardcoded.startsWith('http')) {
+            // console.log("Using Hardcoded API URL:", hardcoded);
+            return hardcoded;
         }
         // 2. Fallback to LocalStorage (Dev/Manual)
-        return localStorage.getItem('apiUrl');
+        const local = localStorage.getItem('apiUrl');
+        // console.log("Using LocalStorage API URL:", local);
+        return local;
     },
     isLive: () => {
-        // If trial user, force non-live (mock) mode, but specific for trial
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.role === 'trial') return false;
-
         // Check if we have a valid URL
         const url = API.getUrl();
-        return (url && url.length > 0);
+        const isLive = (url && url.length > 0);
+
+        // Log status only once per page load to avoid spam, or use a flag?
+        // simple log for debugging now:
+        if (!window._apiLogged) {
+            console.log("API Live Status:", isLive, "URL:", url);
+            window._apiLogged = true;
+        }
+
+        return isLive;
     },
     isTrial: () => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -59,8 +68,16 @@ const API = {
     async login(username, password) {
         // Force check URL directly -> if URL exists, we try live login regardless of current "Trial" session
         const url = this.getUrl();
+
         if (url && url.length > 0) {
-            return this.post({ action: 'login', username, password });
+            try {
+                const start = Date.now();
+                const result = await this.post({ action: 'login', username, password });
+                return result;
+            } catch (e) {
+                console.error(e);
+                return { status: 'error', message: 'Connection Failed: ' + e.message };
+            }
         } else {
             // Mock Implementation (from old auth.js logic)
             return new Promise((resolve, reject) => {
@@ -274,6 +291,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'saveBanners', banners });
         } else {
+            if (this.isTrial()) return Promise.resolve({ status: 'error', message: 'Editing is disabled in Trial Mode.' });
             // Mock: split back to localStorage
             const main = banners.filter(b => b.type === 'main');
             const dash = banners.find(b => b.type === 'dashboard');
@@ -310,6 +328,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'saveInventory', data: item });
         } else {
+            if (this.isTrial()) return Promise.resolve({ status: 'error', message: 'Editing is disabled in Trial Mode.' });
             const items = JSON.parse(localStorage.getItem('inventory') || '[]');
             items.push(item);
             localStorage.setItem('inventory', JSON.stringify(items));
@@ -339,6 +358,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'saveSale', ...sale });
         } else {
+            if (this.isTrial()) return Promise.resolve({ status: 'error', message: 'Editing is disabled in Trial Mode.' });
             const sales = JSON.parse(localStorage.getItem('sales') || '[]');
             sales.push({ ...sale, date: new Date().toISOString(), user: sale.user || 'unknown' });
             localStorage.setItem('sales', JSON.stringify(sales));
@@ -369,6 +389,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'addCategory', categoryName: name });
         } else {
+            if (this.isTrial()) return Promise.resolve({ success: false, message: 'Editing is disabled in Trial Mode.' });
             const cats = JSON.parse(localStorage.getItem('categories') || '[]');
             cats.push({ id: new Date().getTime(), name: name });
             localStorage.setItem('categories', JSON.stringify(cats));
@@ -382,6 +403,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'deleteCategory', id: id });
         } else {
+            if (this.isTrial()) return Promise.resolve({ success: false, message: 'Editing is disabled in Trial Mode.' });
             const cats = JSON.parse(localStorage.getItem('categories') || '[]');
             const newCats = cats.filter(c => c.id != id);
             localStorage.setItem('categories', JSON.stringify(newCats));
@@ -406,6 +428,7 @@ const API = {
         if (this.isLive()) {
             return this.post({ action: 'saveExpense', ...data });
         } else {
+            if (this.isTrial()) return Promise.resolve({ success: false, message: 'Editing is disabled in Trial Mode.' });
             const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
             expenses.push({ ...data, date: data.date || new Date().toISOString() });
             localStorage.setItem('expenses', JSON.stringify(expenses));

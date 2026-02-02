@@ -250,6 +250,35 @@ function checkAuth() {
             window.location.href = '../index.html';
         }
     });
+
+    // Trial Mode Restriction
+    if (user.role === 'trial') {
+        const restrictSet = [
+            'purchaseForm', 'salesForm', 'expenseForm', 'addItemForm'
+        ];
+
+        restrictSet.forEach(id => {
+            const form = document.getElementById(id);
+            if (form) {
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.title = "Action disabled in Trial Mode";
+                    btn.innerHTML = '<i class="fa-solid fa-lock"></i> Read Only';
+                    btn.style.background = '#64748b';
+                    btn.style.cursor = 'not-allowed';
+                }
+            }
+        });
+
+        // Also disable quick action buttons on dashboard
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            // We can't disable div onClick easily without removing listener, 
+            // but we can add a visual cue or intercept. 
+            // Since they just navigate, we let them navigate. 
+            // But the forms inside are now disabled. 
+        });
+    }
 }
 
 // 2. Navigation Handling
@@ -340,7 +369,8 @@ async function refreshDashboard() {
         // 3. Update UI - Main Cards
         animateValue(document.getElementById('dTotalValue'), 0, totalValue, 1000, 'Rs. ');
         animateValue(document.getElementById('dTotalProducts'), 0, totalProductsQty, 1000, '');
-        document.getElementById('dLowStock').textContent = lowStockCount;
+        const elLowStock = document.getElementById('dLowStock');
+        if (elLowStock) elLowStock.textContent = lowStockCount;
         animateValue(document.getElementById('dSalesToday'), 0, salesToday, 1000, 'Rs. ');
 
         // 4. Update Low Stock Table

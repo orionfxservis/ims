@@ -64,10 +64,17 @@ function checkAdminAuth() {
     document.getElementById('adminName').textContent = currentUser.name;
 
     // Load Settings into Inputs
-    const savedApiUrl = localStorage.getItem('apiUrl');
+    const activeUrl = API.getUrl() || localStorage.getItem('apiUrl'); // Prefer active, fallback to local
     const savedPhone = localStorage.getItem('adminPhone');
 
-    if (document.getElementById('sheetId')) document.getElementById('sheetId').value = savedApiUrl || '';
+    if (document.getElementById('sheetId')) {
+        document.getElementById('sheetId').value = activeUrl || '';
+        // Visual indicator if hardcoded
+        if (API.getUrl() && API.getUrl() !== localStorage.getItem('apiUrl')) {
+            document.getElementById('sheetId').title = "Using Hardcoded URL from api.js";
+            document.getElementById('sheetId').style.borderColor = "#22c55e"; // Green border to indicate active/valid
+        }
+    }
     if (document.getElementById('adminPhone')) document.getElementById('adminPhone').value = savedPhone || '';
 
     loadBanners(); // Load banners on init
