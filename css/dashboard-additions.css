@@ -178,3 +178,72 @@
         padding-bottom: 1rem;
     }
 }
+
+/* --- Responsive Sidebar & Layout --- */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none;
+    /* Hidden on desktop */
+}
+
+@media (max-width: 1024px) {
+
+    /* Tablet and Mobile */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+        /* Hidden by default */
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        /* Slide in */
+    }
+
+    .mobile-menu-toggle {
+        display: block !important;
+        /* Show toggle */
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 1rem;
+        /* Less padding on mobile */
+    }
+
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* Specific Reports Mobile Tweaks */
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 1.5rem;
+        /* Reduce card padding */
+    }
+
+    .form-group {
+        min-width: 100% !important;
+        /* Full width inputs on mobile */
+    }
+}

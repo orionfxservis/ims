@@ -228,13 +228,20 @@ const API = {
 
     // --- Banners ---
     async getBanners() {
-        if (this.isTrial()) {
-            return Promise.resolve(this.DUMMY_DATA.banners);
-        }
+
 
         if (this.isLive()) {
             return this.get('getBanners');
         } else {
+            let data = JSON.parse(localStorage.getItem('banners'));
+            if (!data && this.isTrial()) {
+                data = this.DUMMY_DATA.banners.filter(b => b.type === 'main');
+                localStorage.setItem('banners', JSON.stringify(data));
+                const dash = this.DUMMY_DATA.banners.find(b => b.type === 'main'); // Reuse as example
+                const hero = this.DUMMY_DATA.banners.find(b => b.type === 'hero');
+                if (hero) localStorage.setItem('heroBanner', hero.url);
+                // Note: DUMMY_DATA structure only has main/hero in banners array, logic adjusted to just use what's there
+            }
             // Mock
             return Promise.resolve([
                 ...(JSON.parse(localStorage.getItem('banners') || '[]').map(b => ({ ...b, type: 'main' }))),
@@ -245,7 +252,7 @@ const API = {
     },
 
     async saveBanners(banners) {
-        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo Mode: Changes not saved.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'saveBanners', banners });
@@ -265,18 +272,23 @@ const API = {
 
     // --- Inventory ---
     async getInventory() {
-        if (this.isTrial()) return Promise.resolve(this.DUMMY_DATA.inventory);
+
 
         if (this.isLive()) {
             return this.get('getInventory');
         } else {
             // Mock
-            return Promise.resolve(JSON.parse(localStorage.getItem('inventory') || '[]'));
+            let data = JSON.parse(localStorage.getItem('inventory'));
+            if (!data && this.isTrial()) {
+                data = this.DUMMY_DATA.inventory;
+                localStorage.setItem('inventory', JSON.stringify(data));
+            }
+            return Promise.resolve(data || []);
         }
     },
 
     async saveInventory(item) {
-        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo: Inventory item not saved.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'saveInventory', data: item });
@@ -290,17 +302,22 @@ const API = {
 
     // --- Sales ---
     async getSales() {
-        if (this.isTrial()) return Promise.resolve(this.DUMMY_DATA.sales);
+
 
         if (this.isLive()) {
             return this.get('getSales');
         } else {
-            return Promise.resolve(JSON.parse(localStorage.getItem('sales') || '[]'));
+            let data = JSON.parse(localStorage.getItem('sales'));
+            if (!data && this.isTrial()) {
+                data = this.DUMMY_DATA.sales;
+                localStorage.setItem('sales', JSON.stringify(data));
+            }
+            return Promise.resolve(data || []);
         }
     },
 
     async saveSale(sale) {
-        if (this.isTrial()) return Promise.resolve({ status: 'success', message: 'Demo: Sale not saved.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'saveSale', ...sale });
@@ -314,18 +331,23 @@ const API = {
 
     // --- Categories ---
     async getCategories() {
-        if (this.isTrial()) return Promise.resolve({ success: true, categories: this.DUMMY_DATA.categories });
+
 
         if (this.isLive()) {
             return this.get('getCategories');
             // Expected format from GS: { success: true, categories: [{id, name}, ...] }
         } else {
-            return Promise.resolve({ success: true, categories: JSON.parse(localStorage.getItem('categories') || '[]') });
+            let data = JSON.parse(localStorage.getItem('categories'));
+            if (!data && this.isTrial()) {
+                data = this.DUMMY_DATA.categories;
+                localStorage.setItem('categories', JSON.stringify(data));
+            }
+            return Promise.resolve({ success: true, categories: data || [] });
         }
     },
 
     async addCategory(name) {
-        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Category mock added.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'addCategory', categoryName: name });
@@ -338,7 +360,7 @@ const API = {
     },
 
     async deleteCategory(id) {
-        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Category mock deleted.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'deleteCategory', id: id });
@@ -352,7 +374,7 @@ const API = {
 
     // --- Expenses ---
     async getExpenses() {
-        if (this.isTrial()) return Promise.resolve([]);
+
 
         if (this.isLive()) {
             return this.get('getExpenses');
@@ -362,7 +384,7 @@ const API = {
     },
 
     async saveExpense(data) {
-        if (this.isTrial()) return Promise.resolve({ success: true, message: 'Demo: Expense not saved.' });
+
 
         if (this.isLive()) {
             return this.post({ action: 'saveExpense', ...data });

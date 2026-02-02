@@ -11,7 +11,42 @@ document.addEventListener('DOMContentLoaded', () => {
     setupExpensesForm(); // Init Expenses Logic
 
     // Verify Deployment Version
+    // Verify Deployment Version
     checkDeploymentVersion();
+
+    // Mobile Sidebar Toggle Logic
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+
+            // Handle Overlay
+            let overlay = document.querySelector('.sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+            overlay.classList.toggle('active');
+        });
+
+        // Auto-close on nav click
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.remove('active');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (overlay) overlay.classList.remove('active');
+                }
+            });
+        });
+    }
 });
 
 // Global Chart Instance

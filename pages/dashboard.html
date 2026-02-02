@@ -70,7 +70,13 @@
         <!-- Main Content -->
         <main class="main-content">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <h2 id="pageTitle" style="font-size: 1.75rem;">Dashboard</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon mobile-menu-toggle" id="sidebarToggle"
+                        style="display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" style="font-size: 1.75rem;">Dashboard</h2>
+                </div>
                 <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
                     onclick="openUserProfile()">
                     <span id="userNameDisplay">User Name</span>
