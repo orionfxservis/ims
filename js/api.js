@@ -1,14 +1,29 @@
 // api.js - API Layer
 // Handles communication with Google Apps Script or LocalStorage (Mock)
 
+// --- CONFIGURATION ---
+// ADMIN: Paste your Google Apps Script Web App URL here before deploying to GitHub.
+// Example: "https://script.google.com/macros/s/AKfycb.../exec"
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTXZnDHfEpZZ9ynpTnC7MB7VhlbfGZDmMrGTBEacPJDkkRnYDmWxjPRuOc37i21EvDFw/exec"; // <--- PASTE YOUR URL INSIDE THE QUOTES
+
 const API = {
     // Config
-    getUrl: () => localStorage.getItem('apiUrl'),
+    getUrl: () => {
+        // 1. Use Hardcoded URL if present (Secure/Production)
+        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
+            return GOOGLE_SCRIPT_URL;
+        }
+        // 2. Fallback to LocalStorage (Dev/Manual)
+        return localStorage.getItem('apiUrl');
+    },
     isLive: () => {
         // If trial user, force non-live (mock) mode, but specific for trial
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.role === 'trial') return false;
-        return !!localStorage.getItem('apiUrl');
+
+        // Check if we have a valid URL
+        const url = API.getUrl();
+        return (url && url.length > 0);
     },
     isTrial: () => {
         const user = JSON.parse(localStorage.getItem('user'));
