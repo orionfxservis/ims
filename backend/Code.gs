@@ -77,14 +77,31 @@ function registerUser(data) {
   const sheet = ss.getSheetByName('Users');
   if (!sheet) setup(); // Auto setup if missing
 
-  // Check if username exists
+    // Check if username exists
   const users = getSheetData('Users');
   if (users.find(u => u.username === data.username)) {
     return response({ status: 'error', message: 'Username already exists' });
   }
 
-  // Append: Date, Username, Password, Name, Company, Role, Status, Phone
-  sheet.appendRow([new Date(), data.username, data.password, data.username, data.company, 'user', 'pending', "'" + data.phone]);
+  // Columns: Date, Username, Password, Name, Company, Role, Status, Mobile, Whatsapp, Email, Address, PaymentMode
+  // Ensure we capture "Name" separately if provided, or fallback to username
+  const name = data.name || data.username;
+  
+  sheet.appendRow([
+    new Date(), 
+    data.username, 
+    data.password, 
+    name, 
+    data.company, 
+    'user', 
+    'pending', 
+    "'" + (data.mobile || ''),
+    "'" + (data.whatsapp || ''),
+    data.email, 
+    data.address,
+    data.paymentMode,
+    data.profileImage || ''
+  ]);
   
   return response({ status: 'success', message: 'Registration successful' });
 }
@@ -193,9 +210,9 @@ function setup() {
   
   if (!ss.getSheetByName('Users')) {
     const sheet = ss.insertSheet('Users');
-    sheet.appendRow(['Date', 'Username', 'Password', 'Name', 'Company', 'Role', 'Status', 'Phone', 'Email', 'Address', 'ProfileImage']);
+    sheet.appendRow(['Date', 'Username', 'Password', 'Name', 'Company', 'Role', 'Status', 'Mobile', 'Whatsapp', 'Email', 'Address', 'PaymentMode', 'ProfileImage']);
     // Default Admin
-    sheet.appendRow([new Date(), 'admin', 'admin123', 'Super Admin', 'System', 'admin', 'active']);
+    sheet.appendRow([new Date(), 'admin', 'admin123', 'Super Admin', 'System', 'admin', 'active', '', '', '', '', '', '']);
   }
   
   if (!ss.getSheetByName('Banners')) {

@@ -3,19 +3,44 @@
 // auth.js - Handles Login and Registration
 
 // Global toggle function
+// Global toggle function for Modal
 window.toggleAuth = function (view) {
-    const login = document.getElementById('loginContainer');
-    const register = document.getElementById('registerContainer');
+    const modal = document.getElementById('registrationModal');
+    if (!modal) return;
 
     if (view === 'register') {
-        login.style.display = 'none';
-        register.style.display = 'block';
-        register.classList.add('fade-in'); // Optional animation class if defined
+        modal.style.display = 'flex'; // Flex to center as per CSS
+
+        // Auto-set Date on Open
+        const regDateInput = document.getElementById('regDate');
+        if (regDateInput) {
+            regDateInput.value = new Date().toISOString().split('T')[0];
+        }
     } else {
-        register.style.display = 'none';
-        login.style.display = 'block';
-        login.classList.add('fade-in');
+        // Close Modal
+        modal.style.display = 'none';
+
+        // Reset Password Visibility
+        const toggle = document.getElementById('showPassToggle');
+        if (toggle) {
+            toggle.checked = false;
+            const pass = document.getElementById('regPassword');
+            const confirm = document.getElementById('regConfirmPassword');
+            if (pass) pass.type = 'password';
+            if (confirm) confirm.type = 'password';
+        }
     }
+};
+
+window.togglePasswordVisibility = function () {
+    const pass = document.getElementById('regPassword');
+    const confirm = document.getElementById('regConfirmPassword');
+    const toggle = document.getElementById('showPassToggle');
+    if (!toggle) return;
+
+    const type = toggle.checked ? 'text' : 'password';
+    if (pass) pass.type = type;
+    if (confirm) confirm.type = type;
 };
 
 window.loginAsTrial = function () {
@@ -159,6 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Registration Handling
     const registerForm = document.getElementById('registerForm');
+
+    // Auto-set Date on Load
+    const regDateInput = document.getElementById('regDate');
+    if (regDateInput) {
+        regDateInput.value = new Date().toISOString().split('T')[0];
+    }
+
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -166,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = btn.innerHTML;
 
             const password = document.getElementById('regPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
 
             if (password !== confirm) {
                 showToast("Passwords do not match!", true);
@@ -177,44 +209,71 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> Registering...';
 
-            const data = {
-                company: document.getElementById('regCompanyName').value,
-                username: document.getElementById('regUsername').value, // Used as Name in form
-                password: password,
-                phone: document.getElementById('regPhone').value,
-                email: document.getElementById('regEmail').value,
-                address: document.getElementById('regAddress').value,
-                role: 'user',
-                name: document.getElementById('regUsername').value // Sync name/username
+            const processRegistration = (base64Image) => {
+                const data = {
+                    username: document.getElementById('regUsername').value,
+                    password: password,
+                    name: document.getElementById('regName').value,
+                    company: document.getElementById('regCompany').value,
+                    mobile: document.getElementById('regMobile').value,
+                    whatsapp: document.getElementById('regWhatsapp').value,
+                    email: document.getElementById('regEmail').value,
+                    address: document.getElementById('regAddress').value,
+                    paymentMode: document.getElementById('regPayment').value,
+                    role: 'user',
+                    profileImage: base64Image || ''
+                };
+
+                // Call API
+                API.register(data).then(response => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+
+                    if (response.status === 'success') {
+                        showToast("Registration successful! sending request to Admin...");
+                        registerForm.reset();
+                        if (document.getElementById('regDate'))
+                            document.getElementById('regDate').value = new Date().toISOString().split('T')[0];
+
+                        // WhatsApp to Admin
+                        const adminPhone = "923001234567";
+                        const msg = `*New Registration Request*\n\n` +
+                            `Name: ${data.name}\n` +
+                            `Company: ${data.company}\n` +
+                            `Mobile: ${data.mobile}\n` +
+                            `WhatsApp: ${data.whatsapp}\n` +
+                            `Email: ${data.email}\n` +
+                            `Payment: ${data.paymentMode}\n\n` +
+                            `Please approve this user.`;
+
+                        const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`;
+
+                        setTimeout(() => {
+                            window.open(url, '_blank');
+                            toggleAuth('close'); // Close Modal
+                        }, 1500);
+
+                    } else {
+                        showToast(response.message, true);
+                    }
+                }).catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    showToast("Error: " + err.message, true);
+                });
             };
 
-            // Call API
-            API.register(data).then(response => {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-
-                if (response.status === 'success') {
-                    showToast("Registration successful! sending request to Admin...");
-                    registerForm.reset();
-
-                    // WhatsApp to Admin
-                    const adminPhone = "923123456789"; // Replace with Admin's actual number
-                    const msg = `*New Registration Request*\n\nName: ${data.name}\nCompany: ${data.company}\nMobile: ${data.phone}\nAddress: ${data.address}\nEmail: ${data.email}\n\nPlease approve this user.`;
-                    const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`;
-
-                    setTimeout(() => {
-                        window.open(url, '_blank');
-                        toggleAuth('login');
-                    }, 1500);
-
-                } else {
-                    showToast(response.message, true);
-                }
-            }).catch(err => {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-                showToast("Error: " + err.message, true);
-            });
+            // Image handling
+            const imageInput = document.getElementById('regImage');
+            if (imageInput && imageInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    processRegistration(e.target.result);
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                processRegistration(null);
+            }
         });
     }
 
