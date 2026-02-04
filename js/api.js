@@ -434,5 +434,63 @@ const API = {
             localStorage.setItem('expenses', JSON.stringify(expenses));
             return Promise.resolve({ success: true, message: 'Expense saved' });
         }
+    },
+
+    // --- Visitor Counter ---
+    async logVisit(visitorId) {
+        if (this.isLive()) {
+            return this.post({ action: 'logVisit', visitorId: visitorId });
+        } else {
+            // Mock Implementation
+            const visits = JSON.parse(localStorage.getItem('visitorLog') || '[]');
+            const now = new Date();
+            visits.push({ date: now.toISOString(), visitorId: visitorId || 'mock_user' });
+            localStorage.setItem('visitorLog', JSON.stringify(visits));
+            return this.getVisitorStats(); // Return updated stats
+        }
+    },
+
+    async getVisitorStats() {
+        if (this.isLive()) {
+            return this.post({ action: 'getVisitorStats' });
+        } else {
+            // Mock Implementation
+            const visits = JSON.parse(localStorage.getItem('visitorLog') || '[]');
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            let online = 1; // Always 1 for yourself
+            let today = 0;
+            let yest = 0;
+            let week = 0;
+            let month = 0;
+
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            visits.forEach(v => {
+                const d = new Date(v.date);
+                const dStr = v.date.split('T')[0];
+
+                if (dStr === todayStr) today++;
+                if (dStr === yesterdayStr) yest++;
+                if (d > oneWeekAgo) week++;
+                if (d > oneMonthAgo) month++;
+            });
+
+            return Promise.resolve({
+                success: true,
+                stats: {
+                    online: online,
+                    today: today,
+                    yesterday: yest,
+                    week: week,
+                    month: month
+                }
+            });
+        }
     }
 };

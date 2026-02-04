@@ -8,48 +8,60 @@ const VisitorAPI = {
     // but log new visit on new tab/window.
 
     init: function () {
-        if (!sessionStorage.getItem('imb_visit_logged')) {
-            this.logVisit();
+        // Generate or retrieve a unique ID for this device/browser
+        let visitorId = localStorage.getItem('imb_visitor_id');
+        if (!visitorId) {
+            visitorId = 'v_' + Math.random().toString(36).substr(2, 9) + Date.now();
+            localStorage.setItem('imb_visitor_id', visitorId);
+        }
+
+        // Log visit if not logged in this session (to avoid refresh spam, saving quota)
+        // AND/OR if we want to support "Online" accurately across tabs, we can log.
+        // Let's stick to "Log once per session" but use the Unique ID so backend counts distinct users.
+        // Actually, if we use the Unique ID, we can relax the session check if we want, 
+        // but Google Apps Script has quotas. Better to check session.
+        if (!sessionStorage.getItem('imb_visit_active')) {
+            this.logVisit(visitorId);
         } else {
             this.getStats();
         }
 
-        // Refresh stats periodically (e.g., every 60s) to show "Online" changes
+        // Refresh stats periodically
         setInterval(() => {
             this.getStats();
         }, 60000);
     },
 
-    logVisit: function () {
-        if (typeof API === 'undefined') {
-            console.error("API module not loaded");
-            return;
-        }
+    logVisit: function (visitorId) {
+        if (typeof API === 'undefined') return;
 
-        // Assuming API.post is available (from api.js)
-        // If API.post requires auth, we might have an issue for public visitors.
-        // Usually index.html is public. 
-        // We need to check if API.post handles unauthenticated requests or if we need a public endpoint.
-        // backend/Code.gs doPost usually requires deployment as "Anyone" (or "Anyone with Google Account").
-        // If configured as "Me" (execution) and "Anyone" (access), it works.
+        // If no ID passed (e.g. called manually), try get it
+        if (!visitorId) visitorId = localStorage.getItem('imb_visitor_id');
 
-        API.post({ action: 'logVisit' })
+        console.log("Visitor: Logging visit for ID:", visitorId);
+        API.logVisit(visitorId)
             .then(response => {
                 if (response.success) {
-                    sessionStorage.setItem('imb_visit_logged', 'true');
+                    sessionStorage.setItem('imb_visit_active', 'true');
                     this.updateUI(response.stats);
                 }
             })
             .catch(err => console.error("Visitor Log Error:", err));
     },
 
+
+
     getStats: function () {
         if (typeof API === 'undefined') return;
 
-        API.post({ action: 'getVisitorStats' })
+        console.log("Visitor: Fetching stats...");
+        API.getVisitorStats()
             .then(response => {
+                console.log("Visitor: Stats response:", response);
                 if (response.success) {
                     this.updateUI(response.stats);
+                } else {
+                    console.warn("Visitor: Stats fetch failed", response);
                 }
             })
             .catch(err => console.error("Visitor Stats Error:", err));

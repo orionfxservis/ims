@@ -229,6 +229,11 @@ function setup() {
     const sheet = ss.insertSheet('Sales');
     sheet.appendRow(['Date', 'Customer Name', 'Item Name', 'Unit Price', 'Quantity', 'Total', 'Paid', 'Mode', 'Balance', 'User']);
   }
+
+  if (!ss.getSheetByName('VisitorLog')) {
+    const sheet = ss.insertSheet('VisitorLog');
+    sheet.appendRow(['Timestamp', 'Date', 'Type']);
+  }
 }
 
 // --- Expenses ---
@@ -277,12 +282,6 @@ function saveInventory(data) {
     sheet = ss.getSheetByName('Inventory');
   }
   
-  // Data: date, category, vendor, item, brand, qty, price, total, paid, mode, balance
-  // Append Row in Request Order
-  sheet.appendRow([
-    data.date,
-    data.category,
-    data.vendor,
   // Data: date, category, vendor, item, brand, model, qty, price, total, paid, mode, balance
   // Append Row in Request Order
   sheet.appendRow([
@@ -453,8 +452,10 @@ function logVisit(data) {
   
   const now = new Date();
   const dateStr = Utilities.formatDate(now, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+  const visitorId = data.visitorId || 'legacy';
   
-  sheet.appendRow([now.toISOString(), dateStr, 'Visit']);
+  // Columns: Timestamp, Date, Type, VisitorID
+  sheet.appendRow([now.toISOString(), "'" + dateStr, 'Visit', visitorId]);
   
   return getVisitorStats();
 }
@@ -465,75 +466,119 @@ function getVisitorStats() {
   if (!sheet) return response({ success: true, stats: { online: 0, today: 0, yesterday: 0, week: 0, month: 0 } });
   
   const data = sheet.getDataRange().getValues();
-  // Skip header
   if (data.length <= 1) return response({ success: true, stats: { online: 0, today: 0, yesterday: 0, week: 0, month: 0 } });
   
   const now = new Date();
   const todayStr = Utilities.formatDate(now, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+  
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   const yesterdayStr = Utilities.formatDate(yesterday, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
   
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); 
   
-  let online = 0;
-  let today = 0;
-  let yest = 0;
-  let week = 0;
-  let month = 0;
+  // Track Unique Sets
+  const onlineSet = new Set(); // For Online (Last 5 mins)
+  const todaySet = new Set(); // For Today (Unique Daily Visitors)
+  const weekSet = new Set();  // For Week (Unique Weekly Visitors)
+  const monthSet = new Set(); // For Month (Unique Monthly Visitors)
   
-  // Iterate backwards for performance on very large sets, 
-  // but for accurate stats we check all or until dates are too old (if sorted). 
-  // AppendRow usually keeps sorted.
+  // Fallback counters if VisitorID is missing (legacy data)
+  let legacyOnline = 0;
   
   for (let i = data.length - 1; i >= 1; i--) {
      const row = data[i];
      const tsStr = row[0];
-     const dStr = row[1]; // yyyy-MM-dd
+     let dStr = row[1]; 
+     const vId = row[3]; // VisitorID in Col 4
+     
+     if (dStr instanceof Date) {
+        dStr = Utilities.formatDate(dStr, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+     } else {
+        dStr = String(dStr).replace(/'/g, ''); 
+     }
+     
+     const ts = new Date(tsStr);
+     const isOnline = (now - ts < 300000);
+     
+     // 1. Online Calculation
+     if (isOnline) {
+       if (vId) onlineSet.add(vId);
+       else legacyOnline++; // Count rows without ID as distinct hits
+     }
+     
+     // 2. Historical Stats
+     // We can choose: Count Visits (hits) OR Unique IDs.
+     // Standard "Visitor Counter" often counts Visits (hits), "Online" counts Users.
+     // But user asked for "Actual Nos" (People).
+     // Let's mix: 
+     // For "Today", usually we want Unique Visitors.
+     // If we switch everything to Unique IDs:
+     
+     if (vId) {
+         if (dStr === todayStr) todaySet.add(vId);
+         // For rolling windows, we track ID. 
+         // Note: A user visiting yesterday AND today counts as 1 "Monthly Visitor"? 
+         // Or do we count daily unique sessions sum?
+         // "Weekly Visitors" usually means Unique Users in that week.
+         if (ts > oneWeekAgo) weekSet.add(vId);
+         if (ts > oneMonthAgo) monthSet.add(vId);
+     }
+     
+     // Legacy Handling (No ID):
+     // If no ID, we can't dedup. Just add to a "legacy count"?
+     // Or just ignore legacy data for strict "Unique" mode?
+     // Let's rely on backend 'visits' count for historical if ID missing?
+     // Complicated. Let's simplify:
+     // Start counting Unique FROM NOW. Old data (today) lacks ID, will be ignored by Set logic?
+     // If vId is missing/undefined, we can't use Set.
+     // FIX: If vId missing, treat each row as unique (append unique suffix or similar logic?)
+     // Actually, simpler: Count *Hits* for historical stats (as before), but *Unique IDs* for Online.
+     // This is the safest hybrid. "Online" is the real-time presence.
+     // User specifically complained about "Online 4 connections".
+  }
+  
+  // Hybrid Approach:
+  // Online: Unique Set size + legacy hits
+  // Others: Keep as hit counts (loop again or keep counters)
+  // Re-looping for counters is cleaner if we separate logic.
+  
+  // Let's refine the loop to do both correctly.
+  
+  let todayHits = 0;
+  let yestHits = 0;
+  let weekHits = 0;
+  let monthHits = 0;
+  
+  for (let i = data.length - 1; i >= 1; i--) {
+     const row = data[i];
+     const tsStr = row[0];
+     let dStr = row[1];
+     if (dStr instanceof Date) dStr = Utilities.formatDate(dStr, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+     else dStr = String(dStr).replace(/'/g, '');
      
      const ts = new Date(tsStr);
      
-     // Online: last 5 mins (300000 ms)
-     if (now - ts < 300000) online++;
-     
-     if (dStr === todayStr) today++;
-     if (dStr === yesterdayStr) yest++;
-     
-     if (ts > oneWeekAgo) week++;
-     if (ts > oneMonthAgo) month++;
-     
-     // Optimization: if ts is older than 1 month, we can maybe stop? 
-     // But strictly we should count everything for 'month' if it means 'this month' (calendar) or 'last 30 days'. 
-     // Requirement said "This Month". Let's stick to last 30 days for simplicity or current calendar month?
-     // "This Month" usually means current calendar month (e.g. Feb 1 to Feb 28).
-     // Let's adjust Month logic to Calendar Month.
+     // Historical Hits (Status Quo)
+     if (dStr === todayStr) todayHits++;
+     if (dStr === yesterdayStr) yestHits++;
+     if (ts > oneWeekAgo) weekHits++;
+     if (ts > oneMonthAgo) monthHits++;
   }
-  
-  // Re-calc month for Calendar Month
-  const currentMonthStr = Utilities.formatDate(now, ss.getSpreadsheetTimeZone(), "yyyy-MM");
-  month = 0; // Reset
-  for (let i = 1; i < data.length; i++) {
-     // Forward loop or backward doesn't matter for specific checks
-     if (data[i][1].startsWith(currentMonthStr)) month++;
-  }
-  // Wait, I can do it in the main loop more efficiently? 
-  // Let's stick to the previous loop but fix the month check.
-  // Actually, let's keep it simple: 
-  // Online: < 5 mins
-  // Today: dateStr match
-  // Yesterday: dateStr match
-  // Week: last 7 days (rolling)
-  // Month: current calendar month (yyyy-MM match)
-  
+
+  // Current Online Users (Strict Unique)
+  // Because "Online" is instantaneous state.
+  const onlineCount = onlineSet.size + legacyOnline;
+
   return response({ 
     success: true, 
     stats: { 
-      online: Math.max(online, 1), // Always at least 1 (you)
-      today: today, 
-      yesterday: yest, 
-      week: week, 
-      month: month 
+      online: Math.max(onlineCount, 1), 
+      today: todayHits, 
+      yesterday: yestHits, 
+      week: weekHits, 
+      month: monthHits 
     } 
   });
 }
