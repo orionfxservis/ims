@@ -300,9 +300,9 @@ if (scrollTopBtn && heroLeft) {
     // Show button when hero-left is scrolled down
     heroLeft.addEventListener('scroll', () => {
         if (heroLeft.scrollTop > 200) {
-            scrollTopBtn.style.display = "block";
+            scrollTopBtn.classList.add('show');
         } else {
-            scrollTopBtn.style.display = "none";
+            scrollTopBtn.classList.remove('show');
         }
     });
 

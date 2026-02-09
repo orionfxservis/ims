@@ -1245,3 +1245,39 @@ body {
     background: #1e293b;
     color: white;
 }
+
+/* Responsive Fixes Override */
+@media (max-width: 1024px) {
+    .hero-right {
+        display: flex !important;
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 2rem !important;
+    }
+}
+
+/* Force Table Scrolling on Small Screens */
+@media (max-width: 768px) {
+    .data-table {
+        white-space: nowrap;
+    }
+}
+
+/* Scroll Top Smooth Transition */
+#scrollTopBtn {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+#scrollTopBtn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
