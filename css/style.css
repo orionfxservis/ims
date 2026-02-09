@@ -171,6 +171,21 @@ body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    /* Enable scrolling */
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Sidebar Scrollbar Styling for WebKit */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
 }
 
 .main-content {
@@ -1169,7 +1184,9 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-}/* Modal Overlay */
+}
+
+/* Modal Overlay */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -1204,6 +1221,7 @@ body {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -1235,6 +1253,7 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
 /* Form Compactness */
 .form-group.compact {
     margin-bottom: 0.8rem;
