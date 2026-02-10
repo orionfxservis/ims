@@ -659,6 +659,74 @@ window.publishBroadcast = async function () {
     }
 };
 
+window.cancelEditBroadcast = function () {
+    document.getElementById('broadcastForm').reset();
+    const idField = document.getElementById('bcEditId');
+    if (idField) idField.value = '';
+
+    // Reset button text
+    const btn = document.querySelector('#broadcastForm button[type="submit"]');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Broadcast';
+
+    // Hide cancel button if exists
+    const cancelBtn = document.getElementById('btnCancelEdit');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+window.editBroadcast = function (dataStr) {
+    try {
+        const data = JSON.parse(decodeURIComponent(dataStr));
+        document.getElementById('bcUser').value = data.userName || '';
+        document.getElementById('bcCompany').value = data.company || '';
+        document.getElementById('bcContact').value = data.contact || '';
+        document.getElementById('bcMessage').value = data.message || '';
+        if (data.duration) document.getElementById('bcDuration').value = data.duration;
+
+        // Set Hidden ID
+        let idField = document.getElementById('bcEditId');
+        if (!idField) {
+            idField = document.createElement('input');
+            idField.type = 'hidden';
+            idField.id = 'bcEditId';
+            document.getElementById('broadcastForm').appendChild(idField);
+        }
+        idField.value = data.id;
+
+        // Change Button Text
+        const btn = document.querySelector('#broadcastForm button[type="submit"]');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Broadcast';
+
+        // Show Cancel Button
+        let cancelBtn = document.getElementById('btnCancelEdit');
+        if (!cancelBtn) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'btnCancelEdit';
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn';
+            cancelBtn.style.background = '#64748b';
+            cancelBtn.style.flex = '1'; /* Make it equal width */
+            cancelBtn.style.padding = '0.5rem';
+            cancelBtn.style.fontSize = '0.9rem';
+            cancelBtn.innerHTML = 'Cancel';
+            cancelBtn.onclick = cancelEditBroadcast;
+
+            const container = document.getElementById('bcActionBtns');
+            if (container) {
+                container.appendChild(cancelBtn);
+            } else {
+                btn.parentNode.appendChild(cancelBtn); // Fallback
+            }
+        }
+        cancelBtn.style.display = 'block';
+
+        // Scroll to form
+        document.getElementById('broadcasts').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) {
+        console.error("Error parsing edit data", e);
+    }
+};
+
 async function loadBroadcasts() {
     const list = document.getElementById('activeBroadcastsList');
     if (!list) return;
@@ -700,18 +768,10 @@ async function loadBroadcasts() {
                         ${b.message}
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; align-items: center; margin-top: 0.25rem;">
+                    <div style="display:flex; justify-content:flex-start; align-items: center; margin-top: 0;">
                         <div style="font-size: 0.75rem; color: #64748b;">
                             <i class="fa-regular fa-clock"></i> ${b.duration} 
                             ${b.contact ? '&bull; <i class="fa-solid fa-phone"></i> ' + b.contact : ''}
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button onclick="repostBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 2px 8px; font-size: 0.75rem;">
-                                <i class="fa-solid fa-reply"></i> Repost
-                            </button>
-                            <button onclick="deleteBroadcast('${id}')" class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; font-size: 0.75rem;">
-                                <i class="fa-solid fa-trash"></i> Delete
-                            </button>
                         </div>
                     </div>
                 </li>
