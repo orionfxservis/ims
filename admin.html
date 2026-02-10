@@ -332,41 +332,54 @@
             <div id="broadcasts" class="view-section hidden">
                 <h1 class="page-title">Broadcast Messages</h1>
                 <div class="glass-card" style="max-width: 600px;">
-                    <h3>Create New Broadcast</h3>
-                    <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 1.5rem;">
-                        This message will scroll on all user dashboards for the selected duration.
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Create New Broadcast</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.75rem;">
+                        This message will scroll on all user dashboards.
                     </p>
                     <form id="broadcastForm" onsubmit="event.preventDefault(); publishBroadcast();">
-                        <div class="form-group">
-                            <label>User Name</label>
-                            <input type="text" id="bcUser" class="form-input" placeholder="e.g. Admin or Sales Team"
-                                required>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <!-- Row 1 -->
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">User Name</label>
+                                <input type="text" id="bcUser" class="form-input" placeholder="e.g. Admin"
+                                    style="padding: 0.4rem; font-size: 0.9rem;" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Company Name</label>
+                                <input type="text" id="bcCompany" class="form-input" placeholder="Optional"
+                                    style="padding: 0.4rem; font-size: 0.9rem;">
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Contact No</label>
+                                <input type="text" id="bcContact" class="form-input" placeholder="Optional"
+                                    style="padding: 0.4rem; font-size: 0.9rem;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Duration</label>
+                                <select id="bcDuration" class="form-input"
+                                    style="padding: 0.4rem; font-size: 0.9rem; color: #333; background: white; cursor: pointer;">
+                                    <option value="1 Week">1 Week</option>
+                                    <option value="2 Weeks">2 Weeks</option>
+                                    <option value="3 Weeks">3 Weeks</option>
+                                    <option value="1 Month">1 Month</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Company Name</label>
-                            <input type="text" id="bcCompany" class="form-input" placeholder="Optional">
+
+                        <!-- Row 3: Message -->
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Message</label>
+                            <textarea id="bcMessage" class="form-input" rows="2"
+                                placeholder="Enter your message here..." style="padding: 0.4rem; font-size: 0.9rem;"
+                                required></textarea>
                         </div>
-                        <div class="form-group">
-                            <label>Contact No</label>
-                            <input type="text" id="bcContact" class="form-input" placeholder="Optional">
-                        </div>
-                        <div class="form-group">
-                            <label>Message</label>
-                            <textarea id="bcMessage" class="form-input" rows="3"
-                                placeholder="Enter your message here..." required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Duration</label>
-                            <select id="bcDuration" class="form-input"
-                                style="color: #333; background: white; cursor: pointer;">
-                                <option value="1 Week">1 Week</option>
-                                <option value="2 Weeks">2 Weeks</option>
-                                <option value="3 Weeks">3 Weeks</option>
-                                <option value="1 Month">1 Month</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn" style="background: #22c55e;"><i
-                                class="fa-solid fa-paper-plane"></i> Publish Broadcast</button>
+
+                        <button type="submit" class="btn"
+                            style="background: #22c55e; width: 100%; padding: 0.5rem; font-size: 0.9rem;">
+                            <i class="fa-solid fa-paper-plane"></i> Publish Broadcast
+                        </button>
                     </form>
                 </div>
 

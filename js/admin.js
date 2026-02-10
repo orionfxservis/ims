@@ -617,26 +617,31 @@ window.publishBroadcast = async function () {
     const contact = document.getElementById('bcContact').value;
     const message = document.getElementById('bcMessage').value;
     const duration = document.getElementById('bcDuration').value;
+    const editId = document.getElementById('bcEditId') ? document.getElementById('bcEditId').value : null;
 
     if (!user || !message) {
         alert("User Name and Message are required!");
         return;
     }
 
-    const btn = document.querySelector('#broadcastForm button');
+    const btn = document.querySelector('#broadcastForm button[type="submit"]');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     btn.disabled = true;
 
     try {
-        // API.saveBroadcast adds 'action: saveBroadcast' internally
-        const res = await API.saveBroadcast({
+        const payload = {
             userName: user,
             company: company,
             contact: contact,
             message: message,
             duration: duration
-        });
+        };
+
+        if (editId) payload.id = editId; // Add ID for update
+
+        // API.saveBroadcast adds 'action: saveBroadcast' internally
+        const res = await API.saveBroadcast(payload);
 
         if (res.status === 'success') {
             alert('Broadcast Published Successfully!');
@@ -670,18 +675,28 @@ async function loadBroadcasts() {
                 const dataStr = encodeURIComponent(JSON.stringify(b));
 
                 return `
-                <li class="glass-card" style="padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #eab308; display: flex; flex-direction: column; gap: 0.25rem;">
-                    <div style="display:flex; justify-content:space-between; align-items: flex-start;">
-                        <div>
-                            <span style="font-weight: 600; color: #fff; font-size: 0.95rem;">${b.userName}</span>
-                            <span style="color: #64748b; font-size: 0.8rem; margin-left: 0.5rem;">${b.company || ''}</span>
+                <li class="glass-card" style="padding: 0.5rem; margin-bottom: 0.25rem; border-left: 2px solid #eab308; display: flex; flex-direction: column; gap: 0.15rem;">
+                    <div style="display:flex; justify-content:space-between; align-items: center;">
+                        <div style="display:flex; align-items:center; gap: 0.5rem;">
+                            <span style="font-weight: 600; color: #fff; font-size: 0.85rem;">${b.userName}</span>
+                            <span style="font-size: 0.7rem; color: #64748b; background: rgba(255,255,255,0.05); padding: 1px 4px; border-radius: 3px;">
+                                ${new Date(b.expiry).toLocaleDateString()}
+                            </span>
                         </div>
-                        <div style="font-size: 0.75rem; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">
-                            Expires: ${new Date(b.expiry).toLocaleDateString()}
+                        <div style="display: flex; gap: 0.25rem;">
+                             <button onclick="editBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #3b82f6; color: #3b82f6; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="repostBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Repost">
+                                <i class="fa-solid fa-reply"></i>
+                            </button>
+                            <button onclick="deleteBroadcast('${id}')" class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                     
-                    <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.4; padding: 0.25rem 0;">
+                    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.2; padding: 0.1rem 0;">
                         ${b.message}
                     </div>
 

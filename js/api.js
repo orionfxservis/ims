@@ -519,6 +519,20 @@ const API = {
             else if (data.duration === '1 Month') expiry.setMonth(now.getMonth() + 1);
             else expiry.setDate(now.getDate() + 7);
 
+            if (data.id) {
+                // Update existing
+                const index = broadcasts.findIndex(b => b.id === data.id);
+                if (index !== -1) {
+                    broadcasts[index] = {
+                        ...broadcasts[index],
+                        ...data,
+                        expiry: expiry.toISOString()
+                    };
+                    localStorage.setItem('broadcasts', JSON.stringify(broadcasts));
+                    return Promise.resolve({ status: 'success', message: 'Broadcast updated' });
+                }
+            }
+
             broadcasts.push({
                 ...data,
                 date: now.toISOString(),

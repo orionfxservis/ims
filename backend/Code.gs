@@ -625,7 +625,7 @@ function saveBroadcast(data) {
   const now = new Date();
   let expiry = new Date();
   
-  // Duration: 1 Week, 2 Weeks, 3 Weeks, 1 Month
+  // Duration Logic
   if (data.duration === '1 Week') expiry.setDate(now.getDate() + 7);
   else if (data.duration === '2 Weeks') expiry.setDate(now.getDate() + 14);
   else if (data.duration === '3 Weeks') expiry.setDate(now.getDate() + 21);
@@ -633,7 +633,27 @@ function saveBroadcast(data) {
   else if (data.duration === '2 Months') expiry.setMonth(now.getMonth() + 2);
   else expiry.setDate(now.getDate() + 7); // Default
   
-  // ID Generation (Simple Timestamp + Random)
+  // CHECK FOR UPDATE (Edit Mode)
+  if (data.id) {
+    const rows = sheet.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][8] == data.id) { // ID is at index 8
+        // Update specific cells
+        // Row is i+1. Columns: 2=Message, 3=Duration, 4=Expiry, 5=User, 6=Company, 7=Contact
+        sheet.getRange(i + 1, 2).setValue(data.message);
+        sheet.getRange(i + 1, 3).setValue(data.duration);
+        sheet.getRange(i + 1, 4).setValue(expiry);
+        sheet.getRange(i + 1, 5).setValue(data.userName);
+        sheet.getRange(i + 1, 6).setValue(data.company || '');
+        sheet.getRange(i + 1, 7).setValue(data.contact || '');
+        // Date (col 1) and ID (col 9) remain unchanged
+        return response({ status: 'success', message: 'Broadcast updated' });
+      }
+    }
+    // If ID provided but not found, treat as new? Or error? Let's treat as new to be safe, or just append.
+  }
+
+  // CREATE NEW
   const id = 'bc_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
 
   sheet.appendRow([
@@ -645,7 +665,7 @@ function saveBroadcast(data) {
     data.company || '',
     data.contact || '',
     'Active',
-    id // New ID column
+    id 
   ]);
   
   return response({ status: 'success', message: 'Broadcast published' });
