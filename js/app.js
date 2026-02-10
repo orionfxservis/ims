@@ -172,7 +172,7 @@ async function checkDeploymentVersion() {
         const res = await API.get('getVersion');
         console.log("Deployment Version:", res);
 
-        if (!res || res.version !== '1.2') {
+        if (!res || res.version !== '1.3 - Broadcasts Enabled') {
             // If version mismatch or error (likely 'Invalid Action' if old code)
             const msg = "SYSTEM UPDATE REQUIRED: Your Google Apps Script deployment is outdated. Please Redeploy > New Version.";
             alert(msg);
@@ -181,7 +181,7 @@ async function checkDeploymentVersion() {
                 banner.innerHTML = `<div style="background:red; color:white; padding:15px; text-align:center; font-weight:bold;">${msg}</div>` + banner.innerHTML;
             }
         } else {
-            console.log("System Version 1.2 Verified.");
+            console.log("System Version 1.3 Verified.");
         }
     } catch (e) {
         console.warn("Could not verify version. Likely old deployment.", e);
