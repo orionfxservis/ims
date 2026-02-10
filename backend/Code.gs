@@ -117,12 +117,16 @@ function loginUser(data) {
   
   // Robust matching: String(), trim(), and case-insensitive username
   const user = users.find(u => 
-    String(u.username).trim().toLowerCase() === String(data.username).trim().toLowerCase() && 
-    String(u.password).trim() === String(data.password).trim()
+    String(u.username).trim().toLowerCase() === String(data.username).trim().toLowerCase()
   );
 
   if (!user) {
-    return response({ status: 'error', message: 'Invalid credentials' });
+    return response({ status: 'error', message: 'User not found' });
+  }
+
+  // Check password
+  if (String(user.password).trim() !== String(data.password).trim()) {
+    return response({ status: 'error', message: 'Invalid password' });
   }
   
   if (user.status !== 'active' && user.username !== 'admin') {
