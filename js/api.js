@@ -4,7 +4,7 @@
 // --- CONFIGURATION ---
 // ADMIN: Paste your Google Apps Script Web App URL here before deploying to GitHub.
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
-const GOOGLE_SCRIPT_URL = ""; // Set to "" to use URL from Admin Panel > System Settings
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTXZnDHfEpZZ9ynpTnC7MB7VhlbfGZDmMrGTBEacPJDkkRnYDmWxjPRuOc37i21EvDFw/exec"; // Set to "" to use URL from Admin Panel > System Settings
 
 const API = {
     // Config
