@@ -77,13 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const users = await API.getUsers();
 
+            // Filter out Admin and Trial from stats (Matching Admin Dashboard Logic)
+            const realUsers = users.filter(u => u.role !== 'admin' && u.role !== 'trial' && u.username !== 'trial' && u.company !== 'System');
+
             // 1. Registered Companies
-            const companies = new Set(users.map(u => (u.company || '').trim().toLowerCase()));
+            const companies = new Set(realUsers.map(u => (u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
             const companyCount = companies.size;
 
             // 2. Registered Users & Active
-            const userCount = users.length;
-            const activeCount = users.filter(u => u.status === 'active').length;
+            const userCount = realUsers.length;
+            const activeCount = realUsers.filter(u => u.status === 'active').length;
 
             animateValue(document.getElementById('lpCountCompanies'), 0, companyCount, 2000);
             animateValue(document.getElementById('lpCountUsers'), 0, userCount, 2000);
