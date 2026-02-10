@@ -92,7 +92,8 @@ function getSheetData(sheetName) {
     const row = data[i];
     const obj = {};
     for (let j = 0; j < headers.length; j++) {
-      obj[headers[j]] = row[j];
+      // Normalize keys to lowercase for Frontend compatibility
+      obj[headers[j].toLowerCase()] = row[j];
     }
     results.push(obj);
   }
@@ -307,13 +308,15 @@ function saveBanners(data) {
 // --- Auth ---
 function loginUser(data) {
   const users = getSheetData('Users');
-  const user = users.find(u => u.Username === data.username && u.Password === data.password);
+  // Use lowercase keys as getSheetData now normalizes them
+  const user = users.find(u => u.username === data.username && u.password === data.password);
   
   if (user) {
-    if (user.Status === 'Approved' || user.status === 'Approved' || user.Status === 'active' || user.status === 'active') {
+    // Check Status (lowercase 'status' from normalized key)
+    if (user.status === 'Approved' || user.status === 'active') {
       return response({ status: 'success', user: { ...user, password: '' } });
     } else {
-      return response({ status: 'error', message: 'Account is ' + (user.Status || user.status) });
+      return response({ status: 'error', message: 'Account is ' + user.status });
     }
   }
   return response({ status: 'error', message: 'Invalid credentials' });
@@ -329,7 +332,8 @@ function registerUser(data) {
   
   // Check existing
   const users = getSheetData('Users');
-  if (users.find(u => u.Username === data.username)) {
+  // Use lowercase 'username' check
+  if (users.find(u => u.username === data.username)) {
     return response({ status: 'error', message: 'Username exists' });
   }
   
@@ -351,10 +355,10 @@ function updateUserStatus(data) {
   const sheet = ss.getSheetByName('Users');
   const rows = sheet.getDataRange().getValues();
   
-  // Find user by username (col index 2)
+  // Find user by username (col index 2 -> C column)
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][2] === data.username) {
-      // Update Status (col index 5)
+      // Update Status (col index 5 -> F column)
       sheet.getRange(i + 1, 6).setValue(data.status);
       return response({ status: 'success' });
     }
