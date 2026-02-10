@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPurchaseCalculations(); // Init Purchase Logic
     setupSalesForm(); // Init Sales Logic
     setupExpensesForm(); // Init Expenses Logic
+    loadBroadcasts(); // New: Load Broadcasts
 
     // Verify Deployment Version
     // Verify Deployment Version
@@ -1323,5 +1324,33 @@ async function loadRecentExpenses() {
     } catch (e) {
         console.error("Error loading expenses", e);
         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Error loading data</td></tr>';
+    }
+}
+
+// 8. Load Broadcasts
+async function loadBroadcasts() {
+    try {
+        const res = await API.getBroadcasts();
+        const container = document.getElementById('broadcastContainer');
+        const textContainer = document.getElementById('broadcastText');
+
+        if (!container || !textContainer) return;
+
+        if (res.success && res.broadcasts && res.broadcasts.length > 0) {
+            console.log("Broadcasts found:", res.broadcasts.length);
+            const messages = res.broadcasts.map(b => {
+                return `<span style="margin-right: 4rem;">
+                  <span style="color: #eab308; font-weight: bold;">${b.userName}:</span> ${b.message}
+               </span>`;
+            }).join('');
+
+            textContainer.innerHTML = messages;
+            container.classList.remove('hidden');
+        } else {
+            console.warn("No active broadcasts found or API error", res);
+            container.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error("Error loading broadcasts", e);
     }
 }

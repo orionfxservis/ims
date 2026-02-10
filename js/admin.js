@@ -5,7 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
     loadRecentActivity(); // Load activity log
     loadUsers();
-    loadCategories(); // New: Load categories
+    loadUsers();
+    loadCategories();
+    loadBroadcasts(); // New: Load broadcasts
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -605,5 +607,141 @@ window.testConnection = async function (silent = false) {
                 btn.style.background = '#64748b';
             }, 3000);
         }
+    }
+};
+
+// --- Broadcasts ---
+window.publishBroadcast = async function () {
+    const user = document.getElementById('bcUser').value;
+    const company = document.getElementById('bcCompany').value;
+    const contact = document.getElementById('bcContact').value;
+    const message = document.getElementById('bcMessage').value;
+    const duration = document.getElementById('bcDuration').value;
+
+    if (!user || !message) {
+        alert("User Name and Message are required!");
+        return;
+    }
+
+    const btn = document.querySelector('#broadcastForm button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...';
+    btn.disabled = true;
+
+    try {
+        // API.saveBroadcast adds 'action: saveBroadcast' internally
+        const res = await API.saveBroadcast({
+            userName: user,
+            company: company,
+            contact: contact,
+            message: message,
+            duration: duration
+        });
+
+        if (res.status === 'success') {
+            alert('Broadcast Published Successfully!');
+            document.getElementById('broadcastForm').reset();
+            loadBroadcasts(); // Refresh list
+        } else {
+            alert('Error: ' + res.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('An error occurred while publishing.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
+
+async function loadBroadcasts() {
+    const list = document.getElementById('activeBroadcastsList');
+    if (!list) return;
+
+    list.innerHTML = '<li style="color:#888;">Loading...</li>';
+
+    try {
+        const res = await API.getBroadcasts();
+        if (res.success && res.broadcasts && res.broadcasts.length > 0) {
+            list.innerHTML = res.broadcasts.map((b, index) => {
+                // Use ID if available, else fall back to index (not ideal for delete but okay for display)
+                const id = b.id || 'err_' + index;
+                // Encode data for repost
+                const dataStr = encodeURIComponent(JSON.stringify(b));
+
+                return `
+                <li class="glass-card" style="padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #eab308; display: flex; flex-direction: column; gap: 0.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-weight: 600; color: #fff; font-size: 0.95rem;">${b.userName}</span>
+                            <span style="color: #64748b; font-size: 0.8rem; margin-left: 0.5rem;">${b.company || ''}</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">
+                            Expires: ${new Date(b.expiry).toLocaleDateString()}
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.4; padding: 0.25rem 0;">
+                        ${b.message}
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items: center; margin-top: 0.25rem;">
+                        <div style="font-size: 0.75rem; color: #64748b;">
+                            <i class="fa-regular fa-clock"></i> ${b.duration} 
+                            ${b.contact ? '&bull; <i class="fa-solid fa-phone"></i> ' + b.contact : ''}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="repostBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 2px 8px; font-size: 0.75rem;">
+                                <i class="fa-solid fa-reply"></i> Repost
+                            </button>
+                            <button onclick="deleteBroadcast('${id}')" class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; font-size: 0.75rem;">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            `;
+            }).join('');
+        } else {
+            list.innerHTML = '<li style="color:#888; text-align:center; padding: 1rem;">No active broadcasts found.</li>';
+        }
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<li style="color:red;">Error loading broadcasts.</li>';
+    }
+}
+
+window.deleteBroadcast = async function (id) {
+    if (!confirm("Are you sure you want to delete this broadcast?")) return;
+
+    // Optimistic UI update could go here, but let's wait for server
+    try {
+        const res = await API.deleteBroadcast(id);
+        if (res.status === 'success') {
+            loadBroadcasts(); // Refresh
+        } else {
+            alert("Error deleting: " + res.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Delete failed.");
+    }
+};
+
+window.repostBroadcast = function (dataStr) {
+    try {
+        const data = JSON.parse(decodeURIComponent(dataStr));
+        document.getElementById('bcUser').value = data.userName || '';
+        document.getElementById('bcCompany').value = data.company || '';
+        document.getElementById('bcContact').value = data.contact || '';
+        document.getElementById('bcMessage').value = data.message || '';
+        if (data.duration) document.getElementById('bcDuration').value = data.duration;
+
+        // Scroll to form
+        document.getElementById('broadcasts').scrollIntoView({ behavior: 'smooth' });
+
+        // Highlight form logic? (Optional)
+    } catch (e) {
+        console.error("Error parsing repost data", e);
     }
 };

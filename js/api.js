@@ -4,7 +4,7 @@
 // --- CONFIGURATION ---
 // ADMIN: Paste your Google Apps Script Web App URL here before deploying to GitHub.
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTXZnDHfEpZZ9ynpTnC7MB7VhlbfGZDmMrGTBEacPJDkkRnYDmWxjPRuOc37i21EvDFw/exec"; // <--- PASTE YOUR URL INSIDE THE QUOTES
+const GOOGLE_SCRIPT_URL = ""; // Set to "" to use URL from Admin Panel > System Settings
 
 const API = {
     // Config
@@ -61,6 +61,10 @@ const API = {
         banners: [
             { type: 'main', url: 'https://via.placeholder.com/600x300?text=Summer+Sale', title: 'Summer Sale' },
             { type: 'hero', url: 'https://via.placeholder.com/800x400?text=Welcome+Trial+User', title: 'Hero' }
+        ],
+        broadcasts: [
+            { date: '2026-02-10', message: 'Welcome to IMS Cloud! System maintenance scheduled for Sunday.', userName: 'Admin', duration: '1 Week', expiry: '2026-02-17' },
+            { date: '2026-02-08', message: 'New stock of Laptops arrived!', userName: 'Sales Team', duration: '2 Weeks', expiry: '2026-02-22' }
         ]
     },
 
@@ -237,7 +241,9 @@ const API = {
 
     async get(action) {
         try {
-            const url = `${this.getUrl()}?action=${action}&_=${new Date().getTime()}`; // Cache buster
+            const baseUrl = this.getUrl();
+            const sep = baseUrl.includes('?') ? '&' : '?';
+            const url = `${baseUrl}${sep}action=${action}&_=${new Date().getTime()}`; // Cache buster
             const response = await fetch(url);
             return await response.json();
         } catch (e) {
@@ -252,7 +258,9 @@ const API = {
             return { status: 'error', message: 'No API URL configured' };
         }
         try {
-            const url = `${this.getUrl()}?action=test`;
+            const baseUrl = this.getUrl();
+            const sep = baseUrl.includes('?') ? '&' : '?';
+            const url = `${baseUrl}${sep}action=test`;
             const response = await fetch(url);
             return await response.json();
         } catch (e) {
@@ -491,6 +499,67 @@ const API = {
                     month: month
                 }
             });
+        }
+    },
+
+    // --- Broadcasts ---
+    async saveBroadcast(data) {
+        if (this.isLive()) {
+            return this.post({ action: 'saveBroadcast', ...data });
+        } else {
+            if (this.isTrial()) return Promise.resolve({ status: 'error', message: 'Editing is disabled in Trial Mode.' });
+
+            const broadcasts = JSON.parse(localStorage.getItem('broadcasts') || '[]');
+            // Calculate mock expiry
+            const now = new Date();
+            let expiry = new Date();
+            if (data.duration === '1 Week') expiry.setDate(now.getDate() + 7);
+            else if (data.duration === '2 Weeks') expiry.setDate(now.getDate() + 14);
+            else if (data.duration === '3 Weeks') expiry.setDate(now.getDate() + 21);
+            else if (data.duration === '1 Month') expiry.setMonth(now.getMonth() + 1);
+            else expiry.setDate(now.getDate() + 7);
+
+            broadcasts.push({
+                ...data,
+                date: now.toISOString(),
+                expiry: expiry.toISOString(),
+                status: 'Active',
+                id: 'mock_' + new Date().getTime()
+            });
+            localStorage.setItem('broadcasts', JSON.stringify(broadcasts));
+            return Promise.resolve({ status: 'success', message: 'Broadcast published' });
+        }
+    },
+
+    async getBroadcasts() {
+        if (this.isLive()) {
+            return this.get('getBroadcasts');
+        } else {
+            let data = JSON.parse(localStorage.getItem('broadcasts'));
+            if (!data && this.isTrial()) {
+                data = this.DUMMY_DATA.broadcasts;
+                localStorage.setItem('broadcasts', JSON.stringify(data));
+            }
+            // Filter expired in mock
+            const now = new Date();
+            const valid = (data || []).filter(b => new Date(b.expiry) > now);
+
+            return Promise.resolve({ success: true, broadcasts: valid.reverse() });
+        }
+    },
+
+    async deleteBroadcast(id) {
+        if (this.isLive()) {
+            return this.post({ action: 'deleteBroadcast', id: id });
+        } else {
+            if (this.isTrial()) return Promise.resolve({ status: 'error', message: 'Editing is disabled in Trial Mode.' });
+            let data = JSON.parse(localStorage.getItem('broadcasts') || '[]');
+            // Mock delete (filter out) - Mock data might not have IDs if created before, so add ID check or simple index? 
+            // Mock saveBroadcast should also add IDs now.
+            // For now, filter by ID assuming updated mock.
+            const newData = data.filter(b => b.id != id);
+            localStorage.setItem('broadcasts', JSON.stringify(newData));
+            return Promise.resolve({ status: 'success', message: 'Broadcast deleted' });
         }
     }
 };

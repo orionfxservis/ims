@@ -139,6 +139,18 @@
 
                 </div>
 
+
+
+                <!-- BROADCAST MARQUEE -->
+                <div id="broadcastContainer" class="broadcast-container hidden" style="margin-bottom: 1.5rem;">
+                    <div class="broadcast-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <div class="broadcast-wrapper">
+                        <div class="broadcast-content" id="broadcastText">
+                            <!-- JS Populated -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Quick Actions Grid ("Small Boxes") -->
                 <h3 style="margin-bottom: 1rem; color: #ddd; font-size: 1.1rem;">Quick Actions</h3>
                 <!-- Used same override grid for single line layout -->
@@ -215,7 +227,8 @@
                         <!-- Low Stock Table -->
                         <div class="glass-card">
                             <h3 style="margin-bottom: 1rem; color: #f59e0b;"><i
-                                    class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h3>
+                                    class="fa-solid fa-triangle-exclamation"></i> Low
+                                Stock Alerts</h3>
                             <table class="data-table" style="font-size: 0.9rem;">
                                 <thead>
                                     <tr>
@@ -776,13 +789,15 @@
                             </div>
                             <button class="btn" onclick="if(window.generateReport) window.generateReport()"
                                 style="width: auto; padding: 0.6rem 1.2rem; height: 42px;"><i
-                                    class="fa-solid fa-filter"></i> Generate</button>
+                                    class="fa-solid fa-filter"></i>
+                                Generate</button>
                         </div>
 
                         <div style="display:flex; gap: 0.5rem;">
                             <button class="btn" style="width: auto; background: #ef4444; height: 42px;"
                                 onclick="if(window.downloadPDF) window.downloadPDF()"><i
-                                    class="fa-solid fa-file-pdf"></i> PDF</button>
+                                    class="fa-solid fa-file-pdf"></i>
+                                PDF</button>
                             <button class="btn" style="width: auto; background: #22c55e; height: 42px;"
                                 onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
                         </div>

@@ -38,10 +38,14 @@ function doGet(e) {
   }
 
   if (action === 'getVersion') {
-    return ContentService.createTextOutput(JSON.stringify({ version: '1.2' })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ version: '1.3 - Broadcasts Enabled' })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action' })).setMimeType(ContentService.MimeType.JSON);
+  if (action === 'getBroadcasts') {
+    return getBroadcasts();
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action Received: ' + action })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -59,6 +63,8 @@ function doPost(e) {
       if (data.action === 'deleteCategory') return deleteCategory(data);
       if (data.action === 'saveExpense') return saveExpense(data);
       if (data.action === 'logVisit') return logVisit(data);
+      if (data.action === 'saveBroadcast') return saveBroadcast(data);
+      if (data.action === 'deleteBroadcast') return deleteBroadcast(data);
       if (data.action === 'getVisitorStats') return getVisitorStats();
       if (data.action === 'test') return response({ status: 'success', message: 'Connection OK' });
     }
@@ -250,6 +256,12 @@ function setup() {
   if (!ss.getSheetByName('VisitorLog')) {
     const sheet = ss.insertSheet('VisitorLog');
     sheet.appendRow(['Timestamp', 'Date', 'Type']);
+  }
+
+  if (!ss.getSheetByName('Broadcasts')) {
+    const sheet = ss.insertSheet('Broadcasts');
+    // Date, Message, Duration, Expiry, UserName, Company, Contact
+    sheet.appendRow(['Date', 'Message', 'Duration', 'Expiry', 'UserName', 'Company', 'Contact', 'Status']);
   }
 }
 
@@ -598,4 +610,96 @@ function getVisitorStats() {
       month: monthHits 
     } 
   });
+}
+// --- Broadcasts ---
+
+function saveBroadcast(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Broadcasts');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Broadcasts');
+  }
+
+  // Calculate Expiry
+  const now = new Date();
+  let expiry = new Date();
+  
+  // Duration: 1 Week, 2 Weeks, 3 Weeks, 1 Month
+  if (data.duration === '1 Week') expiry.setDate(now.getDate() + 7);
+  else if (data.duration === '2 Weeks') expiry.setDate(now.getDate() + 14);
+  else if (data.duration === '3 Weeks') expiry.setDate(now.getDate() + 21);
+  else if (data.duration === '1 Month') expiry.setMonth(now.getMonth() + 1);
+  else if (data.duration === '2 Months') expiry.setMonth(now.getMonth() + 2);
+  else expiry.setDate(now.getDate() + 7); // Default
+  
+  // ID Generation (Simple Timestamp + Random)
+  const id = 'bc_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
+
+  sheet.appendRow([
+    now,
+    data.message,
+    data.duration,
+    expiry,
+    data.userName,
+    data.company || '',
+    data.contact || '',
+    'Active',
+    id // New ID column
+  ]);
+  
+  return response({ status: 'success', message: 'Broadcast published' });
+}
+
+function deleteBroadcast(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Broadcasts');
+  if (!sheet) return response({ status: 'error', message: 'Sheet not found' });
+  
+  const rows = sheet.getDataRange().getValues();
+  // Find by ID (Col index 8)
+  for (let i = 1; i < rows.length; i++) {
+    // Check ID (row[8]) or loose match if column missing (fallback logic not safe, stick to ID)
+    if (rows[i][8] == data.id) {
+      sheet.deleteRow(i + 1);
+      return response({ status: 'success', message: 'Broadcast deleted' });
+    }
+  }
+  return response({ status: 'error', message: 'Broadcast not found' });
+}
+
+function getBroadcasts() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Broadcasts');
+  if (!sheet) return response({ success: true, broadcasts: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const activeBroadcasts = [];
+  const now = new Date();
+
+  // Skip header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const expiry = new Date(row[3]);
+    const status = row[7];
+    
+    // Auto-expire check (optional: update status to Expired if old?)
+    // For now just filter
+    
+    if (status === 'Active' && expiry > now) {
+      activeBroadcasts.push({
+        date: row[0],
+        message: row[1],
+        duration: row[2],
+        expiry: row[3],
+        userName: row[4],
+        company: row[5],
+        contact: row[6],
+        id: row[8] || '' // Return ID
+      });
+    }
+  }
+  
+  // Return reversed (newest first)
+  return response({ success: true, broadcasts: activeBroadcasts.reverse() });
 }
