@@ -388,30 +388,47 @@ function getInventory(username) {
      
      // Only overwrite the JSON string if the spreadsheet literally had separate explicit columns for them
      if (hasCustom) {
-        // Find their original casing from InventoryHeaders so the front-end maps it exactly:
-        const ss = SpreadsheetApp.getActiveSpreadsheet();
-        const hSheet = ss.getSheetByName('InventoryHeaders');
-        if (hSheet) {
-            const hData = hSheet.getDataRange().getValues();
-            for (let i = 1; i < hData.length; i++) {
-                if (hData[i][0] === username) {
-                    try {
-                        const originalHeaders = JSON.parse(hData[i][2]);
-                        const correctlyCasedCustomData = {};
-                        originalHeaders.forEach(original => {
-                            const lower = original.toLowerCase().trim();
-                            if (customKeysFound[lower] !== undefined) {
-                                correctlyCasedCustomData[original] = customKeysFound[lower];
-                            }
-                        });
-                        item.customdata = JSON.stringify(correctlyCasedCustomData);
-                    } catch(e) {}
-                    break;
-                }
-            }
-        } else {
-             item.customdata = JSON.stringify(customKeysFound);
-        }
+         // 1. First unpack whatever fields were already secretly stored in the customdata payload
+         let existingCustomData = {};
+         if (item.customdata) {
+             try { 
+                 const parsed = JSON.parse(item.customdata);
+                 if (typeof parsed === 'object') {
+                     existingCustomData = parsed;
+                 }
+             } catch(e) {}
+         }
+
+         // 2. Find their original casing from InventoryHeaders so the front-end maps it exactly:
+         const ss = SpreadsheetApp.getActiveSpreadsheet();
+         const hSheet = ss.getSheetByName('InventoryHeaders');
+         if (hSheet) {
+             const hData = hSheet.getDataRange().getValues();
+             let headersFound = false;
+             for (let i = 1; i < hData.length; i++) {
+                 if (hData[i][0] === username) {
+                     try {
+                         const originalHeaders = JSON.parse(hData[i][2]);
+                         // Merge explicit sheet columns OVER the existing payload data
+                         const correctlyCasedCustomData = { ...existingCustomData }; 
+                         originalHeaders.forEach(original => {
+                             const lower = original.toLowerCase().trim();
+                             if (customKeysFound[lower] !== undefined) {
+                                 correctlyCasedCustomData[original] = customKeysFound[lower];
+                             }
+                         });
+                         item.customdata = JSON.stringify(correctlyCasedCustomData);
+                         headersFound = true;
+                     } catch(e) {}
+                     break;
+                 }
+             }
+             if (!headersFound) {
+                 item.customdata = JSON.stringify({ ...existingCustomData, ...customKeysFound });
+             }
+         } else {
+              item.customdata = JSON.stringify({ ...existingCustomData, ...customKeysFound });
+         }
      }
   });
 
@@ -724,6 +741,21 @@ function registerUser(data) {
   ]);
   
   return response({ status: 'success', message: 'Registration successful' });
+}
+
+function changePassword(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Users');
+  const rows = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < rows.length; i++) {
+    // col 2 (0-indexed) is Username, col 3 is Password
+    if (rows[i][2] === data.username && String(rows[i][3]) === String(data.oldPassword)) {
+      sheet.getRange(i + 1, 4).setValue(data.newPassword);
+      return response({ status: 'success' });
+    }
+  }
+  return response({ status: 'error', message: 'User not found or incorrect old password' });
 }
 
 function updateUserStatus(data) {

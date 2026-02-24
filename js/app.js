@@ -472,6 +472,41 @@ function checkAuth() {
     return true;
 }
 
+window.openChangePassword = function () {
+    document.getElementById('cpOld').value = '';
+    document.getElementById('cpNew').value = '';
+    document.getElementById('cpConfirm').value = '';
+    document.getElementById('changePasswordModal').classList.remove('hidden');
+};
+
+window.submitChangePassword = async function () {
+    const oldPass = document.getElementById('cpOld').value;
+    const newPass = document.getElementById('cpNew').value;
+    const confirmPass = document.getElementById('cpConfirm').value;
+
+    if (newPass !== confirmPass) {
+        alert("New passwords do not match!");
+        return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.username) return;
+
+    try {
+        const res = await API.changePassword(user.username, oldPass, newPass);
+        if (res.status === 'success') {
+            alert("Password updated successfully. Please login again.");
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+        } else {
+            alert(res.message || "Failed to update password.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("An error occurred while updating the password.");
+    }
+};
+
 // --- MOCK / HELPER FUNCTIONS TO PREVENT ERRORS ---
 function loadDashboardData() { refreshDashboard(); }
 async function loadUserCategories() {

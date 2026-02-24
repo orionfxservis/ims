@@ -252,6 +252,21 @@ const API = {
         }
     },
 
+    async changePassword(username, oldPassword, newPassword) {
+        if (this.isLive()) {
+            return await this.post({ action: 'changePassword', username, oldPassword, newPassword });
+        } else {
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            let user = users.find(u => u.username === username && u.password === oldPassword);
+            if (user) {
+                user.password = newPassword;
+                localStorage.setItem('users', JSON.stringify(users));
+                return { status: 'success' };
+            }
+            return { status: 'error', message: 'Incorrect old password' };
+        }
+    },
+
     async testConnection(testUrl) {
         // If a testUrl is provided, we temporarily override getUrl to test it, 
         // or just fetch it directly.

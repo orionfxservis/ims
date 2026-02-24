@@ -900,6 +900,11 @@
                             <p id="pCompany" style="color: #aaa; margin: 0;">Company Name</p>
                             <span id="pRole" class="status-badge status-active"
                                 style="margin-top: 0.5rem; display: inline-block;">User</span>
+                            <div style="margin-top: 1rem;">
+                                <button class="btn" style="width: auto; padding: 0.4rem 1rem; font-size: 0.9rem;"
+                                    onclick="openChangePassword()"><i class="fa-solid fa-key"></i> Change
+                                    Password</button>
+                            </div>
                         </div>
                     </div>
 
@@ -917,6 +922,33 @@
     </div>
 
     <!-- Modals -->
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal-overlay hidden">
+        <div class="glass-card" style="max-width: 400px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3>Change Password</h3>
+                <button class="btn" style="width: auto; padding: 0.2rem 0.6rem; background: var(--error);"
+                    onclick="closeModal('changePasswordModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="changePasswordForm" onsubmit="event.preventDefault(); submitChangePassword();">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="cpOld" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="cpNew" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="cpConfirm" class="form-input" required>
+                </div>
+                <button type="submit" class="btn"><i class="fa-solid fa-save"></i> Update Password</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Add Item Modal -->
     <div id="addItemModal" class="modal-overlay hidden">
         <div class="glass-card" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">

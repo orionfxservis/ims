@@ -43,6 +43,22 @@ window.togglePasswordVisibility = function () {
     if (confirm) confirm.type = type;
 };
 
+window.toggleLoginPasswordVisibility = function () {
+    const pass = document.getElementById('password');
+    const icon = document.getElementById('toggleLoginPassword');
+    if (!pass || !icon) return;
+
+    if (pass.type === 'password') {
+        pass.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        pass.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+};
+
 // ------------------------------
 // Trial User Login
 // ------------------------------

@@ -199,8 +199,13 @@
 
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" class="form-input" placeholder="Enter your password"
-                            required>
+                        <div style="position: relative;">
+                            <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                                required style="padding-right: 2.5rem;">
+                            <i class="fa-regular fa-eye" id="toggleLoginPassword"
+                                style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9ca3af;"
+                                onclick="toggleLoginPasswordVisibility()"></i>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn" id="loginBtn">
