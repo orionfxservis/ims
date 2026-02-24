@@ -168,12 +168,6 @@
 
 /* Hide Banner on Mobile & Tablet */
 @media (max-width: 1024px) {
-
-    #dashboardBannerContainer,
-    #heroBannerContainer {
-        display: none !important;
-    }
-
     .view-section {
         padding-bottom: 1rem;
     }
@@ -297,7 +291,7 @@
 .broadcast-content {
     display: inline-block;
     padding-left: 100%;
-    animation: marquee 20s linear infinite;
+    animation: marquee 35s linear infinite;
     color: #fff;
     font-weight: 500;
     font-size: 1rem;

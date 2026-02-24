@@ -38,6 +38,17 @@ const VisitorAPI = {
         // If no ID passed (e.g. called manually), try get it
         if (!visitorId) visitorId = localStorage.getItem('imb_visitor_id');
 
+        // Use actual username if logged in
+        try {
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                const userObj = JSON.parse(userStr);
+                if (userObj && userObj.username) {
+                    visitorId = userObj.username;
+                }
+            }
+        } catch (e) { }
+
         console.log("Visitor: Logging visit for ID:", visitorId);
         API.logVisit(visitorId)
             .then(response => {
@@ -88,5 +99,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delay slightly to ensure API is ready
     setTimeout(() => {
         VisitorAPI.init();
+        loadHeroBanner();
     }, 1000);
 });
+
+async function loadHeroBanner() {
+    try {
+        if (typeof API === 'undefined') return;
+        const banners = await API.getBanners();
+        const heroBanner = banners.find(b => b.type === 'hero');
+
+        const container = document.getElementById('heroBannerContainer');
+        if (container && heroBanner && heroBanner.url) {
+            container.innerHTML = `<img src="${heroBanner.url}" alt="${heroBanner.title || 'Hero Banner'}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">`;
+        }
+    } catch (e) {
+        console.error("Failed to load hero banner", e);
+    }
+}

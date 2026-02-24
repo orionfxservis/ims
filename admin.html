@@ -85,8 +85,11 @@
 
         .banner-img {
             width: 100%;
-            height: 140px;
-            object-fit: cover;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            background: #0f172a;
+            /* optional dark background to fill space */
         }
 
         .banner-actions {
@@ -128,6 +131,9 @@
                 </a>
                 <a href="#" class="nav-item admin-nav-item" onclick="switchTab('broadcasts', this)">
                     <i class="fa-solid fa-bullhorn"></i> Broadcasts
+                </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('inventory-headers', this)">
+                    <i class="fa-solid fa-list-check"></i> Inventory Headers
                 </a>
             </nav>
 
@@ -223,51 +229,103 @@
                 </div>
             </div>
 
+            <!-- INVENTORY HEADERS -->
+            <div id="inventory-headers" class="view-section hidden">
+                <h1 class="page-title">Inventory Headers</h1>
+                <!-- Custom Inventory Headers -->
+                <div class="glass-card" style="max-width: 100%; margin-top: 2rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Select User</label>
+                            <select class="form-input" id="invHeaderUserSelect"
+                                style="padding: 0.5rem; background: white; color: black;">
+                                <option value="" style="color: black;">Select a User</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Company Name</label>
+                            <input type="text" class="form-input" id="invHeaderCompany" readonly
+                                style="padding: 0.5rem; background: rgba(255,255,255,0.05); color: #ccc;">
+                        </div>
+                    </div>
+
+                    <div id="invHeaderFieldsContainer"
+                        style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem;">
+                        <!-- JS injected fields go here -->
+                        <div class="header-field-row" style="display: flex; gap: 0.5rem; align-items: center;">
+                            <label style="min-width: 100px; font-size: 0.85rem; color: #ccc;">Serial No. 01</label>
+                            <input type="text" class="form-input inv-header-input"
+                                placeholder="Field Name (e.g., Condition, Warranty)"
+                                style="padding: 0.4rem; font-size: 0.85rem; flex: 1;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn" id="btnAddHeaderField"
+                            style="background: #3b82f6; width: auto; padding: 0.5rem 1rem;"><i
+                                class="fa-solid fa-plus"></i> Add
+                            Field</button>
+                        <button type="button" class="btn" id="btnSaveHeaders"
+                            style="background: #22c55e; width: auto; padding: 0.5rem 1rem;"><i
+                                class="fa-solid fa-save"></i>
+                            Save Headers</button>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- 3. BANNERS -->
             <div id="banners" class="view-section hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h1 class="page-title" style="margin: 0;">Promo Banners</h1>
-                    <button class="btn" style="width: auto;" onclick="addBanner()"><i class="fa-solid fa-plus"></i> Add
-                        New</button>
+                    <h1 class="page-title" style="margin: 0;">Promo & System Banners</h1>
                 </div>
+
+                <!-- Create Banner Form -->
+                <div class="glass-card" style="margin-bottom: 2rem; border-left: 4px solid #8b5cf6;">
+                    <h3 style="margin-bottom: 1rem; color: #c4b5fd;">Create New Banner</h3>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+                        Add promotional slider banners, a dashboard bottom banner, or a hero section banner.
+                    </p>
+                    <form id="bannerForm" onsubmit="event.preventDefault(); publishBanner();">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Banner Title</label>
+                                <input type="text" id="bnTitle" class="form-input" placeholder="e.g. Summer Sale"
+                                    style="padding: 0.4rem; font-size: 0.9rem;" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Placement Area</label>
+                                <select id="bnType" class="form-input"
+                                    style="padding: 0.4rem; font-size: 0.9rem; color: #333; background: white; cursor: pointer;">
+                                    <option value="main">Main Promo Slider</option>
+                                    <option value="dashboard">Dashboard Bottom</option>
+                                    <option value="hero">Hero Section (Under Stats)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Image URL</label>
+                            <input type="text" id="bnUrl" class="form-input"
+                                placeholder="https://example.com/banner.jpg" style="padding: 0.4rem; font-size: 0.9rem;"
+                                required>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                            <button type="submit" class="btn"
+                                style="width: auto; padding: 0.4rem 1rem; font-size: 0.9rem;"><i
+                                    class="fa-solid fa-paper-plane"></i> Publish Banner</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Active Banners List -->
+                <h3
+                    style="margin-bottom: 1rem; color: #e2e8f0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    Active Banners</h3>
 
                 <div class="banner-grid" id="bannerGrid" style="margin-bottom: 3rem;">
                     <!-- Populated by JS -->
-                </div>
-
-                <!-- Dashboard Banner Section -->
-                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
-                    <h2 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">Dashboard Bottom Banner
-                        (120x720px)</h2>
-                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; color: #ddd;">Banner Image URL</label>
-                            <input type="text" class="form-input" id="dashboardBannerUrl"
-                                placeholder="Enter URL or leave empty to disable">
-                        </div>
-                        <button class="btn" style="width: auto;" onclick="saveDashboardBanner()">Save Banner</button>
-                    </div>
-                    <div id="dashboardBannerPreview"
-                        style="margin-top: 1.5rem; border: 1px dashed rgba(255,255,255,0.2); min-height: 120px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                        <span style="color: #666;">Preview</span>
-                    </div>
-                </div>
-
-                <!-- Hero Banner Section -->
-                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; margin-top: 2rem;">
-                    <h2 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">Hero Section Banner (Under
-                        Stats)</h2>
-                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; color: #ddd;">Banner Image URL</label>
-                            <input type="text" class="form-input" id="heroBannerUrl" placeholder="Enter URL">
-                        </div>
-                        <button class="btn" style="width: auto;" onclick="saveHeroBanner()">Save</button>
-                    </div>
-                    <div id="heroBannerPreview"
-                        style="margin-top: 1rem; border: 1px dashed rgba(255,255,255,0.2); min-height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                        <span style="color: #666;">Preview</span>
-                    </div>
                 </div>
             </div>
 
@@ -340,23 +398,23 @@
                     </p>
                     <form id="broadcastForm" onsubmit="event.preventDefault(); publishBroadcast();">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                            <!-- Row 1 -->
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Company Name</label>
+                                <input type="text" id="bcCompany" class="form-input" placeholder="e.g. My Company"
+                                    style="padding: 0.4rem; font-size: 0.9rem;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Whatsapp No</label>
+                                <input type="text" id="bcContact" class="form-input" placeholder="e.g. +1234567890"
+                                    style="padding: 0.4rem; font-size: 0.9rem;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">User Name</label>
                                 <input type="text" id="bcUser" class="form-input" placeholder="e.g. Admin"
                                     style="padding: 0.4rem; font-size: 0.9rem;" required>
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Company Name</label>
-                                <input type="text" id="bcCompany" class="form-input" placeholder="Optional"
-                                    style="padding: 0.4rem; font-size: 0.9rem;">
-                            </div>
-
-                            <!-- Row 2 -->
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Contact No</label>
-                                <input type="text" id="bcContact" class="form-input" placeholder="Optional"
-                                    style="padding: 0.4rem; font-size: 0.9rem;">
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Duration</label>

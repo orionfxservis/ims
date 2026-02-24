@@ -1,19 +1,21 @@
 // admin.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAuth();
+    if (!checkAdminAuth()) return; // Stop executing admin scripts for non-admins
+
     loadDashboardStats();
     loadRecentActivity(); // Load activity log
     loadUsers();
-    loadUsers();
     loadCategories();
     loadBroadcasts(); // New: Load broadcasts
+    loadInventoryHeaders(); // New: Load inventory headers
+    setupInventoryHeadersListeners();
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
         if (confirm('Logout from Admin?')) {
-            localStorage.removeItem('currentUser'); // Or session
-            window.location.href = 'index.html';
+            localStorage.removeItem('user'); // Use 'user' to match app.js
+            window.location.href = 'index.html'; // Admin is in root folder, not pages
         }
     });
 
@@ -55,15 +57,20 @@ function checkAdminAuth() {
         console.log("Admin account created: admin / admin123");
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = JSON.parse(localStorage.getItem('user')); // Changed from currentUser to user
+    const adminTab = document.getElementById('adminTab');
+
     if (!currentUser || currentUser.role !== 'admin') {
-        alert("Access Denied. Admins only.");
-        window.location.href = 'index.html';
-        return;
+        // If not an admin, hide the admin tab and return false to stop admin.js execution
+        if (adminTab) adminTab.classList.add('hidden');
+        return false;
     }
 
+    // Unhide the admin tab for admins
+    if (adminTab) adminTab.classList.remove('hidden');
+
     // Load UI data
-    document.getElementById('adminName').textContent = currentUser.name;
+    document.getElementById('adminName').textContent = currentUser.name || currentUser.username;
 
     // Load Settings into Inputs
     const activeUrl = API.getUrl() || localStorage.getItem('apiUrl'); // Prefer active, fallback to local
@@ -80,6 +87,7 @@ function checkAdminAuth() {
     if (document.getElementById('adminPhone')) document.getElementById('adminPhone').value = savedPhone || '';
 
     loadBanners(); // Load banners on init
+    return true; // Return true to allow initialization to proceed
 }
 
 // 2. Navigation
@@ -102,17 +110,25 @@ async function loadUsers() {
 
     const users = await API.getUsers();
 
-    // Sort: Pending first for regular users
-    const regularUsers = users.filter(u => u.role !== 'admin' && u.role !== 'trial' && u.company !== 'System');
-    regularUsers.sort((a, b) => (a.status === 'pending' ? -1 : 1));
+    // Robust filtering to ensure no users are accidentally dropped due to case sensitivity
+    const regularUsers = users.filter(u => {
+        const role = String(u.role || 'user').toLowerCase().trim();
+        const company = String(u.company || '').trim();
+        return role !== 'admin' && role !== 'trial' && company !== 'System';
+    });
+    regularUsers.sort((a, b) => (String(a.status || 'pending').toLowerCase() === 'pending' ? -1 : 1));
 
-    const systemUsers = users.filter(u => u.role === 'admin' || u.role === 'trial' || u.company === 'System');
+    const systemUsers = users.filter(u => {
+        const role = String(u.role || '').toLowerCase().trim();
+        const company = String(u.company || '').trim();
+        return role === 'admin' || role === 'trial' || company === 'System';
+    });
 
     // 1. Regular Users Table
     if (regularTbody) {
         if (regularUsers.length > 0) {
             regularTbody.innerHTML = regularUsers.map(user => `
-            <tr class="user-row status-row-${user.status || 'pending'}">
+            <tr class="user-row status-row-${String(user.status || 'pending').toLowerCase()}">
                 <td>
                     <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
                          style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
@@ -120,7 +136,7 @@ async function loadUsers() {
                     </div>
                 </td>
                 <td>
-                    <div style="font-weight: 600; color: white;">${user.name || user.username}</div>
+                    <div style="font-weight: 600; color: white;">${user.name || user.username || 'Unknown'}</div>
                 </td>
                 <td>
                     <div style="font-size: 0.9rem;">${user.phone || '-'}</div>
@@ -130,17 +146,17 @@ async function loadUsers() {
                 </td>
                 <td>${user.company || '-'}</td>
                 <td>
-                    <span class="status-badge status-${user.status || 'pending'}">
-                        ${(user.status === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : user.status === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
-                        ${(user.status || 'pending').toUpperCase()}
+                    <span class="status-badge status-${String(user.status || 'pending').toLowerCase()}">
+                        ${(String(user.status || '').toLowerCase() === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : String(user.status || '').toLowerCase() === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
+                        ${String(user.status || 'pending').toUpperCase()}
                     </span>
                 </td>
                 <td>
-                    ${user.status !== 'active' && user.status !== 'locked' ?
+                    ${String(user.status || '').toLowerCase() !== 'active' && String(user.status || '').toLowerCase() !== 'locked' ?
                     `<button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve"><i class="fa-solid fa-check"></i></button>` : ''
                 }
-                    <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${user.status === 'locked' ? 'Unlock' : 'Lock'}">
-                        <i class="fa-solid ${user.status === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
+                    <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${String(user.status || '').toLowerCase() === 'locked' ? 'Unlock' : 'Lock'}">
+                        <i class="fa-solid ${String(user.status || '').toLowerCase() === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
                     </button>
                     <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6;"><i class="fa-solid fa-chart-column"></i></button>
                     <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
@@ -164,14 +180,21 @@ async function loadUsers() {
                         ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user-shield" style="color: #666;"></i>'}
                     </div>
                 </td>
-                <td><span style="font-weight:bold; color:${user.role === 'admin' ? '#ef4444' : '#f59e0b'}">${user.role.toUpperCase()}</span></td>
-                <td>${user.name}</td>
+                <td><span style="font-weight:bold; color:${String(user.role).toLowerCase() === 'admin' ? '#ef4444' : '#f59e0b'}">${String(user.role || 'System').toUpperCase()}</span></td>
+                <td>${user.name || user.username || 'System User'}</td>
                 <td><span class="status-badge status-active">Active</span></td>
             </tr>
             `).join('');
         } else {
             systemTbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No system users.</td></tr>`;
         }
+    }
+
+    // 3. Populate Inventory Headers User Select
+    const userSelect = document.getElementById('invHeaderUserSelect');
+    if (userSelect) {
+        userSelect.innerHTML = '<option value="" style="color: black;">Select a User</option>' +
+            regularUsers.map(u => `<option value="${u.username}" data-company="${u.company || ''}" style="color: black;">${u.name || u.username} (${u.company || 'No Company'})</option>`).join('');
     }
 }
 
@@ -314,20 +337,19 @@ window.viewUserProfile = async function (username) {
 };
 
 // 4. Dashboard Stats
-// 4. Dashboard Stats
 async function loadDashboardStats() {
     const users = await API.getUsers();
 
     // Filter out Admin and Trial from stats
-    const realUsers = users.filter(u => u.role !== 'admin' && u.role !== 'trial' && u.username !== 'trial');
+    const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
 
     // Companies
-    const companies = new Set(realUsers.map(u => (u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
+    const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
 
     document.getElementById('countCompanies').innerText = companies.size;
     document.getElementById('countTotalUsers').innerText = realUsers.length;
-    document.getElementById('countActiveUsers').innerText = realUsers.filter(u => u.status === 'active').length;
-    document.getElementById('countPendingUsers').innerText = realUsers.filter(u => u.status === 'pending').length;
+    document.getElementById('countActiveUsers').innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length;
+    document.getElementById('countPendingUsers').innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'pending').length;
 }
 
 // 4b. Recent Activity
@@ -346,11 +368,12 @@ async function loadRecentActivity() {
 
         list.innerHTML = activities.map(act => {
             const dateStr = new Date(act.date).toLocaleString();
+
             return `
             <li style="margin-bottom: 0px; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0.8rem 0; display: flex; justify-content: space-between; align-items: start;">
                 <div>
                     <div style="color: white; font-weight: 500;">
-                        <span style="color: #3b82f6;">${act.user}</span> 
+                        <span style="color: #3b82f6;">${act.user || 'Anonymous'}</span> 
                         <span style="color: #aaa; font-weight: 400;">- ${act.action}</span>
                     </div>
                     <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">${act.details}</div>
@@ -371,125 +394,121 @@ let currentBanners = []; // Local state to hold all banners (main, dashboard, he
 
 async function loadBanners() {
     const grid = document.getElementById('bannerGrid');
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center;">Loading...</div>';
+    if (!grid) return;
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">Loading...</div>';
 
     currentBanners = await API.getBanners(); // Fetch all types
 
-    // Separate types
-    const mainBanners = currentBanners.filter(b => b.type === 'main' || !b.type);
-    const dashboardBanner = currentBanners.find(b => b.type === 'dashboard');
-    const heroBanner = currentBanners.find(b => b.type === 'hero');
+    if (currentBanners.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 2rem;">No banners active.</div>';
+        return;
+    }
 
-    // 1. Render Main Banners
-    grid.innerHTML = mainBanners.length ? mainBanners.map((banner, index) => `
+    grid.innerHTML = currentBanners.map((banner, index) => {
+        let displayType = 'Main Slider';
+        if (banner.type === 'dashboard') displayType = 'Dashboard';
+        else if (banner.type === 'hero') displayType = 'Hero Section';
+
+        return `
         <div class="banner-card">
-            <img src="${banner.url}" class="banner-img" alt="${banner.title}">
-            <div class="banner-actions">
-                <span>${banner.title}</span>
-                <button class="action-btn btn-lock" onclick="deleteBanner(${index})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            <img src="${banner.url}" class="banner-img" alt="${banner.title}" style="width: 100%; height: auto; max-height: 200px; object-fit: contain;">
+            <div class="banner-actions" style="padding: 0.8rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; background: rgba(0,0,0,0.4);">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #fff;">${banner.title}</div>
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <span style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.2rem 0.6rem; border-radius: 4px;">${displayType}</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="action-btn btn-edit" style="background: #3b82f6; padding: 0.3rem 0.6rem;" onclick="editBanner(${index})" title="Edit / Reuse Banner"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn btn-lock" style="background: #ef4444; padding: 0.3rem 0.6rem;" onclick="deleteBanner(${index})" title="Delete Banner"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
-    `).join('') : '<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 2rem;">No slider banners added.</div>';
-
-    // 2. Render Dashboard Banner
-    const dbUrl = dashboardBanner ? dashboardBanner.url : '';
-    document.getElementById('dashboardBannerUrl').value = dbUrl;
-    updateBannerPreview(dbUrl, 'dashboardBannerPreview');
-
-    // 3. Render Hero Banner
-    const heroUrl = heroBanner ? heroBanner.url : '';
-    document.getElementById('heroBannerUrl').value = heroUrl;
-    updateBannerPreview(heroUrl, 'heroBannerPreview');
+        `;
+    }).join('');
 }
 
-// Helper to sync all changes to Backend
-async function syncBanners() {
-    // Collect specific banner inputs if they are being edited, 
-    // BUT since we modify 'currentBanners' array in add/delete, we just need to update the specific types from the inputs before saving.
+window.publishBanner = async function () {
+    const title = document.getElementById('bnTitle').value;
+    const url = document.getElementById('bnUrl').value;
+    const type = document.getElementById('bnType').value;
 
-    const dbUrl = document.getElementById('dashboardBannerUrl').value;
-    const heroUrl = document.getElementById('heroBannerUrl').value;
-
-    // Update or Add Dashboard Banner in the list
-    const dbIndex = currentBanners.findIndex(b => b.type === 'dashboard');
-    if (dbIndex >= 0) {
-        if (dbUrl) currentBanners[dbIndex].url = dbUrl;
-        else currentBanners.splice(dbIndex, 1); // Remove if empty
-    } else if (dbUrl) {
-        currentBanners.push({ title: 'Dashboard Banner', url: dbUrl, type: 'dashboard' });
+    if (!title || !url) {
+        alert("Please provide both title and URL.");
+        return;
     }
 
-    // Update or Add Hero Banner in the list
-    const heroIndex = currentBanners.findIndex(b => b.type === 'hero');
-    if (heroIndex >= 0) {
-        if (heroUrl) currentBanners[heroIndex].url = heroUrl;
-        else currentBanners.splice(heroIndex, 1);
-    } else if (heroUrl) {
-        currentBanners.push({ title: 'Hero Banner', url: heroUrl, type: 'hero' });
-    }
+    const btn = document.querySelector('#bannerForm button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    // Optimistically add to local array
+    currentBanners.push({ title, url, type });
 
     const res = await API.saveBanners(currentBanners);
-    if (res.status !== 'success') {
-        alert("Error saving banners: " + res.message);
-    }
-    // No need to alert success on every internal sync, maybe just for manual saves
-}
 
-window.saveDashboardBanner = async function () {
-    const btn = event.target; // Simple trick to get button
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.innerHTML = originalText;
+    btn.disabled = false;
 
-    await syncBanners();
-
-    if (btn) btn.innerHTML = 'Save';
-    alert('Dashboard Banner Updated!');
-};
-
-window.saveHeroBanner = async function () {
-    const btn = event.target;
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-
-    await syncBanners();
-
-    if (btn) btn.innerHTML = 'Save';
-    alert('Hero Banner Updated!');
-};
-
-function updateBannerPreview(url, elementId = 'dashboardBannerPreview') {
-    const preview = document.getElementById(elementId);
-    if (!preview) return;
-    if (url) {
-        preview.innerHTML = `<img src="${url}" style="max-width: 100%; height: auto; max-height: 120px;" alt="Preview">`;
+    if (res.status === 'success' || res.success) {
+        alert("Banner published successfully!");
+        document.getElementById('bannerForm').reset();
+        loadBanners(); // Refresh grid
     } else {
-        preview.innerHTML = '<span style="color: #666;">No banner set</span>';
+        alert("Error publishing banner: " + (res.message || res.error || 'Unknown Error'));
+        // Rollback on failure
+        currentBanners.pop();
     }
-}
+};
 
-window.addBanner = async function () {
-    const title = prompt("Enter Banner Title (e.g., Summer Sale):");
-    if (!title) return;
-    let url = prompt("Enter Image URL:");
-    if (!url) url = "https://via.placeholder.com/300x140?text=" + encodeURIComponent(title);
+window.editBanner = function (index) {
+    const banner = currentBanners[index];
+    if (!banner) return;
 
-    currentBanners.push({ title, url, type: 'main' });
-    await syncBanners();
-    loadBanners(); // Refresh grid
+    document.getElementById('bnTitle').value = banner.title;
+    document.getElementById('bnUrl').value = banner.url;
+    document.getElementById('bnType').value = banner.type || 'main'; // Provide a default if undefined
+
+    // Scroll smoothly to the form so the user sees it populated
+    document.getElementById('bnTitle').focus();
+    document.getElementById('banners').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.deleteBanner = async function (index) {
+    if (!confirm("Are you sure you want to delete this banner?")) return;
+
+    // Remove from local array
+    const removed = currentBanners.splice(index, 1)[0];
+
+    const res = await API.saveBanners(currentBanners);
+
+    if (res.status === 'success' || res.success) {
+        loadBanners(); // Refresh UI
+    } else {
+        alert("Error deleting banner: " + (res.message || res.error || 'Unknown Error'));
+        // Rollback on failure
+        currentBanners.splice(index, 0, removed);
+    }
 };
 
 window.loadCategories = async function () {
     const tbody = document.getElementById('categoryList');
-    if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Loading...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Loading...</td></tr>';
+    console.log("loadCategories: Starting fetch...");
 
     try {
         const res = await API.getCategories();
+        console.log("loadCategories: Fetched data:", res);
+
         let categories = [];
         if (res && res.categories) {
             categories = res.categories;
         } else if (Array.isArray(res)) {
             categories = res;
         }
+
+        if (!tbody) return; // Wait until after we have the data to decide to abort manipulating DOM
 
         if (categories.length === 0) {
             tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No categories found.</td></tr>';
@@ -506,8 +525,10 @@ window.loadCategories = async function () {
                 </td>
             </tr>
         `).join('');
+        console.log("loadCategories: Rendered successfully.");
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color: red;">Error: ${e.message}</td></tr>`;
+        console.error("loadCategories Error:", e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color: red;">Error: ${e.message}</td></tr>`;
     }
 };
 
@@ -579,7 +600,7 @@ window.testConnection = async function (silent = false) {
         btn.disabled = true;
     }
 
-    const res = await API.testConnection();
+    const res = await API.testConnection(apiUrl);
 
     if (!silent) btn.disabled = false;
 
@@ -613,8 +634,6 @@ window.testConnection = async function (silent = false) {
 // --- Broadcasts ---
 window.publishBroadcast = async function () {
     const user = document.getElementById('bcUser').value;
-    const company = document.getElementById('bcCompany').value;
-    const contact = document.getElementById('bcContact').value;
     const message = document.getElementById('bcMessage').value;
     const duration = document.getElementById('bcDuration').value;
     const editId = document.getElementById('bcEditId') ? document.getElementById('bcEditId').value : null;
@@ -632,10 +651,10 @@ window.publishBroadcast = async function () {
     try {
         const payload = {
             userName: user,
-            company: company,
-            contact: contact,
             message: message,
-            duration: duration
+            duration: duration,
+            company: document.getElementById('bcCompany').value,
+            contact: document.getElementById('bcContact').value
         };
 
         if (editId) payload.id = editId; // Add ID for update
@@ -675,12 +694,12 @@ window.cancelEditBroadcast = function () {
 
 window.editBroadcast = function (dataStr) {
     try {
-        const data = JSON.parse(decodeURIComponent(dataStr));
-        document.getElementById('bcUser').value = data.userName || '';
-        document.getElementById('bcCompany').value = data.company || '';
-        document.getElementById('bcContact').value = data.contact || '';
-        document.getElementById('bcMessage').value = data.message || '';
-        if (data.duration) document.getElementById('bcDuration').value = data.duration;
+        const b = JSON.parse(decodeURIComponent(dataStr));
+        document.getElementById('bcUser').value = b.userName || '';
+        document.getElementById('bcCompany').value = b.company || '';
+        document.getElementById('bcContact').value = b.contact || '';
+        document.getElementById('bcMessage').value = b.message || '';
+        document.getElementById('bcDuration').value = b.duration || '1 Week';
 
         // Set Hidden ID
         let idField = document.getElementById('bcEditId');
@@ -727,16 +746,17 @@ window.editBroadcast = function (dataStr) {
     }
 };
 
-async function loadBroadcasts() {
+window.loadBroadcasts = async function () {
     const list = document.getElementById('activeBroadcastsList');
-    if (!list) return;
 
-    list.innerHTML = '<li style="color:#888;">Loading...</li>';
+    if (list) list.innerHTML = '<li style="color:#888;">Loading...</li>';
 
     try {
-        const res = await API.getBroadcasts();
-        if (res.success && res.broadcasts && res.broadcasts.length > 0) {
-            list.innerHTML = res.broadcasts.map((b, index) => {
+        const broadcasts = await API.getBroadcasts();
+        if (!list) return; // Wait until after we have the data to decide to abort manipulating DOM
+
+        if (broadcasts && broadcasts.length > 0) {
+            list.innerHTML = broadcasts.map((b, index) => {
                 // Use ID if available, else fall back to index (not ideal for delete but okay for display)
                 const id = b.id || 'err_' + index;
                 // Encode data for repost
@@ -782,9 +802,9 @@ async function loadBroadcasts() {
         }
     } catch (e) {
         console.error(e);
-        list.innerHTML = '<li style="color:red;">Error loading broadcasts.</li>';
+        if (list) list.innerHTML = '<li style="color:red;">Error loading broadcasts.</li>';
     }
-}
+};
 
 window.deleteBroadcast = async function (id) {
     if (!confirm("Are you sure you want to delete this broadcast?")) return;
@@ -820,3 +840,136 @@ window.repostBroadcast = function (dataStr) {
         console.error("Error parsing repost data", e);
     }
 };
+
+// --- Custom Inventory Headers ---
+let allInventoryHeaders = [];
+
+async function loadInventoryHeaders() {
+    try {
+        allInventoryHeaders = await API.getInventoryHeaders();
+    } catch (e) {
+        console.error("Failed to load inventory headers", e);
+    }
+}
+
+function setupInventoryHeadersListeners() {
+    const userSelect = document.getElementById('invHeaderUserSelect');
+    const btnAdd = document.getElementById('btnAddHeaderField');
+    const btnSave = document.getElementById('btnSaveHeaders');
+
+    if (userSelect) {
+        userSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const companyInput = document.getElementById('invHeaderCompany');
+            const username = e.target.value;
+
+            if (!username) {
+                if (companyInput) companyInput.value = '';
+                renderHeaderFields([]);
+                return;
+            }
+
+            if (companyInput) companyInput.value = selectedOption.getAttribute('data-company') || '';
+            const userHeaders = allInventoryHeaders.find(h => h.username === username);
+            renderHeaderFields(userHeaders ? userHeaders.headers : []);
+        });
+    }
+
+    if (btnAdd) {
+        btnAdd.addEventListener('click', () => {
+            const container = document.getElementById('invHeaderFieldsContainer');
+            if (!container) return;
+            const count = container.querySelectorAll('.header-field-row').length + 1;
+            const row = document.createElement('div');
+            row.className = 'header-field-row';
+            row.style.display = 'flex';
+            row.style.gap = '0.5rem';
+            row.style.alignItems = 'center';
+            row.innerHTML = `
+                <label style="min-width: 100px; font-size: 0.85rem; color: #ccc;">Serial No. ${count.toString().padStart(2, '0')}</label>
+                <input type="text" class="form-input inv-header-input" placeholder="Field Name" style="padding: 0.4rem; font-size: 0.85rem; flex: 1;">
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    if (btnSave) {
+        btnSave.addEventListener('click', async () => {
+            const username = userSelect ? userSelect.value : null;
+            if (!username) return alert("Please select a user first.");
+
+            const companyInput = document.getElementById('invHeaderCompany');
+            const company = companyInput ? companyInput.value : '';
+            const container = document.getElementById('invHeaderFieldsContainer');
+            const inputs = container ? container.querySelectorAll('.inv-header-input') : [];
+            const headers = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v);
+
+            const originalText = btnSave.innerHTML;
+            btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            btnSave.disabled = true;
+
+            try {
+                const res = await API.saveInventoryHeaders(username, company, headers);
+                if (res.status === 'success' || res.success) {
+                    alert('Inventory headers saved successfully!');
+                    // Update local cache
+                    const existing = allInventoryHeaders.find(h => h.username === username);
+                    if (existing) {
+                        existing.headers = headers;
+                    } else {
+                        allInventoryHeaders.push({ username, company, headers });
+                    }
+                } else {
+                    alert('Error saving headers: ' + (res.message || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('An error occurred while saving.');
+            } finally {
+                btnSave.innerHTML = originalText;
+                btnSave.disabled = false;
+            }
+        });
+    }
+}
+
+function renderHeaderFields(headers) {
+    const container = document.getElementById('invHeaderFieldsContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!headers || headers.length === 0) {
+        // Default 1 empty field
+        addEmptyHeaderField(1);
+        return;
+    }
+
+    headers.forEach((hdr, index) => {
+        const row = document.createElement('div');
+        row.className = 'header-field-row';
+        row.style.display = 'flex';
+        row.style.gap = '0.5rem';
+        row.style.alignItems = 'center';
+        row.innerHTML = `
+            <label style="min-width: 100px; font-size: 0.85rem; color: #ccc;">Serial No. ${(index + 1).toString().padStart(2, '0')}</label>
+            <input type="text" class="form-input inv-header-input" value="${hdr.replace(/"/g, '&quot;')}" placeholder="Field Name" style="padding: 0.4rem; font-size: 0.85rem; flex: 1;">
+        `;
+        container.appendChild(row);
+    });
+}
+
+function addEmptyHeaderField(count) {
+    const container = document.getElementById('invHeaderFieldsContainer');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'header-field-row';
+    row.style.display = 'flex';
+    row.style.gap = '0.5rem';
+    row.style.alignItems = 'center';
+    row.innerHTML = `
+        <label style="min-width: 100px; font-size: 0.85rem; color: #ccc;">Serial No. ${count.toString().padStart(2, '0')}</label>
+        <input type="text" class="form-input inv-header-input" placeholder="Field Name (e.g., Condition, Warranty)" style="padding: 0.4rem; font-size: 0.85rem; flex: 1;">
+    `;
+    container.appendChild(row);
+}
