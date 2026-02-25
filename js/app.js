@@ -172,7 +172,7 @@ async function loadInventory() {
         // Handle Custom Headers Logic
         if (window.userCustomHeaders && window.userCustomHeaders.length > 0) {
             // Rebuild table header
-            thead.innerHTML = '<tr>' + window.userCustomHeaders.map(h => `<th style="padding: 1rem 1.5rem; white-space: nowrap;">${h}</th>`).join('') + '</tr>';
+            thead.innerHTML = '<tr>' + window.userCustomHeaders.map(h => `<th style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${h}</th>`).join('') + '</tr>';
 
             if (inventory.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${window.userCustomHeaders.length}" style="text-align:center;">No items found.</td></tr>`;
@@ -205,10 +205,10 @@ async function loadInventory() {
                     } else if (cDataVal !== undefined && cDataVal !== '') {
                         cellValue = cDataVal;
                     }
-                    return `<td style="padding: 1rem 1.5rem; white-space: nowrap;">${cellValue}</td>`;
+                    return `<td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${cellValue}</td>`;
                 }).join('');
 
-                return `<tr style="color: white; cursor: pointer;" onclick="document.getElementById('searchEditId').value='${item.id || index}'; searchInventoryForEdit();" title="Click to Edit">
+                return `<tr style="color: white; cursor: pointer;" onclick="document.getElementById('searchEditId').value='${item.id || (index + 1)}'; searchInventoryForEdit();" title="Click to Edit">
                             ${rowCells}
                         </tr>`;
             }).join('');
@@ -222,25 +222,25 @@ async function loadInventory() {
 
             tbody.innerHTML = inventory.map((item, index) => {
                 const dateStr = item.date ? new Date(item.date).toLocaleDateString() : '-';
-                const editId = item.id || index;
+                const editId = item.id || (index + 1);
 
                 return `
                 <tr style="color: white;">
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${dateStr}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.category || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.vendor || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.item || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.brand || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.model || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.qty || '0'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">Rs. ${(parseFloat(item.price) || 0).toLocaleString()}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">Rs. ${(parseFloat(item.total) || 0).toLocaleString()}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">Rs. ${(parseFloat(item.paid) || 0).toLocaleString()}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">${item.payMode || item.mode || '-'}</td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap; font-weight: bold; color: ${parseFloat(item.balance) > 0 ? '#ef4444' : '#22c55e'}">
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${dateStr}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.category || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.vendor || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.item || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.brand || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.model || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.qty || '0'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Rs. ${(parseFloat(item.price) || 0).toLocaleString()}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Rs. ${(parseFloat(item.total) || 0).toLocaleString()}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Rs. ${(parseFloat(item.paid) || 0).toLocaleString()}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.payMode || item.mode || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center; font-weight: bold; color: ${parseFloat(item.balance) > 0 ? '#ef4444' : '#22c55e'}">
                         Rs. ${(parseFloat(item.balance) || 0).toLocaleString()}
                     </td>
-                    <td style="padding: 1rem 1.5rem; white-space: nowrap;">
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">
                         <button class="btn btn-sm" style="background: #3b82f6; border-radius: 4px; padding: 0.4rem 0.8rem;" onclick="document.getElementById('searchEditId').value='${editId}'; searchInventoryForEdit();">
                             <i class="fa-solid fa-pen"></i> Edit
                         </button>
@@ -262,8 +262,16 @@ async function searchInventoryForEdit() {
 
     try {
         const inventory = await API.getInventory();
-        // Fallback to array index if ID is not explicitly set in the sheet for older entries
-        const item = inventory.find(i => String(i.id) === searchId) || inventory[parseInt(searchId)];
+        // Fallback to 1-based array index if ID is not explicitly set in the sheet for older entries
+        let item = inventory.find(i => String(i.id) === searchId);
+        if (!item) {
+            const idx = parseInt(searchId);
+            if (!isNaN(idx) && idx > 0 && idx <= inventory.length) {
+                item = inventory[idx - 1];
+            } else if (idx === 0 && inventory.length > 0) {
+                item = inventory[0];
+            }
+        }
 
         if (!item) return alert("Item not found!");
 
@@ -425,7 +433,7 @@ window.editInventoryItem = function (itemId) {
     alert("Edit functionality for Inventory Item " + itemId + " will be implemented here. It could open the Purchase modal pre-filled with this item's data.");
 };
 
-// 4. DASHBOARD REFRESH (Fixed Box Logic)
+// 4. DASHBOARD REFRESH (Fixed Box Logic & Modern Bars)
 async function refreshDashboard() {
     try {
         const inventory = await API.getInventory();
@@ -435,23 +443,56 @@ async function refreshDashboard() {
         let totalValue = 0;
         inventory.forEach(item => totalValue += (parseFloat(item.total) || 0));
 
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const currentYearMonth = todayStr.substring(0, 7); // e.g., "2026-02"
+
         let salesToday = 0;
+        let salesMonth = 0; // SOP (Month)
+
         sales.forEach(s => {
-            if ((s.date || '').includes(today)) salesToday += (parseFloat(s.total) || 0);
+            const sTotal = parseFloat(s.total) || 0;
+            if (s.date && s.date.includes(todayStr)) salesToday += sTotal;
+            if (s.date && s.date.startsWith(currentYearMonth)) salesMonth += sTotal;
         });
 
-        // Update UI
+        // Update UI Text
         const valEl = document.getElementById('dTotalValue');
         const prodEl = document.getElementById('dTotalProducts');
         const saleEl = document.getElementById('dSalesToday');
+        const sopEl = document.getElementById('dSoPMonth');
 
         if (valEl) valEl.innerText = 'Rs. ' + totalValue.toLocaleString();
         if (prodEl) prodEl.innerText = inventory.length;
         if (saleEl) saleEl.innerText = 'Rs. ' + salesToday.toLocaleString();
+        if (sopEl) sopEl.innerText = 'Rs. ' + salesMonth.toLocaleString();
+
+        // Animate Progress Bars (Relative visual indicators)
+        // Set some arbitrary "targets" to make the bars look dynamic and attractive
+        const valMax = totalValue > 0 ? (totalValue * 1.5) : 500000;
+        const prodMax = inventory.length > 0 ? (inventory.length * 1.2) : 1000;
+        const todayMax = salesToday > 0 ? (salesToday * 2) : 50000;
+        const monthMax = salesMonth > 0 ? (salesMonth * 1.5) : 250000;
+
+        const valPct = Math.min((totalValue / valMax) * 100, 100) || 10; // At least 10% for visual
+        const prodPct = Math.min((inventory.length / prodMax) * 100, 100) || 10;
+        const todayPct = Math.min((salesToday / todayMax) * 100, 100) || 10;
+        const monthPct = Math.min((salesMonth / monthMax) * 100, 100) || 10;
+
+        setTimeout(() => {
+            const barVal = document.getElementById('dTotalValueBar');
+            const barProd = document.getElementById('dTotalProductsBar');
+            const barToday = document.getElementById('dSalesTodayBar');
+            const barSop = document.getElementById('dSoPMonthBar');
+
+            if (barVal) barVal.style.width = valPct + '%';
+            if (barProd) barProd.style.width = prodPct + '%';
+            if (barToday) barToday.style.width = todayPct + '%';
+            if (barSop) barSop.style.width = monthPct + '%';
+        }, 100);
 
     } catch (e) {
-        console.warn("Dashboard stats failed to load.");
+        console.warn("Dashboard stats failed to load.", e);
     }
 }
 

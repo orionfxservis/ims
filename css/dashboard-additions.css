@@ -317,3 +317,59 @@
 .broadcast-wrapper:hover .broadcast-content {
     animation-play-state: paused;
 }
+
+/* --- Stat Card Progress Bars --- */
+.stat-progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    margin-top: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.blue .stat-progress-container {
+    background: rgba(0, 114, 255, 0.1);
+}
+
+.stat-card.orange .stat-progress-container {
+    background: rgba(243, 129, 129, 0.1);
+}
+
+.stat-card.green .stat-progress-container {
+    background: rgba(120, 255, 214, 0.2);
+}
+
+.stat-card.red .stat-progress-container {
+    background: rgba(254, 207, 239, 0.5);
+}
+
+.stat-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    /* Default, overridden by JS */
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-progress-bar.bg-blue {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    box-shadow: 0 0 8px rgba(0, 114, 255, 0.6);
+}
+
+.stat-progress-bar.bg-orange {
+    background: linear-gradient(90deg, #fce38a, #f38181);
+    box-shadow: 0 0 8px rgba(243, 129, 129, 0.6);
+}
+
+.stat-progress-bar.bg-green {
+    background: linear-gradient(90deg, #a8ff78, #78ffd6);
+    box-shadow: 0 0 8px rgba(120, 255, 214, 0.6);
+}
+
+.stat-progress-bar.bg-red {
+    background: linear-gradient(90deg, #ff9a9e, #fecfef);
+    box-shadow: 0 0 8px rgba(255, 154, 158, 0.6);
+}
