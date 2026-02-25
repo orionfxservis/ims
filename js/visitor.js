@@ -143,16 +143,16 @@ async function loadLandingPageStats() {
     try {
         if (typeof API === 'undefined') return;
 
-        const users = await API.getUsers() || [];
+        const users = await API.getUsers();
         // Filter out admin and trial accounts from being counted
         const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
 
         // Use a Set to calculate unique companies
         const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
 
-        const countCompanies = companies.size || 0;
-        const countTotalUsers = realUsers.length || 0;
-        const countActiveUsers = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length || 0;
+        const countCompanies = companies.size;
+        const countTotalUsers = realUsers.length;
+        const countActiveUsers = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length;
 
         // Populate elements
         const lpCompanies = document.getElementById('lpCountCompanies');
@@ -165,16 +165,11 @@ async function loadLandingPageStats() {
         if (lpActive) lpActive.innerText = countActiveUsers;
 
         // Fetch Inventory
-        const inventory = await API.getInventory() || [];
+        const inventory = await API.getInventory();
         const lpItems = document.getElementById('lpCountItems');
-        if (lpItems) lpItems.innerText = inventory.length || 0;
+        if (lpItems && inventory) lpItems.innerText = inventory.length;
 
     } catch (e) {
         console.error("Failed to load landing page stats", e);
-        // Fallback to 0 if an error occurs so it doesn't stay blank
-        ['lpCountCompanies', 'lpCountUsers', 'lpCountActive', 'lpCountItems'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = "0";
-        });
     }
 }
