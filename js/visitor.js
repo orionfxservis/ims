@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         VisitorAPI.init();
         loadHeroBanner();
+        loadHomeBroadcasts();
+        loadLandingPageStats();
     }, 1000);
 });
 
@@ -115,5 +117,64 @@ async function loadHeroBanner() {
         }
     } catch (e) {
         console.error("Failed to load hero banner", e);
+    }
+}
+
+async function loadHomeBroadcasts() {
+    try {
+        if (typeof API === 'undefined') return;
+        const broadcasts = await API.getBroadcasts();
+        const container = document.getElementById('broadcastContainer');
+        const textElement = document.getElementById('broadcastText');
+
+        if (broadcasts && broadcasts.length > 0) {
+            const messages = broadcasts.map(b => `<strong style="color: #f59e0b;">${b.userName}:</strong> <span style="color: #ffffff;">${b.message}</span>`).join(' &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; ');
+            if (textElement) textElement.innerHTML = messages;
+            if (container) container.classList.remove('hidden');
+        } else {
+            if (container) container.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error("Failed to load home broadcasts", e);
+    }
+}
+
+async function loadLandingPageStats() {
+    try {
+        if (typeof API === 'undefined') return;
+
+        const users = await API.getUsers() || [];
+        // Filter out admin and trial accounts from being counted
+        const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
+
+        // Use a Set to calculate unique companies
+        const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
+
+        const countCompanies = companies.size || 0;
+        const countTotalUsers = realUsers.length || 0;
+        const countActiveUsers = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length || 0;
+
+        // Populate elements
+        const lpCompanies = document.getElementById('lpCountCompanies');
+        if (lpCompanies) lpCompanies.innerText = countCompanies;
+
+        const lpUsers = document.getElementById('lpCountUsers');
+        if (lpUsers) lpUsers.innerText = countTotalUsers;
+
+        const lpActive = document.getElementById('lpCountActive');
+        if (lpActive) lpActive.innerText = countActiveUsers;
+
+        // Fetch Inventory
+        const inventory = await API.getInventory() || [];
+        const lpItems = document.getElementById('lpCountItems');
+        if (lpItems) lpItems.innerText = inventory.length || 0;
+
+    } catch (e) {
+        console.error("Failed to load landing page stats", e);
+        // Fallback to 0 if an error occurs so it doesn't stay blank
+        ['lpCountCompanies', 'lpCountUsers', 'lpCountActive', 'lpCountItems'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = "0";
+        });
     }
 }

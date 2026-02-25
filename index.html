@@ -21,6 +21,18 @@
     <!-- HD Background Image -->
     <div class="bg-image" style="background-image: url('assets/inventory_system_background.png');"></div>
 
+    <!-- BANNER & BROADCAST -->
+    <div style="position: relative; z-index: 10; padding: 1rem 1rem 0 1rem; max-width: 1200px; margin: 0 auto;">
+        <div id="broadcastContainer" class="broadcast-container hidden" style="margin-bottom: 1rem;">
+            <div class="broadcast-icon"><i class="fa-solid fa-bullhorn"></i></div>
+            <div class="broadcast-wrapper">
+                <div class="broadcast-content" id="broadcastText">
+                    <!-- JS Populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="hero-container">
 
         <!-- LEFT SIDE: Marketing Info -->
@@ -177,10 +189,10 @@
 
             <!-- LOGIN CONTAINER -->
             <div class="glass-card" id="loginContainer">
-                <div style="text-align: center; margin-bottom: 0.5rem;">
+                <div style="text-align: center; margin-bottom: 0.2rem;">
                     <!-- Logo Image Replaced -->
                     <img src="assets/logo.jpg" alt="IMS Logo"
-                        style="max-width: 80px; height: auto; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                        style="max-width: 60px; height: auto; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                 </div>
                 <h1 class="title">IMS Cloud</h1>
                 <p class="subtitle">Welcome Back</p>
@@ -188,13 +200,18 @@
                 <form id="loginForm">
                     <!-- Login Fields -->
                     <div class="form-group">
+                        <label for="loginName">User Name</label>
+                        <input type="text" id="loginName" class="form-input" placeholder="Enter your user name">
+                    </div>
+
+                    <div class="form-group">
                         <label for="loginCompany">Company Name</label>
                         <input type="text" id="loginCompany" class="form-input" placeholder="Enter company name">
                     </div>
 
                     <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+                        <label for="username">User Id</label>
+                        <input type="text" id="username" class="form-input" placeholder="Enter your user id" required>
                     </div>
 
                     <div class="form-group">
@@ -212,7 +229,7 @@
                         <span class="btn-text">Sign In</span>
                     </button>
 
-                    <p class="link-text" style="color: rgba(255,255,255,0.7); margin-top: 1rem;">
+                    <p class="link-text" style="color: rgba(255,255,255,0.7); margin-top: 0.5rem; margin-bottom: 0;">
                         Don't have an account? <a href="#" onclick="toggleAuth('register'); return false;"
                             style="color: #60a5fa; font-weight: 600; text-decoration: none;">Create Account</a>
                     </p>

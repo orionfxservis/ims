@@ -89,9 +89,6 @@
 
             <!-- Dashboard View -->
             <section id="dashboard" class="view-section">
-                <!-- BANNER -->
-                <div id="dashboardBannerContainer" style="margin-bottom: 1.5rem; text-align: center;"></div>
-
                 <!-- Main Stats Grid -->
                 <!-- Use override class for strict 4 columns single line -->
                 <div class="stat-grid-override">
@@ -270,6 +267,12 @@
                         </div>
                     </div>
 
+                    <!-- Dashboard Banner Position -->
+                    <div id="dashboardBannerContainer"
+                        style="margin-top: 1.5rem; width: 100%; display: flex; justify-content: center;">
+                        <!-- Injected via JS -->
+                    </div>
+
                     <!-- Right: Recent Activity (Hidden) -->
                     <div class="glass-card" style="display: none;">
                         <!-- Hidden as per request -->
@@ -286,12 +289,6 @@
                     </div>
                 </div>
 
-
-                <!-- Dashboard Banner Position -->
-                <div id="dashboardBannerContainer"
-                    style="margin-top: 2rem; width: 100%; display: flex; justify-content: center;">
-                    <!-- Injected via JS -->
-                </div>
             </section>
 
             <!-- Inventory View -->

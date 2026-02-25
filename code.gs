@@ -842,7 +842,7 @@ function getBroadcasts() {
         company: row[5],
         contact: row[6],
         status: row[7],
-        id: 'err_' + i // Give front-end a semi-stable ID for deleting
+        id: row[8] ? row[8] : '_' + (i + 1) // Give front-end explicit row identifier if ID missing
       });
     }
   }
@@ -857,24 +857,27 @@ function deleteBroadcast(data) {
   if (!sheet) return response({ success: false, message: 'No broadcasts sheet' });
   
   const rows = sheet.getDataRange().getValues();
-  // Using the simplistic index matcher from admin.js `err_${index}` or an actual ID check
-  // The backend doesn't have an ID column currently defined, so we'll match by row index.
-  // In `admin.js`, if it falls back to `err_${index}`, `id` will come through as that string.
   
-  if (data.id && typeof data.id === 'string' && data.id.startsWith('err_')) {
-    const idx = parseInt(data.id.split('_')[1], 10);
-    // Remember rows is 0-indexed, but sheet is 1-indexed and has a header.
-    // Index from frontend `res.broadcasts.map((b, index)` refers to the filtered array `activeBroadcasts` 
-    // which makes deleting by strictly that index dangerous without an explicit ID column.
-    // For now, let's implement a "mark as inactive" fallback matching message & user.
-  }
-  
-  // Real check: Let's find exactly the matching row by message and userName to delete it
+  // Real check: Let's find exactly the matching row by ID (index 8) or fallback to precise row index
   for (let i = 1; i < rows.length; i++) {
-     // If we had an ID we'd use it, otherwise match exactly
-     if (rows[i][1] === data.message || (data.id && i === data.id)) {
+     // Check true ID if it exists in the sheet and in the request
+     if (rows[i][8] && data.id && rows[i][8] == data.id) {
         sheet.deleteRow(i + 1);
-        return response({ status: 'success' });
+        return response({ status: 'success', message: 'Broadcast deleted by ID' });
+     }
+     // Fallback: Check if the ID matches the explicit row identifier '_' + (i+1)
+     if (data.id && typeof data.id === 'string' && data.id === '_' + (i + 1)) {
+        // Double check message to be safe against row shifts
+        if (rows[i][1] === data.message) {
+            sheet.deleteRow(i + 1);
+            return response({ status: 'success', message: 'Broadcast deleted by row fallback' });
+        }
+     }
+     
+     // Deep fallback: Just match message exactly
+     if ((!data.id || data.id === "") && rows[i][1] === data.message) {
+        sheet.deleteRow(i + 1);
+        return response({ status: 'success', message: 'Broadcast deleted by message fallback' });
      }
   }
   

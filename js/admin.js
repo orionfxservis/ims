@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecentActivity(); // Load activity log
     loadUsers();
     loadCategories();
-    loadBroadcasts(); // New: Load broadcasts
+    loadAdminBroadcasts(); // New: Load broadcasts
     loadInventoryHeaders(); // New: Load inventory headers
     setupInventoryHeadersListeners();
 
@@ -86,7 +86,7 @@ function checkAdminAuth() {
     }
     if (document.getElementById('adminPhone')) document.getElementById('adminPhone').value = savedPhone || '';
 
-    loadBanners(); // Load banners on init
+    loadAdminBanners(); // Load banners on init
     return true; // Return true to allow initialization to proceed
 }
 
@@ -392,7 +392,7 @@ async function loadRecentActivity() {
 // 5. Banner Management
 let currentBanners = []; // Local state to hold all banners (main, dashboard, hero)
 
-async function loadBanners() {
+async function loadAdminBanners() {
     const grid = document.getElementById('bannerGrid');
     if (!grid) return;
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">Loading...</div>';
@@ -453,7 +453,7 @@ window.publishBanner = async function () {
     if (res.status === 'success' || res.success) {
         alert("Banner published successfully!");
         document.getElementById('bannerForm').reset();
-        loadBanners(); // Refresh grid
+        loadAdminBanners(); // Refresh grid
     } else {
         alert("Error publishing banner: " + (res.message || res.error || 'Unknown Error'));
         // Rollback on failure
@@ -483,7 +483,7 @@ window.deleteBanner = async function (index) {
     const res = await API.saveBanners(currentBanners);
 
     if (res.status === 'success' || res.success) {
-        loadBanners(); // Refresh UI
+        loadAdminBanners(); // Refresh UI
     } else {
         alert("Error deleting banner: " + (res.message || res.error || 'Unknown Error'));
         // Rollback on failure
@@ -665,7 +665,7 @@ window.publishBroadcast = async function () {
         if (res.status === 'success') {
             alert('Broadcast Published Successfully!');
             document.getElementById('broadcastForm').reset();
-            loadBroadcasts(); // Refresh list
+            loadAdminBroadcasts(); // Refresh list
         } else {
             alert('Error: ' + res.message);
         }
@@ -746,7 +746,7 @@ window.editBroadcast = function (dataStr) {
     }
 };
 
-window.loadBroadcasts = async function () {
+window.loadAdminBroadcasts = async function () {
     const list = document.getElementById('activeBroadcastsList');
 
     if (list) list.innerHTML = '<li style="color:#888;">Loading...</li>';
@@ -778,7 +778,7 @@ window.loadBroadcasts = async function () {
                             <button onclick="repostBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Repost">
                                 <i class="fa-solid fa-reply"></i>
                             </button>
-                            <button onclick="deleteBroadcast('${id}')" class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Delete">
+                            <button onclick="deleteBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Delete">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -806,12 +806,14 @@ window.loadBroadcasts = async function () {
     }
 };
 
-window.deleteBroadcast = async function (id) {
+window.deleteBroadcast = async function (dataStr) {
     if (!confirm("Are you sure you want to delete this broadcast?")) return;
+
+    const b = JSON.parse(decodeURIComponent(dataStr));
 
     // Optimistic UI update could go here, but let's wait for server
     try {
-        const res = await API.deleteBroadcast(id);
+        const res = await API.deleteBroadcast(b);
         if (res.status === 'success') {
             loadBroadcasts(); // Refresh
         } else {

@@ -681,14 +681,31 @@ function deleteBroadcast(data) {
   if (!sheet) return response({ status: 'error', message: 'Sheet not found' });
   
   const rows = sheet.getDataRange().getValues();
-  // Find by ID (Col index 8)
+  
+  // Real check: Let's find exactly the matching row by ID (index 8) or fallback to precise row index
   for (let i = 1; i < rows.length; i++) {
-    // Check ID (row[8]) or loose match if column missing (fallback logic not safe, stick to ID)
-    if (rows[i][8] == data.id) {
-      sheet.deleteRow(i + 1);
-      return response({ status: 'success', message: 'Broadcast deleted' });
-    }
+     // Check true ID if it exists in the sheet and in the request
+     if (rows[i][8] && data.id && rows[i][8] == data.id) {
+        sheet.deleteRow(i + 1);
+        return response({ status: 'success', message: 'Broadcast deleted by ID' });
+     }
+     
+     // Fallback: Check if the ID matches the explicit row identifier '_' + (i+1)
+     if (data.id && typeof data.id === 'string' && data.id === '_' + (i + 1)) {
+        // Double check message to be safe against row shifts
+        if (rows[i][1] === data.message) {
+            sheet.deleteRow(i + 1);
+            return response({ status: 'success', message: 'Broadcast deleted by row fallback' });
+        }
+     }
+     
+     // Deep fallback: Just match message exactly
+     if ((!data.id || data.id === "") && rows[i][1] === data.message) {
+        sheet.deleteRow(i + 1);
+        return response({ status: 'success', message: 'Broadcast deleted by message fallback' });
+     }
   }
+  
   return response({ status: 'error', message: 'Broadcast not found' });
 }
 
@@ -719,7 +736,7 @@ function getBroadcasts() {
         userName: row[4],
         company: row[5],
         contact: row[6],
-        id: row[8] || '' // Return ID
+        id: row[8] ? row[8] : '_' + (i + 1) // Give front-end explicit row identifier if ID missing
       });
     }
   }

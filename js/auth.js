@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> Signing In...';
 
+            const loginName = document.getElementById('loginName') ? document.getElementById('loginName').value.trim() : '';
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const company = document.getElementById('loginCompany').value.trim();
