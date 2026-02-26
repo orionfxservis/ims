@@ -139,28 +139,31 @@ async function loadUsers() {
                     <div style="font-weight: 600; color: white;">${user.name || user.username || 'Unknown'}</div>
                 </td>
                 <td>
-                    <div style="font-size: 0.9rem;">${user.phone || '-'}</div>
+                    <div style="font-size: 0.9rem; color: #cbd5e1;">${user.company || 'No Company'}</div>
                 </td>
                 <td>
-                    <div style="font-size: 0.9rem; color: #aaa;">${user.address || '-'}</div> 
+                    <div style="font-size: 0.9rem; color: #94a3b8;">${user.username || '-'}</div>
                 </td>
-                <td>${user.company || '-'}</td>
                 <td>
-                    <span class="status-badge status-${String(user.status || 'pending').toLowerCase()}">
+                    <div style="font-size: 0.85rem; color: #94a3b8;">${user.password || '-'}</div>
+                </td>
+                <td style="vertical-align: middle;">
+                    <span class="status-badge status-${String(user.status || 'pending').toLowerCase()}" style="border: 1px solid ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; color: ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
                         ${(String(user.status || '').toLowerCase() === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : String(user.status || '').toLowerCase() === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
                         ${String(user.status || 'pending').toUpperCase()}
                     </span>
                 </td>
-                <td>
-                    ${String(user.status || '').toLowerCase() !== 'active' && String(user.status || '').toLowerCase() !== 'locked' ?
-                    `<button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve"><i class="fa-solid fa-check"></i></button>` : ''
-                }
-                    <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${String(user.status || '').toLowerCase() === 'locked' ? 'Unlock' : 'Lock'}">
-                        <i class="fa-solid ${String(user.status || '').toLowerCase() === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
-                    </button>
-                    <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6;"><i class="fa-solid fa-chart-column"></i></button>
-                    <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password"><i class="fa-solid fa-key"></i></button>
-                    <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+                <td style="vertical-align: middle;">
+                    <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                        <button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve" style="background:#22c55e; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-check"></i></button>
+                        <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${String(user.status || '').toLowerCase() === 'locked' ? 'Unlock' : 'Lock'}" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;">
+                            <i class="fa-solid ${String(user.status || '').toLowerCase() === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
+                        </button>
+                        <button class="action-btn" onclick="openUserProfileModal('${user.username}')" title="View Profile" style="background:#8b5cf6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-address-card"></i></button>
+                        <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>
+                        <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password" style="background:#f59e0b; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-key"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </td>
             </tr>
             `).join('');
@@ -297,6 +300,59 @@ window.resetPassword = function (username) {
             alert("Password updated.");
         }
     }
+};
+
+window.openUserProfileModal = async function (username) {
+    const users = await API.getUsers();
+    const user = users.find(u => u.username === username);
+    if (!user) return alert("User details not found.");
+
+    // Header Data
+    document.getElementById('upmName').textContent = user.name || user.username || 'Unknown';
+    document.getElementById('upmDetailsHeader').textContent = `${user.company || 'No Company'} • ${String(user.role || 'User').toUpperCase()}`;
+
+    const avatar = document.getElementById('upmAvatar');
+    if (user.profileImage || user.profileimage) {
+        avatar.innerHTML = `<img src="${user.profileImage || user.profileimage}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+        avatar.innerHTML = '<i class="fa-solid fa-user" style="color:#666; font-size:1.5rem;"></i>';
+    }
+
+    // Status Badge
+    let statusColor = '#f59e0b'; // pending
+    if (String(user.status).toLowerCase() === 'active') statusColor = '#10b981';
+    else if (String(user.status).toLowerCase() === 'locked') statusColor = '#ef4444';
+
+    // Detailed Fields
+    const detailsHtml = `
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>User ID:</strong> <span style="color:#fff;">${user.username}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Password:</strong> <span style="color:#fff;">${user.password || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Phone No:</strong> <span style="color:#fff;">${user.phone || user.mobile || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Whatsapp No:</strong> <span style="color:#fff;">${user.whatsapp || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Email:</strong> <span style="color:#fff;">${user.email || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Payment Mode:</strong> <span style="color:#fff;">${user.paymentmode || user.paymentMode || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
+            <strong>Address:</strong> <span style="color:#fff; text-align:right; max-width: 60%;">${user.address || '-'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding-top:0.5rem;">
+            <strong>Account Status:</strong> <span style="color:${statusColor}; font-weight:bold;">${String(user.status || 'Pending').toUpperCase()}</span>
+        </div>
+    `;
+
+    document.getElementById('upmDetails').innerHTML = detailsHtml;
+    document.getElementById('userProfileModal').classList.remove('hidden');
 };
 
 window.viewUserProfile = async function (username) {

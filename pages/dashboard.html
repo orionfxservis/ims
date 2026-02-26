@@ -94,59 +94,53 @@
                 <div class="stat-grid-override">
 
                     <!-- Total Inventory Value -->
-                    <div class="stat-card blue">
-                        <div class="stat-icon-wrapper">
-                            <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="phara-stat-card blue">
+                        <div class="phara-icon-box">
+                            <i class="fa-solid fa-plus"></i> <!-- Mimicking the cross icon -->
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Total Inventory Value</div>
-                            <div class="stat-value" id="dTotalValue">Rs. 0</div>
+                        <div class="phara-content">
+                            <div class="phara-label">Inventory status</div>
+                            <div class="phara-value" id="dTotalValue">$50K</div>
                         </div>
-                        <div class="stat-progress-container">
-                            <div class="stat-progress-bar bg-blue" id="dTotalValueBar" style="width: 0%;"></div>
-                        </div>
+                        <a href="#" class="phara-bottom-link"
+                            onclick="document.querySelector('[data-tab=inventory]').click()">View Details</a>
                     </div>
 
                     <!-- Total Products -->
-                    <div class="stat-card orange">
-                        <div class="stat-icon-wrapper">
-                            <i class="fa-solid fa-boxes-stacked"></i>
+                    <div class="phara-stat-card teal">
+                        <div class="phara-icon-box">
+                            <i class="fa-solid fa-money-bill-1-wave"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Total Products</div>
-                            <div class="stat-value" id="dTotalProducts">0</div>
+                        <div class="phara-content">
+                            <div class="phara-label">Revenue</div>
+                            <div class="phara-value" id="dTotalProducts">$100K</div>
                         </div>
-                        <div class="stat-progress-container">
-                            <div class="stat-progress-bar bg-orange" id="dTotalProductsBar" style="width: 0%;"></div>
-                        </div>
+                        <a href="#" class="phara-bottom-link">View Details</a>
                     </div>
 
-                    <!-- Sales Today -->
-                    <div class="stat-card green">
-                        <div class="stat-icon-wrapper">
-                            <i class="fa-solid fa-cart-shopping"></i>
+                    <!-- Medicine/Items Available -->
+                    <div class="phara-stat-card yellow">
+                        <div class="phara-icon-box">
+                            <i class="fa-solid fa-plus-square"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Sales (Today)</div>
-                            <div class="stat-value" id="dSalesToday">Rs. 0</div>
+                        <div class="phara-content">
+                            <div class="phara-label" style="color:#555;">Items available</div>
+                            <div class="phara-value" id="dSalesToday" style="color:#333;">515</div>
                         </div>
-                        <div class="stat-progress-container">
-                            <div class="stat-progress-bar bg-green" id="dSalesTodayBar" style="width: 0%;"></div>
-                        </div>
+                        <a href="#" class="phara-bottom-link" style="color:#555;"
+                            onclick="document.querySelector('[data-tab=inventory]').click()">Visit inventory</a>
                     </div>
 
-                    <!-- SOP (Sales/Profit) -->
-                    <div class="stat-card red">
-                        <div class="stat-icon-wrapper">
-                            <i class="fa-solid fa-chart-pie"></i>
+                    <!-- Medicine Shortage / Low Stock -->
+                    <div class="phara-stat-card red">
+                        <div class="phara-icon-box">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">SOP (Month)</div>
-                            <div class="stat-value" id="dSoPMonth">Rs. 0</div>
+                        <div class="phara-content">
+                            <div class="phara-label">Items Shortage</div>
+                            <div class="phara-value" id="dSoPMonth">2</div>
                         </div>
-                        <div class="stat-progress-container">
-                            <div class="stat-progress-bar bg-red" id="dSoPMonthBar" style="width: 0%;"></div>
-                        </div>
+                        <a href="#lowStockSection" class="phara-bottom-link">Resolve Now</a>
                     </div>
 
                 </div>
@@ -168,63 +162,86 @@
                 <!-- Used same override grid for single line layout -->
                 <div class="quick-actions-override" style="margin-bottom: 2rem;">
 
+
+
                     <!-- New Purchase -->
-                    <div class="stat-card action-btn blue"
+                    <div class="phara-quick-action blue"
                         onclick="document.querySelector('[data-tab=purchase]').click()">
-                        <div class="stat-icon-wrapper">
+                        <div class="phara-qa-icon">
                             <i class="fa-solid fa-cart-shopping"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Action</div>
-                            <div class="stat-value" style="font-size: 1rem;">New Purchase</div>
-                        </div>
+                        <div class="phara-qa-text">New Purchase</div>
                     </div>
 
                     <!-- New Sale -->
-                    <div class="stat-card action-btn green"
-                        onclick="document.querySelector('[data-tab=sales]').click()">
-                        <div class="stat-icon-wrapper">
+                    <div class="phara-quick-action green" onclick="document.querySelector('[data-tab=sales]').click()">
+                        <div class="phara-qa-icon">
                             <i class="fa-solid fa-cash-register"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Action</div>
-                            <div class="stat-value" style="font-size: 1rem;">New Sale</div>
-                        </div>
+                        <div class="phara-qa-text">New Sale</div>
                     </div>
 
                     <!-- Add Expense -->
-                    <div class="stat-card action-btn orange"
+                    <div class="phara-quick-action orange"
                         onclick="document.querySelector('[data-tab=expenses]').click()">
-                        <div class="stat-icon-wrapper">
+                        <div class="phara-qa-icon">
                             <i class="fa-solid fa-money-bill-wave"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">Action</div>
-                            <div class="stat-value" style="font-size: 1rem;">Add Expense</div>
-                        </div>
+                        <div class="phara-qa-text">Add Expense</div>
                     </div>
 
                     <!-- View Inventory -->
-                    <div class="stat-card action-btn purple"
+                    <div class="phara-quick-action purple"
                         onclick="document.querySelector('[data-tab=inventory]').click()">
-                        <div class="stat-icon-wrapper">
+                        <div class="phara-qa-icon">
                             <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">View</div>
-                            <div class="stat-value" style="font-size: 1rem;">Inventory</div>
+                        <div class="phara-qa-text">Inventory</div>
+                    </div>
+
+                    <!-- View Reports -->
+                    <div class="phara-quick-action red" onclick="document.querySelector('[data-tab=reports]').click()">
+                        <div class="phara-qa-icon">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div class="phara-qa-text">Reports</div>
+                    </div>
+
+                </div>
+
+                <!-- Phara Layout Charts Row -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+
+                    <!-- Sales Bar Chart Area -->
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3
+                                style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                Total Sale</h3>
+                            <div
+                                style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
+                                Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
+                        </div>
+                        <div style="width: 100%; height: 250px;">
+                            <canvas id="pharaSalesChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- View Reports (If kept, it might wrap to next line or we can use 5 columns if space permits, but strict 4 requested. Maybe leave reports out or let it wrap?) - User said "same as image", usually 4. I will put 4 main actions. Reports is 5th. Let's add it, grid will likely wrap. -->
-                    <div class="stat-card action-btn red"
-                        onclick="document.querySelector('[data-tab=reports]').click()">
-                        <div class="stat-icon-wrapper">
-                            <i class="fa-solid fa-file-invoice"></i>
+                    <!-- Inventory Doughnut Chart Area -->
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3
+                                style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                Inventory</h3>
+                            <div
+                                style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
+                                Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
                         </div>
-                        <div class="stat-content">
-                            <div class="stat-label">View</div>
-                            <div class="stat-value" style="font-size: 1rem;">Reports</div>
+                        <div
+                            style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="pharaInventoryChart"></canvas>
                         </div>
                     </div>
 
@@ -238,9 +255,9 @@
 
                         <!-- Low Stock Table -->
                         <div class="glass-card">
-                            <h3 style="margin-bottom: 1rem; color: #f59e0b;"><i
-                                    class="fa-solid fa-triangle-exclamation"></i> Low
-                                Stock Alerts</h3>
+                            <h3
+                                style="margin: 0 0 1rem 0; color: #f59e0b; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h3>
                             <table class="data-table" style="font-size: 0.9rem;">
                                 <thead>
                                     <tr>
@@ -259,8 +276,9 @@
 
                         <!-- Top Selling -->
                         <div class="glass-card">
-                            <h3 style="margin-bottom: 1rem; color: #22c55e;"><i class="fa-solid fa-arrow-trend-up"></i>
-                                Top Selling Products</h3>
+                            <h3
+                                style="margin: 0 0 1rem 0; color: #22c55e; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fa-solid fa-arrow-trend-up"></i> Top Selling Products</h3>
                             <div id="topSellingList">
                                 <p style="color: #aaa;">No sales data available</p>
                             </div>
@@ -791,19 +809,20 @@
                     <input type="file" id="profileUpload" accept="image/*" style="display:none">
 
                     <h4 style="margin: 1rem 0 0.5rem 0; color: #60a5fa;">Regular Users</h4>
-                    <table class="data-table" style="margin-bottom: 2rem;">
-                        <thead>
-                            <tr>
-                                <th>Picture</th>
-                                <th>User Name</th>
-                                <th>Company</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="regularUserTableBody">
-                            <!-- Populated by admin.js -->
-                        </tbody>
+                    <thead>
+                        <tr>
+                            <th>Picture</th>
+                            <th>User Name</th>
+                            <th>Company Name</th>
+                            <th>User Id</th>
+                            <th>Password</th>
+                            <th style="color: #ef4444;">Status</th>
+                            <th style="color: #ef4444; letter-spacing: 0.5rem; text-align: center;">A C T I O N</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regularUserTableBody">
+                        <!-- Populated by admin.js -->
+                    </tbody>
                     </table>
 
                     <h4 style="margin: 1rem 0 0.5rem 0; color: #f59e0b;">System Users</h4>

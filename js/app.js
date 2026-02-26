@@ -491,8 +491,85 @@ async function refreshDashboard() {
             if (barSop) barSop.style.width = monthPct + '%';
         }, 100);
 
+        // Initialize Phara UI Charts
+        initPharaCharts();
+
     } catch (e) {
         console.warn("Dashboard stats failed to load.", e);
+    }
+}
+
+let pharaSalesChartInstance = null;
+let pharaInvChartInstance = null;
+
+function initPharaCharts() {
+    // Total Sale (Bar Chart)
+    const salesCtx = document.getElementById('pharaSalesChart');
+    if (salesCtx) {
+        if (pharaSalesChartInstance) pharaSalesChartInstance.destroy();
+        pharaSalesChartInstance = new Chart(salesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [8, 16, 8, 10, 3, 14, 18], // Mock data to match visual
+                    backgroundColor: [
+                        '#3b82f6', '#3b82f6', '#3b82f6',
+                        '#0f172a', // The dark highlighted bar
+                        '#3b82f6', '#3b82f6', '#3b82f6'
+                    ],
+                    borderRadius: 6,
+                    barThickness: 24
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: {
+                            color: '#94a3b8', font: { size: 11 },
+                            callback: function (value) { return '$ ' + (value) + 'K'; }
+                        },
+                        beginAtZero: true,
+                        max: 20
+                    }
+                }
+            }
+        });
+    }
+
+    // Inventory status (Doughnut Chart)
+    const invCtx = document.getElementById('pharaInventoryChart');
+    if (invCtx) {
+        if (pharaInvChartInstance) pharaInvChartInstance.destroy();
+        pharaInvChartInstance = new Chart(invCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Total product', 'Out of stock', 'Return', 'Expire'],
+                datasets: [{
+                    data: [45, 15, 20, 20],
+                    backgroundColor: ['#1e293b', '#ef4444', '#8b5cf6', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%', // Thin ring
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#cbd5e1', usePointStyle: true, boxWidth: 8, font: { size: 11 } }
+                    }
+                }
+            }
+        });
     }
 }
 
