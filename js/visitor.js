@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         VisitorAPI.init();
         loadHeroBanner();
-        loadHomeBroadcasts();
         loadLandingPageStats();
     }, 1000);
 });
@@ -120,24 +119,7 @@ async function loadHeroBanner() {
     }
 }
 
-async function loadHomeBroadcasts() {
-    try {
-        if (typeof API === 'undefined') return;
-        const broadcasts = await API.getBroadcasts();
-        const container = document.getElementById('broadcastContainer');
-        const textElement = document.getElementById('broadcastText');
-
-        if (broadcasts && broadcasts.length > 0) {
-            const messages = broadcasts.map(b => `<strong style="color: #f59e0b;">${b.userName}:</strong> <span style="color: #ffffff;">${b.message}</span>`).join(' &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; ');
-            if (textElement) textElement.innerHTML = messages;
-            if (container) container.classList.remove('hidden');
-        } else {
-            if (container) container.classList.add('hidden');
-        }
-    } catch (e) {
-        console.error("Failed to load home broadcasts", e);
-    }
-}
+// Removed loadHomeBroadcasts()
 
 async function loadLandingPageStats() {
     try {

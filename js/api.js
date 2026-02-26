@@ -219,6 +219,25 @@ const API = {
         }
     },
 
+    // --- Visitor Tracking ---
+    async logVisit(visitorId) {
+        if (this.isLive()) {
+            return await this.post({ action: 'logVisit', visitorId });
+        } else {
+            return { success: true, stats: { online: 1, today: 12, yesterday: 45, week: 140, month: 650 } };
+        }
+    },
+
+    async getVisitorStats() {
+        if (this.isLive()) {
+            const data = await this.post({ action: 'getVisitorStats' });
+            if (data && data.success) return data;
+            return { success: true, stats: { online: 0, today: 0, yesterday: 0, week: 0, month: 0 } };
+        } else {
+            return { success: true, stats: { online: 1, today: 12, yesterday: 45, week: 140, month: 650 } };
+        }
+    },
+
     async register(data) {
         if (this.isLive()) {
             return await this.post({ action: 'register', ...data });
@@ -229,12 +248,26 @@ const API = {
 
     // --- Users ---
     async getUsers() {
+        let usersList = [];
         if (this.isLive()) {
             const data = await this.get('getUsers');
-            return Array.isArray(data) ? data : (data.users || []);
+            usersList = Array.isArray(data) ? data : (data.users || []);
         } else {
-            return JSON.parse(localStorage.getItem('users') || '[]');
+            usersList = JSON.parse(localStorage.getItem('users') || '[]');
         }
+
+        // Ensure Demo Guest/Trial user is always available for Admin panel display
+        if (!usersList.some(u => String(u.username).toLowerCase() === 'trial')) {
+            usersList.push({
+                username: 'trial',
+                name: 'Guest User',
+                role: 'trial',
+                company: 'Demo Company Ltd.',
+                status: 'active',
+                profileImage: 'assets/trial_avatar.jpg'
+            });
+        }
+        return usersList;
     },
 
     async updateUserStatus(username, status) {

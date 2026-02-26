@@ -114,14 +114,14 @@ async function loadUsers() {
     const regularUsers = users.filter(u => {
         const role = String(u.role || 'user').toLowerCase().trim();
         const company = String(u.company || '').trim();
-        return role !== 'admin' && role !== 'trial' && company !== 'System';
+        return role !== 'admin' && role !== 'trial' && role !== 'guest' && role !== 'super admin' && company !== 'System';
     });
     regularUsers.sort((a, b) => (String(a.status || 'pending').toLowerCase() === 'pending' ? -1 : 1));
 
     const systemUsers = users.filter(u => {
         const role = String(u.role || '').toLowerCase().trim();
         const company = String(u.company || '').trim();
-        return role === 'admin' || role === 'trial' || company === 'System';
+        return role === 'admin' || role === 'trial' || role === 'guest' || role === 'super admin' || company === 'System';
     });
 
     // 1. Regular Users Table
@@ -186,10 +186,14 @@ async function loadUsers() {
                 <td><span style="font-weight:bold; color:${String(user.role).toLowerCase() === 'admin' ? '#ef4444' : '#f59e0b'}">${String(user.role || 'System').toUpperCase()}</span></td>
                 <td>${user.name || user.username || 'System User'}</td>
                 <td><span class="status-badge status-active">Active</span></td>
+                <td style="text-align: center;">
+                    <button class="action-btn" onclick="openUserProfileModal('${user.username}')" title="View Profile" style="background:#8b5cf6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-address-card"></i></button>
+                    ${String(user.role || '').toLowerCase().trim() !== 'guest' && String(user.role || '').toLowerCase().trim() !== 'trial' ? `<button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>` : ''}
+                </td>
             </tr>
             `).join('');
         } else {
-            systemTbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No system users.</td></tr>`;
+            systemTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No system users.</td></tr>`;
         }
     }
 
@@ -323,31 +327,43 @@ window.openUserProfileModal = async function (username) {
     if (String(user.status).toLowerCase() === 'active') statusColor = '#10b981';
     else if (String(user.status).toLowerCase() === 'locked') statusColor = '#ef4444';
 
-    // Detailed Fields
+    // Detailed Fields as Form Inputs
     const detailsHtml = `
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>User ID:</strong> <span style="color:#fff;">${user.username}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">User ID (Username)</label>
+            <input type="text" id="upmUsername" class="form-input" value="${user.username}" readonly style="padding: 0.5rem; font-size: 0.9rem; background: rgba(255,255,255,0.05); color: #ccc; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.1);">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Password:</strong> <span style="color:#fff;">${user.password || '-'}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Password</label>
+            <input type="text" id="upmPassword" class="form-input" value="${user.password || ''}" style="padding: 0.5rem; font-size: 0.9rem;">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Phone No:</strong> <span style="color:#fff;">${user.phone || user.mobile || '-'}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Phone No</label>
+            <input type="text" id="upmPhone" class="form-input" value="${user.phone || user.mobile || ''}" style="padding: 0.5rem; font-size: 0.9rem;">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Whatsapp No:</strong> <span style="color:#fff;">${user.whatsapp || '-'}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Whatsapp No</label>
+            <input type="text" id="upmWhatsapp" class="form-input" value="${user.whatsapp || ''}" style="padding: 0.5rem; font-size: 0.9rem;">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Email:</strong> <span style="color:#fff;">${user.email || '-'}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Email</label>
+            <input type="email" id="upmEmail" class="form-input" value="${user.email || ''}" style="padding: 0.5rem; font-size: 0.9rem;">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Payment Mode:</strong> <span style="color:#fff;">${user.paymentmode || user.paymentMode || '-'}</span>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Payment Mode</label>
+            <input type="text" id="upmPaymentMode" class="form-input" value="${user.paymentmode || user.paymentMode || ''}" style="padding: 0.5rem; font-size: 0.9rem;">
         </div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem;">
-            <strong>Address:</strong> <span style="color:#fff; text-align:right; max-width: 60%;">${user.address || '-'}</span>
+        <div class="form-group" style="grid-column: span 2; margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Address</label>
+            <textarea id="upmAddress" class="form-input" rows="2" style="padding: 0.5rem; font-size: 0.9rem;">${user.address || ''}</textarea>
         </div>
-        <div style="display:flex; justify-content:space-between; padding-top:0.5rem;">
-            <strong>Account Status:</strong> <span style="color:${statusColor}; font-weight:bold;">${String(user.status || 'Pending').toUpperCase()}</span>
+        <div class="form-group" style="grid-column: span 2; margin-bottom: 0;">
+            <label style="font-size: 0.8rem; margin-bottom: 0.2rem; color: #94a3b8;">Account Status</label>
+            <select id="upmStatus" class="form-input" style="padding: 0.5rem; font-size: 0.9rem; background: white; color: black; cursor: pointer;">
+                <option value="Pending" ${String(user.status || '').toLowerCase() === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="Active" ${String(user.status || '').toLowerCase() === 'active' ? 'selected' : ''}>Active</option>
+                <option value="Locked" ${String(user.status || '').toLowerCase() === 'locked' ? 'selected' : ''}>Locked</option>
+            </select>
         </div>
     `;
 
