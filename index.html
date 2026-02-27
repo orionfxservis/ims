@@ -348,7 +348,7 @@
 
 
     <!-- Whatsapp Widget -->
-    <div
+    <div onclick="const phone = localStorage.getItem('adminPhone'); if(phone) window.open('https://wa.me/' + phone.replace(/[^0-9]/g, ''), '_blank'); else alert('WhatsApp number not configured in Admin Settings.');"
         style="position: fixed; bottom: 20px; right: 20px; background: #22c55e; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100;">
         <i class="fa-brands fa-whatsapp" style="color: white; font-size: 30px;"></i>
     </div>
