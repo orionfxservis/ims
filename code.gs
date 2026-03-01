@@ -81,6 +81,7 @@ function doPost(e) {
       if (data.action === 'saveBanners') return saveBanners(data);
       if (data.action === 'saveInventory') return saveInventory(data.data, data.username);
       if (data.action === 'bulkSaveInventory') return bulkSaveInventory(data.data, data.username);
+      if (data.action === 'deleteBatch') return deleteBatch(data.batchName, data.username);
       if (data.action === 'updateInventory') return updateInventory(data.data, data.username);
       if (data.action === 'saveSale') return saveSale(data);
       if (data.action === 'addCategory') return addCategory(data);
@@ -142,8 +143,8 @@ function setup() {
   if (!ss.getSheetByName('Inventory')) {
     const sheet = ss.insertSheet('Inventory');
     // Align with Frontend expectations: ID, Item Name, Category, Quantity, Total, Price, Vendor, Date... 
-    // New 15th Column: CustomData
-    sheet.appendRow(['ID', 'Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Balance', 'Mode', 'Notes', 'CustomData']);
+    // New 16th Column: CustomData
+    sheet.appendRow(['ID', 'Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Serial Number', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Balance', 'Mode', 'Notes', 'CustomData']);
   }
   
   if (!ss.getSheetByName('Sales')) {
@@ -341,7 +342,7 @@ function getUserInventorySheet(username) {
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     // Standard backend headers
-    sheet.appendRow(['ID', 'Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Balance', 'Mode', 'Notes', 'CustomData']);
+    sheet.appendRow(['ID', 'Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Serial Number', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Balance', 'Mode', 'Notes', 'CustomData']);
     
     // Attempt to figure out if this user has custom headers saved
     const headersSheet = ss.getSheetByName('InventoryHeaders');
@@ -352,8 +353,8 @@ function getUserInventorySheet(username) {
             try {
                const customHeadersArray = JSON.parse(data[i][2]);
                if (customHeadersArray && customHeadersArray.length > 0) {
-                   // If they have explicit custom headers, let's append them starting at column 16 (P)
-                   const currentHeaders = sheet.getRange(1, 1, 1, 15).getValues()[0];
+                   // If they have explicit custom headers, let's append them starting at column 17 (Q)
+                   const currentHeaders = sheet.getRange(1, 1, 1, 16).getValues()[0];
                    const combined = currentHeaders.concat(customHeadersArray);
                    sheet.getRange(1, 1, 1, combined.length).setValues([combined]);
                }
@@ -374,8 +375,8 @@ function getInventory(username) {
   // If the sheet has extended columns (e.g. from custom headers), they are already inside the object!
   // To satisfy the frontend expecting a `customData` JSON string for dynamic rendering:
   results.forEach(item => {
-     // If we find columns beyond the standard 15 that aren't 'customdata', we package them
-     const standardKeys = ['id', 'date', 'category', 'vendor', 'vendor name', 'item name', 'item', 'brand', 'model', 'quantity', 'qty', 'unit price', 'price', 'total', 'paid amount', 'paid', 'balance', 'payment mode', 'mode', 'notes', 'customdata'];
+     // If we find columns beyond the standard 16 that aren't 'customdata', we package them
+     const standardKeys = ['id', 'date', 'category', 'vendor', 'vendor name', 'item name', 'item', 'brand', 'model', 'serial number', 'serialnumber', 'quantity', 'qty', 'unit price', 'price', 'total', 'paid amount', 'paid', 'balance', 'payment mode', 'mode', 'notes', 'customdata'];
      const customKeysFound = {};
      let hasCustom = false;
      
@@ -450,6 +451,7 @@ function saveInventory(item, username) {
      'item name': item.item || '',
      'brand': item.brand || '',
      'model': item.model || '',
+     'serial number': item.serialnumber || item['serial number'] || '',
      'quantity': item.qty || 0,
      'unit price': item.price || 0,
      'total': item.total || 0,
@@ -515,6 +517,7 @@ function updateInventory(item, username) {
          else if (colName === 'item name' && item.item !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.item);
          else if (colName === 'brand' && item.brand !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.brand);
          else if (colName === 'model' && item.model !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.model);
+         else if ((colName === 'serial number' || colName === 'serialnumber') && (item.serialnumber !== undefined || item['serial number'] !== undefined)) sheet.getRange(i + 1, colIdx + 1).setValue(item.serialnumber || item['serial number']);
          else if ((colName === 'quantity' || colName === 'qty') && item.qty !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.qty);
          else if ((colName === 'unit price' || colName === 'price') && item.price !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.price);
          else if (colName === 'total' && item.total !== undefined) sheet.getRange(i + 1, colIdx + 1).setValue(item.total);
@@ -910,6 +913,7 @@ function bulkSaveInventory(items, username) {
          'item name': data.item || '',
          'brand': data.brand || '',
          'model': data.model || '',
+         'serial number': data.serialnumber || data['serial number'] || '',
          'quantity': data.qty || 0,
          'unit price': data.price || 0,
          'total': data.total || 0,
@@ -952,5 +956,126 @@ function bulkSaveInventory(items, username) {
     
   } catch (ex) {
     return response({ status: 'error', message: ex.toString() });
+  }
+}
+
+function deleteBatch(batchName, username) {
+  try {
+    const sheet = getUserInventorySheet(username);
+    if (!batchName) return response({ status: 'error', message: 'Batch name is required.' });
+    
+    let deletedCount = 0;
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    
+    // We iterate backwards to safely delete multiple rows without messing up index
+    for (let i = data.length - 1; i >= 1; i--) {
+        const row = data[i];
+        let foundBatch = null;
+        
+        // Is 'batch' explicitly parsed as a column? Not normally. It's usually in customdata.
+        const customColIdx = headers.indexOf('customdata');
+        if (customColIdx > -1 && row[customColIdx]) {
+           try {
+              const p = JSON.parse(row[customColIdx]);
+              if (p.batch) foundBatch = p.batch;
+           } catch(e) {}
+        }
+        
+        if (foundBatch === batchName) {
+            sheet.deleteRow(i + 1);
+            deletedCount++;
+        }
+    }
+    
+    return response({ status: 'success', message: `Deleted ${deletedCount} items from batch: ${batchName}` });
+  } catch(ex) {
+    return response({ status: 'error', message: ex.toString() });
+  }
+}
+
+// --- Broadcast Functions ---
+
+function getBroadcasts() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Broadcasts') || ss.getSheetByName('Broadcast');
+    if (!sheet) return response({ broadcasts: [] });
+
+    const data = getSheetData(sheet.getName());
+    const formattedData = data.map(item => ({
+        id: item.id || '',
+        date: item.date || '',
+        message: item.message || '',
+        duration: item.duration || '',
+        expiry: item.expiry || '',
+        userName: item.username || item.user || item.username || 'Admin',
+        company: item.company || '',
+        contact: item.contact || '',
+        status: item.status || 'Active'
+    }));
+
+    return response({ broadcasts: formattedData });
+  } catch(e) {
+    return response({ error: e.toString() });
+  }
+}
+
+function saveBroadcast(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Broadcasts') || ss.getSheetByName('Broadcast');
+    if (!sheet) {
+        sheet = ss.insertSheet('Broadcasts');
+        sheet.appendRow(['Date', 'Message', 'Duration', 'Expiry', 'UserName', 'Company', 'Contact', 'Status']);
+    }
+    
+    sheet.appendRow([
+      new Date().toISOString(),
+      data.message || '',
+      data.duration || '',
+      data.expiry || '',
+      data.userName || data.username || 'Admin',
+      data.company || '',
+      data.contact || '',
+      'Active'
+    ]);
+    
+    return response({ status: 'success', message: 'Broadcast saved successfully' });
+  } catch(e) {
+    return response({ status: 'error', message: e.toString() });
+  }
+}
+
+function deleteBroadcast(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Broadcasts') || ss.getSheetByName('Broadcast');
+    if (!sheet) return response({ status: 'error', message: 'Sheet not found' });
+    
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0].map(h => h.toString().toLowerCase().trim());
+    const msgIdx = headers.indexOf('message');
+    
+    if (msgIdx === -1) {
+        return response({ status: 'error', message: 'Message column not found' });
+    }
+
+    let deleted = false;
+    for (let i = rows.length - 1; i >= 1; i--) {
+        if (rows[i][msgIdx] == data.message) {
+            sheet.deleteRow(i + 1);
+            deleted = true;
+            break;
+        }
+    }
+    
+    if (deleted) {
+      return response({ status: 'success', message: 'Broadcast deleted' });
+    } else {
+      return response({ status: 'error', message: 'Broadcast not found' });
+    }
+  } catch(e) {
+    return response({ status: 'error', message: e.toString() });
   }
 }

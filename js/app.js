@@ -169,17 +169,66 @@ async function loadInventory() {
     try {
         const inventory = await API.getInventory();
 
+        // --- Batch Filter Logic ---
+        const batchFilter = document.getElementById('inventoryBatchFilter');
+        let displayInventory = inventory;
+
+        if (batchFilter) {
+            const batches = new Set();
+            inventory.forEach(item => {
+                let b = item.batch;
+                if (!b && item.customData) {
+                    try {
+                        const parsed = JSON.parse(item.customData);
+                        if (parsed.batch) b = parsed.batch;
+                    } catch (e) { }
+                }
+                if (b) {
+                    item.batch = b;
+                    batches.add(b);
+                }
+            });
+
+            if (batches.size > 0) {
+                batchFilter.style.display = 'inline-block';
+                const currentFilter = batchFilter.value;
+                batchFilter.innerHTML = '<option value="" style="color: black;">All Batches</option>';
+                [...batches].sort().forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    opt.textContent = b;
+                    opt.style.color = "black";
+                    batchFilter.appendChild(opt);
+                });
+                if (batches.has(currentFilter)) batchFilter.value = currentFilter;
+
+                const activeBatch = batchFilter.value;
+                const deleteBtn = document.getElementById('deleteBatchBtn');
+                if (activeBatch) {
+                    displayInventory = inventory.filter(item => item.batch === activeBatch);
+                    if (deleteBtn) deleteBtn.style.display = 'inline-block';
+                } else {
+                    if (deleteBtn) deleteBtn.style.display = 'none';
+                }
+            } else {
+                batchFilter.style.display = 'none';
+                const deleteBtn = document.getElementById('deleteBatchBtn');
+                if (deleteBtn) deleteBtn.style.display = 'none';
+            }
+        }
+        // --- End Batch Logic ---
+
         // Handle Custom Headers Logic
         if (window.userCustomHeaders && window.userCustomHeaders.length > 0) {
             // Rebuild table header
             thead.innerHTML = '<tr>' + window.userCustomHeaders.map(h => `<th style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${h}</th>`).join('') + '</tr>';
 
-            if (inventory.length === 0) {
+            if (displayInventory.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${window.userCustomHeaders.length}" style="text-align:center;">No items found.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = inventory.map((item, index) => {
+            tbody.innerHTML = displayInventory.map((item, index) => {
                 let cData = {};
                 try {
                     const rawCData = item.customdata || item.customData;
@@ -215,12 +264,12 @@ async function loadInventory() {
 
         } else {
             // Standard rendering
-            if (inventory.length === 0) {
+            if (displayInventory.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">No items found.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = inventory.map((item, index) => {
+            tbody.innerHTML = displayInventory.map((item, index) => {
                 const dateStr = item.date ? new Date(item.date).toLocaleDateString() : '-';
                 const editId = item.id || (index + 1);
 
@@ -232,6 +281,7 @@ async function loadInventory() {
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.item || '-'}</td>
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.brand || '-'}</td>
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.model || '-'}</td>
+                    <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.serialnumber || item.serialNumber || '-'}</td>
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${item.qty || '0'}</td>
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Rs. ${(parseFloat(item.price) || 0).toLocaleString()}</td>
                     <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Rs. ${(parseFloat(item.total) || 0).toLocaleString()}</td>
@@ -501,6 +551,7 @@ async function refreshDashboard() {
 
 let pharaSalesChartInstance = null;
 let pharaInvChartInstance = null;
+let pharaUsersChartInstance = null;
 
 function initPharaCharts() {
     // Total Sale (Bar Chart)
@@ -537,6 +588,43 @@ function initPharaCharts() {
                         },
                         beginAtZero: true,
                         max: 20
+                    }
+                }
+            }
+        });
+    }
+
+    // Registered Users (Bar Chart)
+    const usersCtx = document.getElementById('pharaUsersChart');
+    if (usersCtx) {
+        if (pharaUsersChartInstance) pharaUsersChartInstance.destroy();
+        pharaUsersChartInstance = new Chart(usersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Total Users'],
+                datasets: [{
+                    label: 'Users',
+                    data: [85], // Mock total users
+                    backgroundColor: ['#8b5cf6'],
+                    borderRadius: 6,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 11 },
+                            stepSize: 25
+                        },
+                        beginAtZero: true,
+                        max: 100
                     }
                 }
             }
@@ -1035,6 +1123,12 @@ async function handleInventoryImport(event) {
     // Reset input so the same file can be selected again if needed
     event.target.value = '';
 
+    const batchName = prompt("Enter a name for this import File:");
+    if (!batchName || batchName.trim() === '') {
+        alert("Import canceled: Batch name is required.");
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
@@ -1073,6 +1167,7 @@ async function handleInventoryImport(event) {
                 itemPayload.item = row['item name'] || row['item'] || '';
                 itemPayload.brand = row['brand'] || '';
                 itemPayload.model = row['model'] || '';
+                itemPayload.serialnumber = row['serialnumber'] || row['serial number'] || '';
                 itemPayload.qty = parseInt(row['quantity'] || row['qty']) || 0;
                 itemPayload.price = parseFloat(row['unit price'] || row['price']) || 0;
                 itemPayload.total = parseFloat(row['total']) || (itemPayload.qty * itemPayload.price);
@@ -1096,7 +1191,7 @@ async function handleInventoryImport(event) {
                 }
 
                 // 2. Identify standard fields (using lowercase comparison)
-                const standardKeys = ['id', 'date', 'category', 'vendor', 'vendor name', 'item name', 'item', 'brand', 'model', 'quantity', 'qty', 'unit price', 'price', 'total', 'paid amount', 'paid', 'balance', 'payment mode', 'mode', 'notes', 'customdata'];
+                const standardKeys = ['id', 'date', 'category', 'vendor', 'vendor name', 'item name', 'item', 'brand', 'model', 'serialnumber', 'serial number', 'quantity', 'qty', 'unit price', 'price', 'total', 'paid amount', 'paid', 'balance', 'payment mode', 'mode', 'notes', 'customdata'];
 
                 // 3. Map any remaining actual Excel outer columns uniquely into our payload
                 for (let k in rawRow) {
@@ -1107,6 +1202,7 @@ async function handleInventoryImport(event) {
                     }
                 }
 
+                explicitCustomData.batch = batchName.trim();
                 // Send the flat merged JSON
                 itemPayload.customData = JSON.stringify(explicitCustomData);
 
@@ -1147,5 +1243,44 @@ async function handleInventoryImport(event) {
         }
     };
     reader.readAsArrayBuffer(file);
+}
+
+async function deleteCurrentBatch() {
+    const batchFilter = document.getElementById('inventoryBatchFilter');
+    const batchName = batchFilter ? batchFilter.value : '';
+    if (!batchName) {
+        alert("Please select a batch to delete.");
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete all inventory items in batch: "${batchName}"?`)) {
+        return;
+    }
+
+    const btn = document.getElementById('deleteBatchBtn');
+    const originalText = btn ? btn.innerHTML : 'Delete Batch';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+        btn.disabled = true;
+    }
+
+    try {
+        const result = await API.deleteBatch(batchName);
+        if (result.status === 'success') {
+            alert(`Batch "${batchName}" deleted successfully!`);
+            if (batchFilter) batchFilter.value = '';
+            loadInventory();
+            if (window.refreshDashboard) window.refreshDashboard();
+        } else {
+            alert('Delete failed: ' + result.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('An error occurred during deletion.');
+    } finally {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
 }
 async function checkDeploymentVersion() { /* Your existing version check */ }

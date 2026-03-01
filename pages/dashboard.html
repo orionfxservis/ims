@@ -18,6 +18,13 @@
             /* Override flex center */
         }
 
+        .inventory-table-ultra-compact th,
+        .inventory-table-ultra-compact td {
+            padding: 0.15rem 0.3rem !important;
+            line-height: 1 !important;
+            font-size: 0.8rem !important;
+        }
+
         /* ... existing styles ... */
     </style>
 </head>
@@ -209,55 +216,33 @@
 
                 </div>
 
-                <!-- Phara Layout Charts Row -->
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Phara Layout Charts & Secondary Stats Row -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem;">
 
-                    <!-- Sales Bar Chart Area -->
-                    <div class="glass-card" style="padding: 1.5rem;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3
-                                style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
-                                Total Sale</h3>
+                    <!-- Left Column: Total Sale + Low Stock Alerts -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; min-width: 0;">
+                        <!-- Sales Bar Chart Area -->
+                        <div class="glass-card" style="padding: 1.5rem; flex: 1;">
                             <div
-                                style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
-                                Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h3
+                                    style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                    Total Sale</h3>
+                                <div
+                                    style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
+                                    Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
+                            </div>
+                            <div style="width: 100%; height: 250px;">
+                                <canvas id="pharaSalesChart"></canvas>
+                            </div>
                         </div>
-                        <div style="width: 100%; height: 250px;">
-                            <canvas id="pharaSalesChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Inventory Doughnut Chart Area -->
-                    <div class="glass-card" style="padding: 1.5rem;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3
-                                style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
-                                Inventory</h3>
-                            <div
-                                style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
-                                Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
-                        </div>
-                        <div
-                            style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center;">
-                            <canvas id="pharaInventoryChart"></canvas>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Secondary Stats & Tables Row -->
-                <div style="margin-bottom: 2rem;">
-
-                    <!-- Low Stock & Top Products Grid -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
                         <!-- Low Stock Table -->
-                        <div class="glass-card">
+                        <div class="glass-card" style="padding: 1.5rem; flex: 1;">
                             <h3
-                                style="margin: 0 0 1rem 0; color: #f59e0b; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h3>
+                                style="margin: 0 0 1rem 0; color: #f59e0b; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem; font-weight: bold;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts
+                            </h3>
                             <table class="data-table" style="font-size: 0.9rem;">
                                 <thead>
                                     <tr>
@@ -273,21 +258,62 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <!-- Middle Column: Registered Users -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; min-width: 0;">
+                        <div class="glass-card"
+                            style="padding: 1.5rem; display: flex; flex-direction: column; flex: 1; min-width: 0;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h3
+                                    style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                    Registered Users</h3>
+                            </div>
+                            <div style="width: 100%; flex: 1; min-height: 250px;">
+                                <canvas id="pharaUsersChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Inventory + Top Selling -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; min-width: 0;">
+                        <!-- Inventory Doughnut Chart Area -->
+                        <div class="glass-card"
+                            style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h3
+                                    style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                    Inventory</h3>
+                                <div
+                                    style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
+                                    Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
+                            </div>
+                            <div
+                                style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center;">
+                                <canvas id="pharaInventoryChart"></canvas>
+                            </div>
+                        </div>
 
                         <!-- Top Selling -->
-                        <div class="glass-card">
+                        <div class="glass-card" style="padding: 1.5rem; flex: 1;">
                             <h3
-                                style="margin: 0 0 1rem 0; color: #22c55e; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fa-solid fa-arrow-trend-up"></i> Top Selling Products</h3>
+                                style="margin: 0 0 1rem 0; color: #22c55e; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem; font-weight: bold;">
+                                <i class="fa-solid fa-arrow-trend-up"></i> Top Selling Products
+                            </h3>
                             <div id="topSellingList">
                                 <p style="color: #aaa;">No sales data available</p>
                             </div>
                         </div>
                     </div>
 
+                </div>
+
+                <!-- Dashboard Bottom Area -->
+                <div style="margin-bottom: 2rem;">
                     <!-- Dashboard Banner Position -->
-                    <div id="dashboardBannerContainer"
-                        style="margin-top: 1.5rem; width: 100%; display: flex; justify-content: center;">
+                    <div id="dashboardBannerContainer" style="width: 100%; display: flex; justify-content: center;">
                         <!-- Injected via JS -->
                     </div>
 
@@ -315,32 +341,45 @@
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3>Available Inventory</h3>
-                        <div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="inventoryBatchFilter" class="form-input"
+                                style="padding: 0 0.5rem; font-size: 0.75rem; height: 30px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; display: none;"
+                                onchange="loadInventory()">
+                                <option value="" style="color: black;">All Batches</option>
+                            </select>
+                            <button id="deleteBatchBtn" class="btn"
+                                style="background: #ef4444; width: auto; padding: 0 0.5rem; font-size: 0.75rem; height: 30px; line-height: 30px; display: none;"
+                                onclick="deleteCurrentBatch()">
+                                <i class="fa-solid fa-trash"></i> Delete Batch
+                            </button>
                             <input type="file" id="importExcelInput" accept=".xlsx, .xls, .csv" style="display: none;"
                                 onchange="handleInventoryImport(event)">
-                            <button class="btn" style="background: #10b981; width: auto; padding: 0.4rem 1rem;"
+                            <button class="btn"
+                                style="background: #10b981; width: auto; padding: 0 0.5rem; font-size: 0.75rem; height: 30px; line-height: 30px;"
                                 onclick="document.getElementById('importExcelInput').click()">
                                 <i class="fa-solid fa-file-excel"></i> Import Inventory
                             </button>
                         </div>
                     </div>
                     <div style="overflow-x: auto; overflow-y: auto; max-height: 55vh; width: 100%;">
-                        <table class="data-table">
+                        <table class="data-table inventory-table-ultra-compact"
+                            style="font-size: 0.8rem; line-height: 1;">
                             <thead style="color: #fbbf24;" id="inventoryTableHeader">
                                 <tr>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Date</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Category</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Vendor</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Item Name</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Brand</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Model</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Quantity</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Unit Price</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Total</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Paid</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Mode</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Balance</th>
-                                    <th style="padding: 1rem 1.5rem; white-space: nowrap;">Action</th>
+                                    <th style="white-space: nowrap;">Date</th>
+                                    <th style="white-space: nowrap;">Category</th>
+                                    <th style="white-space: nowrap;">Vendor</th>
+                                    <th style="white-space: nowrap;">Item Name</th>
+                                    <th style="white-space: nowrap;">Brand</th>
+                                    <th style="white-space: nowrap;">Model</th>
+                                    <th style="white-space: nowrap;">Serial Number</th>
+                                    <th style="white-space: nowrap;">Quantity</th>
+                                    <th style="white-space: nowrap;">Unit Price</th>
+                                    <th style="white-space: nowrap;">Total</th>
+                                    <th style="white-space: nowrap;">Paid</th>
+                                    <th style="white-space: nowrap;">Mode</th>
+                                    <th style="white-space: nowrap;">Balance</th>
+                                    <th style="white-space: nowrap;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTableBody">

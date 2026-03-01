@@ -48,6 +48,7 @@ const API = {
                 item: item['item name'] || item.item,
                 brand: item.brand,
                 model: item.model,
+                serialnumber: item.serialnumber || item['serial number'],
                 qty: item.quantity !== undefined ? item.quantity : item.qty,
                 price: item['unit price'] !== undefined ? item['unit price'] : item.price,
                 total: item.total,
@@ -112,6 +113,25 @@ const API = {
             if (this.isTrial()) return { status: 'error', message: 'Disabled in Trial' };
             const existing = JSON.parse(localStorage.getItem('inventory') || '[]');
             const newArray = existing.concat(items);
+            localStorage.setItem('inventory', JSON.stringify(newArray));
+            return { status: 'success' };
+        }
+    },
+
+    async deleteBatch(batchName) {
+        if (this.isLive()) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            return this.post({ action: 'deleteBatch', batchName: batchName, username: user.username });
+        } else {
+            if (this.isTrial()) return { status: 'error', message: 'Disabled in Trial' };
+            let existing = JSON.parse(localStorage.getItem('inventory') || '[]');
+            const newArray = existing.filter(item => {
+                let itemBatch = item.batch;
+                if (!itemBatch && item.customData) {
+                    try { const p = JSON.parse(item.customData); itemBatch = p.batch; } catch (e) { }
+                }
+                return itemBatch !== batchName;
+            });
             localStorage.setItem('inventory', JSON.stringify(newArray));
             return { status: 'success' };
         }

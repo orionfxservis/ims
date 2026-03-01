@@ -58,6 +58,7 @@ function doPost(e) {
       if (data.action === 'updateUserStatus') return updateUserStatus(data);
       if (data.action === 'saveBanners') return saveBanners(data);
       if (data.action === 'saveInventory') return saveInventory(data.data);
+      if (data.action === 'bulkSaveInventory') return bulkSaveInventory(data);
       if (data.action === 'saveSale') return saveSale(data);
       if (data.action === 'addCategory') return addCategory(data);
       if (data.action === 'deleteCategory') return deleteCategory(data);
@@ -243,8 +244,8 @@ function setup() {
   if (!ss.getSheetByName('Inventory')) {
     const sheet = ss.insertSheet('Inventory');
     // Updated Column Order as requested: Date, Category, Vendor, Item Name, Brand, Model, Quantity, Unit Price, Total, Paid, Mode, Balance
-    // Extras appended after: Generation, Ram, HDD, Display, Touch, UpdateDate, Volt
-    sheet.appendRow(['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Mode', 'Balance', 'Generation', 'Ram', 'HDD', 'Display', 'Touch', 'UpdateDate', 'Volt']);
+    // Extras appended after: Generation, Ram, HDD, Display, Touch, UpdateDate, Volt, CustomData
+    sheet.appendRow(['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid', 'Mode', 'Balance', 'Generation', 'Ram', 'HDD', 'Display', 'Touch', 'UpdateDate', 'Volt', 'CustomData']);
   }
 
   if (!ss.getSheetByName('Expenses')) {
@@ -336,7 +337,8 @@ function saveInventory(data) {
     data.display || '',
     data.touch || '',
     data.updateDate || '',
-    data.volt || ''
+    data.volt || '',
+    data.customData || ''
   ]);
   
   return { success: true, message: 'Item saved', item: data };
@@ -743,4 +745,45 @@ function getBroadcasts() {
   
   // Return reversed (newest first)
   return response({ success: true, broadcasts: activeBroadcasts.reverse() });
+}
+
+function bulkSaveInventory(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Inventory');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Inventory');
+  }
+  
+  const items = data.data;
+  if (!items || !items.length) return response({ status: 'error', message: 'No items provided' });
+  
+  const rows = items.map(item => [
+    item.date,
+    item.category,
+    item.vendor,
+    item.item,
+    item.brand,
+    item.model || '',
+    "'" + item.qty,
+    item.price,
+    item.total,
+    item.paid,
+    item.mode,
+    item.balance,
+    item.generation || '',
+    item.ram || '',
+    item.hdd || '',
+    item.display || '',
+    item.touch || '',
+    item.updateDate || '',
+    item.volt || '',
+    item.customData || ''
+  ]);
+  
+  if (rows.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  }
+  
+  return response({ status: 'success', message: 'Bulk import successful', count: rows.length });
 }
