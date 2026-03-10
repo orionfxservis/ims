@@ -1,5 +1,5 @@
 function doGet(e) {
-  const params = e.parameter;
+  const params = e ? e.parameter : {};
   const action = params.action;
   
   if (action === 'test') {
@@ -45,6 +45,10 @@ function doGet(e) {
     return getBroadcasts();
   }
 
+  if (action === 'getReviews') {
+    return getReviews();
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action Received: ' + action })).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -67,6 +71,7 @@ function doPost(e) {
       if (data.action === 'saveBroadcast') return saveBroadcast(data);
       if (data.action === 'deleteBroadcast') return deleteBroadcast(data);
       if (data.action === 'getVisitorStats') return getVisitorStats();
+      if (data.action === 'saveReview') return saveReview(data);
       if (data.action === 'test') return response({ status: 'success', message: 'Connection OK' });
     }
     
@@ -268,6 +273,57 @@ function setup() {
     // Date, Message, Duration, Expiry, UserName, Company, Contact
     sheet.appendRow(['Date', 'Message', 'Duration', 'Expiry', 'UserName', 'Company', 'Contact', 'Status']);
   }
+
+  if (!ss.getSheetByName('Reviews')) {
+    const sheet = ss.insertSheet('Reviews');
+    sheet.appendRow(['Date', 'Name', 'Rating', 'Message', 'Status']);
+  }
+}
+
+// --- Reviews ---
+function saveReview(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Reviews');
+  if (!sheet) {
+    setup();
+    sheet = ss.getSheetByName('Reviews');
+  }
+
+  sheet.appendRow([
+    new Date(),
+    data.name || 'Anonymous',
+    data.rating || 5,
+    data.message || '',
+    'Pending'
+  ]);
+
+  return response({ status: 'success', message: 'Review saved successfully as Pending.' });
+}
+
+function getReviews() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Reviews');
+  if (!sheet) return response({ success: true, reviews: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const approvedReviews = [];
+
+  // Skip header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const status = row[4]; 
+    if (status === 'Approved') {
+      approvedReviews.push({
+        date: row[0],
+        name: row[1],
+        rating: row[2],
+        message: row[3]
+      });
+    }
+  }
+
+  // Return newest first
+  return response({ success: true, reviews: approvedReviews.reverse() });
 }
 
 // --- Expenses ---

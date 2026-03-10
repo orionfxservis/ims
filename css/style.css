@@ -500,6 +500,16 @@ body {
     background: rgba(255, 255, 255, 0.22);
 }
 
+.btn-outline {
+    background: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 @media (max-width: 768px) {
     .hero-cta .btn {
         width: 100%;
@@ -1299,4 +1309,94 @@ body {
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
+}
+
+/* --- Broadcast Marquee --- */
+.broadcast-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.broadcast-container.hidden {
+    display: none !important;
+}
+
+.broadcast-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    background: #eab308;
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.1rem;
+    z-index: 2;
+}
+
+.broadcast-wrapper {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+.broadcast-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 35s linear infinite;
+    color: #fff;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.broadcast-content span {
+    display: inline-block;
+    margin-right: 4rem;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(-100%, 0);
+    }
+}
+
+.broadcast-wrapper:hover .broadcast-content {
+    animation-play-state: paused;
+}
+
+/* --- Review Modal Star Rating --- */
+.star-rating {
+    display: inline-flex;
+    gap: 0.5rem;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.star-rating .star {
+    transition: color 0.2s;
+}
+
+.star-rating .star:hover,
+.star-rating .star.active,
+.star-rating .star.hover {
+    color: #f59e0b;
 }

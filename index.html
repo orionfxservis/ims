@@ -75,10 +75,10 @@
                 </div>
                 <div class="stat-box-glass">
                     <div class="stat-top">
-                        <i class="fa-solid fa-user-check stat-box-icon"></i>
-                        <div class="stat-box-number" id="lpCountActive">0</div>
+                        <i class="fa-solid fa-money-bill-transfer stat-box-icon"></i>
+                        <div class="stat-box-number" id="lpCountCredit">0</div>
                     </div>
-                    <div class="stat-box-label">Active Users</div>
+                    <div class="stat-box-label">Credit / Udhaar Tracking</div>
                 </div>
                 <div class="stat-box-glass">
                     <div class="stat-top">
@@ -88,12 +88,35 @@
                     <div class="stat-box-label">Items in Stock</div>
                 </div>
             </div>
+            <!-- ================= REVIEWS BROADCAST BAR ================= -->
+            <div id="reviewsBroadcastContainer" class="broadcast-container"
+                style="margin-top: 1.5rem; margin-bottom: 0.5rem; max-width: 100%;">
+                <div class="broadcast-icon" style="background: #f59e0b; color: white;"><i class="fa-solid fa-star"></i>
+                </div>
+                <div class="broadcast-wrapper"
+                    style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);">
+                    <div class="broadcast-content" style="animation-duration: 45s;">
+                        <!-- Will be dynamically populated. Initial fake data -> -->
+                        <span>⭐⭐⭐⭐⭐ "Excellent system for managing inventory!" - Ali, Karachi</span>
+                        <span>⭐⭐⭐⭐⭐ "Track sales easily, highly recommended!" - Ahmed, Lahore</span>
+                        <span>⭐⭐⭐⭐⭐ "Very easy to use, great for retailers." - Usman</span>
+                        <span>⭐⭐⭐⭐⭐ "Best stock controller I have used." - Fatima</span>
+                        <span>⭐⭐⭐⭐⭐ "Saved me a lot of time tracking stock." - Tariq</span>
+                        <span>⭐⭐⭐⭐⭐ "A perfect software for importers." - Kamran</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- ================= HERO CTA (Buttons) ================= -->
-            <div class="hero-cta-section" style="padding: 0 0 2rem 0; justify-content: flex-start; margin-top: 1.5rem;">
+            <div class="hero-cta-section" style="padding: 0 0 2rem 0; justify-content: flex-start; margin-top: 1rem;">
                 <div class="hero-cta">
                     <a href="#" onclick="loginAsTrial(); return false;" class="btn btn-primary">Start Free Trial</a>
                     <a href="#" onclick="toggleAuth('register'); return false;" class="btn btn-secondary">
                         Register Now
+                    </a>
+                    <a href="#" onclick="openReviewModal(); return false;" class="btn btn-outline"
+                        style="color: #f59e0b; border-color: #f59e0b;">
+                        <i class="fa-solid fa-pen" style="margin-right: 0.4rem;"></i> Leave a Review
                     </a>
                 </div>
             </div>
@@ -340,6 +363,46 @@
         </div>
     </div>
 
+    <!-- REVIEW MODAL OVERLAY -->
+    <div id="reviewModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="padding: 1.5rem; max-width: 450px;">
+            <i class="fa-solid fa-xmark close-modal" onclick="closeReviewModal()"></i>
+
+            <h1 class="title" style="margin-bottom: 0.25rem;">Leave a Review</h1>
+            <p class="subtitle" style="margin-bottom: 1rem;">Share your experience with IMS Cloud</p>
+
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <div class="form-group compact">
+                    <label for="revName">Name / City</label>
+                    <input type="text" id="revName" class="form-input" placeholder="e.g. Ali, Karachi" required
+                        style="padding: 0.6rem;">
+                </div>
+
+                <div class="form-group compact" style="text-align: center; margin: 1.5rem 0;">
+                    <label style="margin-bottom: 0.5rem; display: block;">Rating</label>
+                    <div class="star-rating" id="reviewStars">
+                        <i class="fa-solid fa-star star" data-value="1"></i>
+                        <i class="fa-solid fa-star star" data-value="2"></i>
+                        <i class="fa-solid fa-star star" data-value="3"></i>
+                        <i class="fa-solid fa-star star" data-value="4"></i>
+                        <i class="fa-solid fa-star star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" id="revRating" value="5" required>
+                </div>
+
+                <div class="form-group compact">
+                    <label for="revMessage">Review</label>
+                    <textarea id="revMessage" class="form-input" placeholder="Tell us what you think..." required
+                        style="padding: 0.6rem; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="btn" id="reviewSubmitBtn" style="margin-top: 0.5rem;">
+                    <span class="btn-text">Submit Review</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Simple Notification Toast (Hidden by default) -->
     <div id="toast" class="glass-card"
         style="position: fixed; bottom: 20px; right: 80px; width: auto; padding: 1rem; display: none; z-index: 100;">
@@ -415,6 +478,120 @@
         </div>
     </div>
 
+    <script>
+        // Review Modal Logic
+        function openReviewModal() {
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        // Star Rating Interaction
+        const stars = document.querySelectorAll('.star-rating .star');
+        const ratingInput = document.getElementById('revRating');
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                ratingInput.value = value;
+                updateStars(value);
+            });
+
+            star.addEventListener('mouseover', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                stars.forEach(s => {
+                    if (parseInt(s.getAttribute('data-value')) <= value) {
+                        s.classList.add('hover');
+                    } else {
+                        s.classList.remove('hover');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseout', () => {
+                stars.forEach(s => s.classList.remove('hover'));
+                updateStars(ratingInput.value);
+            });
+        });
+
+        function updateStars(value) {
+            stars.forEach(s => {
+                if (parseInt(s.getAttribute('data-value')) <= value) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize active stars
+        updateStars(ratingInput.value);
+
+        // Submit Review
+        async function submitReview(event) {
+            event.preventDefault();
+            const btn = document.getElementById('reviewSubmitBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<span class="loader"></span> Submitting...';
+            btn.disabled = true;
+
+            const reviewData = {
+                name: document.getElementById('revName').value,
+                rating: document.getElementById('revRating').value,
+                message: document.getElementById('revMessage').value
+            };
+
+            try {
+                const res = await API.submitReview(reviewData);
+                if (res.status === 'success') {
+                    const toast = document.getElementById('toast');
+                    const toastMsg = document.getElementById('toastMsg');
+                    if (toast && toastMsg) {
+                        toastMsg.innerText = "Review submitted successfully! Pending approval.";
+                        toast.style.display = 'block';
+                        setTimeout(() => toast.style.display = 'none', 3000);
+                    } else {
+                        alert("Review submitted successfully! Pending approval.");
+                    }
+                    document.getElementById('reviewForm').reset();
+                    updateStars(5); // Reset stars
+                    closeReviewModal();
+                } else {
+                    alert("Failed to submit review: " + res.message);
+                }
+            } catch (err) {
+                console.error("Review Submit Error:", err);
+                alert("An error occurred while submitting.");
+            } finally {
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        }
+
+        // Initialize Reviews on Load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const reviews = await API.getReviews();
+                const container = document.getElementById('reviewsBroadcastContainer');
+                const contentDiv = container.querySelector('.broadcast-content');
+
+                if (reviews && reviews.length > 0) {
+                    // Populate with fetched reviews
+                    contentDiv.innerHTML = reviews.map(r => {
+                        const stars = '⭐'.repeat(r.rating || 5);
+                        return `<span>${stars} "${r.message}" - ${r.name}</span>`;
+                    }).join('');
+                } else {
+                    // Fallback or leave as is if no reviews yet
+                    // contentDiv.innerHTML = `<span>Be the first to leave a review!</span>`;
+                }
+            } catch (e) {
+                console.error("Failed to fetch reviews:", e);
+            }
+        });
+    </script>
 </body>
 
 </html>

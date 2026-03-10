@@ -446,5 +446,29 @@ const API = {
             return this.post({ action: 'saveInventoryHeaders', username, company, headers });
         }
         return { status: 'success' };
+    },
+
+    // --- Review Operations ---
+    async getReviews() {
+        if (this.isLive()) {
+            const data = await this.get('getReviews');
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.reviews)) return data.reviews;
+            return [];
+        } else {
+            // Mock data for development
+            return [
+                { rating: 5, message: "Excellent system for managing inventory!", name: "Ali, Karachi" },
+                { rating: 5, message: "Track sales easily, highly recommended!", name: "Ahmed, Lahore" },
+                { rating: 5, message: "Very easy to use, great for retailers.", name: "Usman" },
+                { rating: 5, message: "Best stock controller I have used.", name: "Fatima" }
+            ];
+        }
+    },
+    async submitReview(reviewData) {
+        if (this.isLive()) {
+            return this.post({ action: 'saveReview', ...reviewData });
+        }
+        return { status: 'success', message: 'Review submitted successfully (Mock).' };
     }
 };

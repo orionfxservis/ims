@@ -594,17 +594,17 @@ function initPharaCharts() {
         });
     }
 
-    // Registered Users (Bar Chart)
-    const usersCtx = document.getElementById('pharaUsersChart');
-    if (usersCtx) {
+    // Credit / Udhaar Tracking (Bar Chart)
+    const creditCtx = document.getElementById('pharaCreditChart');
+    if (creditCtx) {
         if (pharaUsersChartInstance) pharaUsersChartInstance.destroy();
-        pharaUsersChartInstance = new Chart(usersCtx, {
+        pharaUsersChartInstance = new Chart(creditCtx, {
             type: 'bar',
             data: {
-                labels: ['Total Users'],
+                labels: ['Total Credit'],
                 datasets: [{
-                    label: 'Users',
-                    data: [85], // Mock total users
+                    label: 'Credit (Rs)',
+                    data: [150000], // Mock total credit
                     backgroundColor: ['#8b5cf6'],
                     borderRadius: 6,
                     barThickness: 40
@@ -621,10 +621,9 @@ function initPharaCharts() {
                         ticks: {
                             color: '#94a3b8',
                             font: { size: 11 },
-                            stepSize: 25
+                            callback: function (value) { return 'Rs ' + (value / 1000) + 'K'; }
                         },
-                        beginAtZero: true,
-                        max: 100
+                        beginAtZero: true
                     }
                 }
             }
