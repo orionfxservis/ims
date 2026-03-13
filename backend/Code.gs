@@ -72,6 +72,8 @@ function doPost(e) {
       if (data.action === 'deleteBroadcast') return deleteBroadcast(data);
       if (data.action === 'getVisitorStats') return getVisitorStats();
       if (data.action === 'saveReview') return saveReview(data);
+      if (data.action === 'getAllReviews') return getAllReviews();
+      if (data.action === 'updateReviewStatus') return updateReviewStatus(data);
       if (data.action === 'test') return response({ status: 'success', message: 'Connection OK' });
     }
     
@@ -326,6 +328,47 @@ function getReviews() {
   return response({ success: true, reviews: approvedReviews.reverse() });
 }
 
+function getAllReviews() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Reviews');
+  if (!sheet) return response({ success: true, reviews: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const allReviews = [];
+
+  // Skip header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    allReviews.push({
+      rowIndex: i + 1, // 1-indexed row number
+      date: row[0],
+      name: row[1],
+      rating: row[2],
+      message: row[3],
+      status: row[4]
+    });
+  }
+
+  // Return newest first
+  return response({ success: true, reviews: allReviews.reverse() });
+}
+
+function updateReviewStatus(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Reviews');
+  if (!sheet) return response({ status: 'error', message: 'Reviews sheet not found' });
+
+  if (!data.rowIndex) return response({ status: 'error', message: 'Row index is required' });
+
+  if (data.status === 'Delete') {
+    sheet.deleteRow(data.rowIndex);
+    return response({ status: 'success', message: 'Review deleted successfully' });
+  } else {
+    // Approve or Pending
+    sheet.getRange(data.rowIndex, 5).setValue(data.status);
+    return response({ status: 'success', message: 'Review status updated to ' + data.status });
+  }
+}
 // --- Expenses ---
 
 function getExpenses() {
@@ -674,6 +717,42 @@ function getVisitorStats() {
   });
 }
 // --- Broadcasts ---
+
+function getBroadcasts() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Broadcasts');
+  if (!sheet) return response({ success: true, broadcasts: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const broadcasts = [];
+  
+  const now = new Date();
+
+  // Skip header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    // Date[0], Message[1], Duration[2], Expiry[3], UserName[4], Company[5], Contact[6], Status[7], id[8]
+    const expiryDate = new Date(row[3]);
+    
+    // Only return active and unexpired broadcasts
+    if (row[7] === 'Active' && expiryDate > now) {
+      broadcasts.push({
+        date: row[0],
+        message: row[1],
+        duration: row[2],
+        expiry: row[3],
+        userName: row[4],
+        company: row[5],
+        contact: row[6],
+        status: row[7],
+        id: row[8] || ('err_' + i)
+      });
+    }
+  }
+
+  // Newest first
+  return response(broadcasts.reverse());
+}
 
 function saveBroadcast(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();

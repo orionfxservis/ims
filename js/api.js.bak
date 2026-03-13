@@ -1,5 +1,5 @@
 // api.js - Fixed for IMS Cloud with Login, Banners & Broadcasts
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyU9HefA8nI_ZgE7y-a_DaxL-pz8arqpyw-zm7SEs-Bn3-fkm_XYgnPthW7SLmpwEet_w/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo1oxc9f05M5_rpwxnW-ZjYHrTJCjWNifvpoxIy8nzOgj-Y63i-pk9As0l2AT2fwipYA/exec";
 
 const API = {
     getUrl: () => {
@@ -470,21 +470,5 @@ const API = {
             return this.post({ action: 'saveReview', ...reviewData });
         }
         return { status: 'success', message: 'Review submitted successfully (Mock).' };
-    },
-    async getAllReviews() {
-        if (this.isLive()) {
-            const data = await this.post({ action: 'getAllReviews' });
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.reviews)) return data.reviews;
-            return [];
-        } else {
-            return [];
-        }
-    },
-    async updateReviewStatus(rowIndex, status) {
-        if (this.isLive()) {
-            return this.post({ action: 'updateReviewStatus', rowIndex, status });
-        }
-        return { status: 'success' };
     }
 };

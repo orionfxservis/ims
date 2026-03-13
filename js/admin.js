@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCategories();
     loadAdminBroadcasts(); // New: Load broadcasts
     loadInventoryHeaders(); // New: Load inventory headers
+    loadAdminReviews(); // Load reviews
     setupInventoryHeadersListeners();
 
     // Logout
@@ -70,7 +71,10 @@ function checkAdminAuth() {
     if (adminTab) adminTab.classList.remove('hidden');
 
     // Load UI data
-    document.getElementById('adminName').textContent = currentUser.name || currentUser.username;
+    const adminNameEl = document.getElementById('adminName');
+    if (adminNameEl) {
+        adminNameEl.textContent = currentUser.name || currentUser.username;
+    }
 
     // Load Settings into Inputs
     const activeUrl = API.getUrl() || localStorage.getItem('apiUrl'); // Prefer active, fallback to local
@@ -108,100 +112,106 @@ async function loadUsers() {
     if (regularTbody) regularTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
     if (systemTbody) systemTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
 
-    const users = await API.getUsers();
+    try {
+        const users = await API.getUsers();
 
-    // Robust filtering to ensure no users are accidentally dropped due to case sensitivity
-    const regularUsers = users.filter(u => {
-        const role = String(u.role || 'user').toLowerCase().trim();
-        const company = String(u.company || '').trim();
-        return role !== 'admin' && role !== 'trial' && role !== 'guest' && role !== 'super admin' && company !== 'System';
-    });
-    regularUsers.sort((a, b) => (String(a.status || 'pending').toLowerCase() === 'pending' ? -1 : 1));
+        // Robust filtering to ensure no users are accidentally dropped due to case sensitivity
+        const regularUsers = users.filter(u => {
+            const role = String(u.role || 'user').toLowerCase().trim();
+            const company = String(u.company || '').trim();
+            return role !== 'admin' && role !== 'trial' && role !== 'guest' && role !== 'super admin' && company !== 'System';
+        });
+        regularUsers.sort((a, b) => (String(a.status || 'pending').toLowerCase() === 'pending' ? -1 : 1));
 
-    const systemUsers = users.filter(u => {
-        const role = String(u.role || '').toLowerCase().trim();
-        const company = String(u.company || '').trim();
-        return role === 'admin' || role === 'trial' || role === 'guest' || role === 'super admin' || company === 'System';
-    });
+        const systemUsers = users.filter(u => {
+            const role = String(u.role || '').toLowerCase().trim();
+            const company = String(u.company || '').trim();
+            return role === 'admin' || role === 'trial' || role === 'guest' || role === 'super admin' || company === 'System';
+        });
 
-    // 1. Regular Users Table
-    if (regularTbody) {
-        if (regularUsers.length > 0) {
-            regularTbody.innerHTML = regularUsers.map(user => `
-            <tr class="user-row status-row-${String(user.status || 'pending').toLowerCase()}">
-                <td>
-                    <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
-                         style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
-                        ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user" style="color: #666;"></i>'}
-                    </div>
-                </td>
-                <td>
-                    <div style="font-weight: 600; color: white;">${user.name || user.username || 'Unknown'}</div>
-                </td>
-                <td>
-                    <div style="font-size: 0.9rem; color: #cbd5e1;">${user.company || 'No Company'}</div>
-                </td>
-                <td>
-                    <div style="font-size: 0.9rem; color: #94a3b8;">${user.username || '-'}</div>
-                </td>
-                <td>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">${user.password || '-'}</div>
-                </td>
-                <td style="vertical-align: middle;">
-                    <span class="status-badge status-${String(user.status || 'pending').toLowerCase()}" style="border: 1px solid ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; color: ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
-                        ${(String(user.status || '').toLowerCase() === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : String(user.status || '').toLowerCase() === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
-                        ${String(user.status || 'pending').toUpperCase()}
-                    </span>
-                </td>
-                <td style="vertical-align: middle;">
-                    <div style="display: flex; gap: 0.4rem; justify-content: center;">
-                        <button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve" style="background:#22c55e; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-check"></i></button>
-                        <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${String(user.status || '').toLowerCase() === 'locked' ? 'Unlock' : 'Lock'}" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;">
-                            <i class="fa-solid ${String(user.status || '').toLowerCase() === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
-                        </button>
+        // 1. Regular Users Table
+        if (regularTbody) {
+            if (regularUsers.length > 0) {
+                regularTbody.innerHTML = regularUsers.map(user => `
+                <tr class="user-row status-row-${String(user.status || 'pending').toLowerCase()}">
+                    <td>
+                        <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
+                             style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                            ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user" style="color: #666;"></i>'}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: white;">${user.name || user.username || 'Unknown'}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.9rem; color: #cbd5e1;">${user.company || 'No Company'}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.9rem; color: #94a3b8;">${user.username || '-'}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #94a3b8;">${user.password || '-'}</div>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <span class="status-badge status-${String(user.status || 'pending').toLowerCase()}" style="border: 1px solid ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; color: ${String(user.status || '').toLowerCase() === 'active' ? '#22c55e' : '#f59e0b'}; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
+                            ${(String(user.status || '').toLowerCase() === 'active' ? '<i class="fa-solid fa-check-circle"></i> ' : String(user.status || '').toLowerCase() === 'locked' ? '<i class="fa-solid fa-lock"></i> ' : '<i class="fa-solid fa-clock"></i> ')} 
+                            ${String(user.status || 'pending').toUpperCase()}
+                        </span>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                            <button class="action-btn btn-approve" onclick="approveUser('${user.username}')" title="Approve" style="background:#22c55e; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-check"></i></button>
+                            <button class="action-btn btn-lock" onclick="toggleLock('${user.username}', '${user.status}')" title="${String(user.status || '').toLowerCase() === 'locked' ? 'Unlock' : 'Lock'}" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;">
+                                <i class="fa-solid ${String(user.status || '').toLowerCase() === 'locked' ? 'fa-lock-open' : 'fa-lock'}"></i>
+                            </button>
+                            <button class="action-btn" onclick="openUserProfileModal('${user.username}')" title="View Profile" style="background:#8b5cf6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-address-card"></i></button>
+                            <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>
+                            <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password" style="background:#f59e0b; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-key"></i></button>
+                            <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                `).join('');
+            } else {
+                regularTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No regular users found.</td></tr>`;
+            }
+        }
+
+        // 2. System Users Table
+        if (systemTbody) {
+            if (systemUsers.length > 0) {
+                systemTbody.innerHTML = systemUsers.map(user => `
+                <tr>
+                    <td>
+                        <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
+                             style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                            ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user-shield" style="color: #666;"></i>'}
+                        </div>
+                    </td>
+                    <td><span style="font-weight:bold; color:${String(user.role).toLowerCase() === 'admin' ? '#ef4444' : '#f59e0b'}">${String(user.role || 'System').toUpperCase()}</span></td>
+                    <td>${user.name || user.username || 'System User'}</td>
+                    <td><span class="status-badge status-active">Active</span></td>
+                    <td style="text-align: center;">
                         <button class="action-btn" onclick="openUserProfileModal('${user.username}')" title="View Profile" style="background:#8b5cf6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-address-card"></i></button>
-                        <button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>
-                        <button class="action-btn btn-edit" onclick="resetPassword('${user.username}')" title="Reset Password" style="background:#f59e0b; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-key"></i></button>
-                        <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')" title="Delete" style="background:#ef4444; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            </tr>
-            `).join('');
-        } else {
-            regularTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No regular users found.</td></tr>`;
+                        ${String(user.role || '').toLowerCase().trim() !== 'guest' && String(user.role || '').toLowerCase().trim() !== 'trial' ? `<button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>` : ''}
+                    </td>
+                </tr>
+                `).join('');
+            } else {
+                systemTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No system users.</td></tr>`;
+            }
         }
-    }
 
-    // 2. System Users Table
-    if (systemTbody) {
-        if (systemUsers.length > 0) {
-            systemTbody.innerHTML = systemUsers.map(user => `
-            <tr>
-                <td>
-                    <div class="profile-pic-box" onclick="triggerProfileUpload('${user.username}')" title="Click to change" 
-                         style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
-                        ${user.profileImage ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fa-solid fa-user-shield" style="color: #666;"></i>'}
-                    </div>
-                </td>
-                <td><span style="font-weight:bold; color:${String(user.role).toLowerCase() === 'admin' ? '#ef4444' : '#f59e0b'}">${String(user.role || 'System').toUpperCase()}</span></td>
-                <td>${user.name || user.username || 'System User'}</td>
-                <td><span class="status-badge status-active">Active</span></td>
-                <td style="text-align: center;">
-                    <button class="action-btn" onclick="openUserProfileModal('${user.username}')" title="View Profile" style="background:#8b5cf6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-address-card"></i></button>
-                    ${String(user.role || '').toLowerCase().trim() !== 'guest' && String(user.role || '').toLowerCase().trim() !== 'trial' ? `<button class="action-btn btn-stats" onclick="viewUserProfile('${user.username}')" title="View Stats" style="background:#3b82f6; border-radius: 6px; padding: 6px 10px;"><i class="fa-solid fa-chart-column"></i></button>` : ''}
-                </td>
-            </tr>
-            `).join('');
-        } else {
-            systemTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No system users.</td></tr>`;
+        // 3. Populate Inventory Headers User Select
+        const userSelect = document.getElementById('invHeaderUserSelect');
+        if (userSelect) {
+            userSelect.innerHTML = '<option value="" style="color: black;">Select a User</option>' +
+                regularUsers.map(u => `<option value="${u.username}" data-company="${u.company || ''}" style="color: black;">${u.name || u.username} (${u.company || 'No Company'})</option>`).join('');
         }
-    }
-
-    // 3. Populate Inventory Headers User Select
-    const userSelect = document.getElementById('invHeaderUserSelect');
-    if (userSelect) {
-        userSelect.innerHTML = '<option value="" style="color: black;">Select a User</option>' +
-            regularUsers.map(u => `<option value="${u.username}" data-company="${u.company || ''}" style="color: black;">${u.name || u.username} (${u.company || 'No Company'})</option>`).join('');
+    } catch (e) {
+        console.error("loadUsers Error:", e);
+        if (regularTbody) regularTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: red;">Error: ${e.message}</td></tr>`;
+        if (systemTbody) systemTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">Error: ${e.message}</td></tr>`;
     }
 }
 
@@ -410,18 +420,28 @@ window.viewUserProfile = async function (username) {
 
 // 4. Dashboard Stats
 async function loadDashboardStats() {
-    const users = await API.getUsers();
+    try {
+        const users = await API.getUsers();
 
-    // Filter out Admin and Trial from stats
-    const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
+        // Filter out Admin and Trial from stats
+        const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
 
-    // Companies
-    const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
+        // Companies
+        const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
 
-    document.getElementById('countCompanies').innerText = companies.size;
-    document.getElementById('countTotalUsers').innerText = realUsers.length;
-    document.getElementById('countActiveUsers').innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length;
-    document.getElementById('countPendingUsers').innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'pending').length;
+        const companiesEl = document.getElementById('countCompanies');
+        const totalUsersEl = document.getElementById('countTotalUsers');
+        const activeUsersEl = document.getElementById('countActiveUsers');
+        const pendingUsersEl = document.getElementById('countPendingUsers');
+
+        if (companiesEl) companiesEl.innerText = companies.size;
+        if (totalUsersEl) totalUsersEl.innerText = realUsers.length;
+        if (activeUsersEl) activeUsersEl.innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length;
+        if (pendingUsersEl) pendingUsersEl.innerText = realUsers.filter(u => String(u.status || '').toLowerCase() === 'pending').length;
+    } catch (e) {
+        console.error("Dashboard Stats Error:", e);
+        // Dashboard stats will be stuck on their default placeholder numbers, which is safer than breaking execution.
+    }
 }
 
 // 4b. Recent Activity
@@ -747,6 +767,93 @@ window.publishBroadcast = async function () {
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+    }
+};
+
+window.cancelEditBroadcast = function () {
+    document.getElementById('broadcastForm').reset();
+    const idField = document.getElementById('bcEditId');
+    if (idField) idField.value = '';
+
+    // Reset button text
+    const btn = document.querySelector('#broadcastForm button[type="submit"]');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Broadcast';
+
+    // Hide cancel button if exists
+    const cancelBtn = document.getElementById('btnCancelEdit');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+};
+
+// --- Reviews Management ---
+window.loadAdminReviews = async function () {
+    const tbody = document.getElementById('reviewsList');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a1a1aa;">Loading reviews...</td></tr>';
+
+    try {
+        const reviews = await API.getAllReviews();
+        
+        if (reviews.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a1a1aa;">No reviews found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = reviews.map(r => {
+            const dateStr = r.date ? new Date(r.date).toLocaleDateString() : 'N/A';
+            const statusStr = String(r.status || 'Pending');
+            let statusColor = '#f59e0b'; // yellow (Pending)
+            if (statusStr === 'Approved') statusColor = '#22c55e'; // green
+
+            return `
+            <tr>
+                <td>${dateStr}</td>
+                <td style="font-weight: 500;">${r.name || 'Anonymous'}</td>
+                <td style="text-align: center; color: #fbbf24;">${'⭐'.repeat(r.rating || 5)}</td>
+                <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.message}">
+                    ${r.message || ''}
+                </td>
+                <td style="text-align: center;">
+                    <span class="status-badge" style="background: rgba(0,0,0,0.3); border: 1px solid ${statusColor}; color: ${statusColor}; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
+                        ${statusStr}
+                    </span>
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                    ${statusStr === 'Pending' ? 
+                        `<button class="action-btn btn-approve" onclick="updateReviewStatus(${r.rowIndex}, 'Approved')" title="Approve" style="background:#22c55e; padding: 6px 10px;"><i class="fa-solid fa-check"></i></button>` :
+                        `<button class="action-btn" onclick="updateReviewStatus(${r.rowIndex}, 'Pending')" title="Hide / Move to Pending" style="background:#f59e0b; padding: 6px 10px;"><i class="fa-solid fa-eye-slash"></i></button>`
+                    }
+                    <button class="action-btn btn-delete" onclick="updateReviewStatus(${r.rowIndex}, 'Delete')" title="Delete permanently" style="background:#ef4444; padding: 6px 10px; margin-left: 0.4rem;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error("Error loading reviews", e);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Failed to load reviews.</td></tr>';
+    }
+}
+
+window.updateReviewStatus = async function (rowIndex, status) {
+    let confirmMsg = `Are you sure you want to change this review status to ${status}?`;
+    if (status === 'Delete') confirmMsg = "Are you sure you want to permanently delete this review? This cannot be undone.";
+    
+    if (!confirm(confirmMsg)) return;
+
+    const tbody = document.getElementById('reviewsList');
+    if (tbody) tbody.style.opacity = '0.5';
+
+    try {
+        const res = await API.updateReviewStatus(rowIndex, status);
+        if (res.status === 'success') {
+            loadAdminReviews();
+        } else {
+            alert("Failed to update review: " + res.message);
+            if (tbody) tbody.style.opacity = '1';
+        }
+    } catch (e) {
+        console.error(e);
+        alert("An error occurred while updating the review.");
+        if (tbody) tbody.style.opacity = '1';
     }
 };
 

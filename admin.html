@@ -135,6 +135,9 @@
                 <a href="#" class="nav-item admin-nav-item" onclick="switchTab('inventory-headers', this)">
                     <i class="fa-solid fa-list-check"></i> Inventory Headers
                 </a>
+                <a href="#" class="nav-item admin-nav-item" onclick="switchTab('reviews', this)">
+                    <i class="fa-solid fa-star"></i> Manage Reviews
+                </a>
             </nav>
 
             <div class="user-profile" style="padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -449,6 +452,28 @@
                     <ul id="activeBroadcastsList" style="list-style: none; padding: 0;">
                         <!-- JS Populated -->
                     </ul>
+                </div>
+            </div>
+
+            <!-- 7. REVIEWS -->
+            <div id="reviews" class="view-section hidden">
+                <h1 class="page-title">Manage Reviews</h1>
+                <div class="glass-table-container">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th style="text-align: center;">Rating</th>
+                                <th>Message</th>
+                                <th style="text-align: center;">Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewsList">
+                            <tr><td colspan="6" style="text-align: center; color: #a1a1aa;">Loading...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

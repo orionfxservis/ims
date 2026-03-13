@@ -559,7 +559,8 @@
                     updateStars(5); // Reset stars
                     closeReviewModal();
                 } else {
-                    alert("Failed to submit review: " + res.message);
+                    const errorMsg = res.message || res.error || JSON.stringify(res);
+                    alert("Failed to submit review: " + errorMsg);
                 }
             } catch (err) {
                 console.error("Review Submit Error:", err);
