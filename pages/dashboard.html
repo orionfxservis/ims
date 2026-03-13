@@ -74,6 +74,9 @@
             </nav>
         </aside>
 
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
@@ -224,15 +227,15 @@
                         <!-- Sales Bar Chart Area -->
                         <div class="glass-card" style="padding: 1.5rem; flex: 1;">
                             <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                                <h3
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;" class="chart-header-mobile">
+                                <h3 class="chart-title"
                                     style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
                                     Total Sale</h3>
                                 <div
                                     style="margin: 0; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;">
                                     Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
                             </div>
-                            <div style="width: 100%; height: 250px;">
+                            <div style="width: 100%; height: 250px;" class="chart-container-responsive">
                                 <canvas id="pharaSalesChart"></canvas>
                             </div>
                         </div>
@@ -265,12 +268,15 @@
                         <div class="glass-card"
                             style="padding: 1.5rem; display: flex; flex-direction: column; flex: 1; min-width: 0;">
                             <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                                <h3
-                                    style="margin: 0; font-size: 1.1rem; font-weight: 600; color: white; display: flex; align-items: center; line-height: 1.2;">
-                                    Credit / Udhaar <br> Tracking</h3>
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;" class="chart-header-mobile">
+                                <h3 class="chart-title"
+                                    style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
+                                    Credit/Udhaar Tracking</h3>
+                                <div
+                                    style="margin: 0; font-size: 0.85rem; color: transparent; display: flex; align-items: center; user-select: none;">
+                                    Spacer</div>
                             </div>
-                            <div style="width: 100%; flex: 1; min-height: 250px;">
+                            <div style="width: 100%; flex: 1; min-height: 250px;" class="chart-container-responsive">
                                 <canvas id="pharaCreditChart"></canvas>
                             </div>
                         </div>
@@ -282,8 +288,8 @@
                         <div class="glass-card"
                             style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
                             <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                                <h3
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;" class="chart-header-mobile">
+                                <h3 class="chart-title"
                                     style="margin: 0; font-size: 1.25rem; font-weight: 600; color: white; display: flex; align-items: center;">
                                     Inventory</h3>
                                 <div
@@ -291,7 +297,7 @@
                                     Weekly <i class="fa-solid fa-chevron-down" style="margin-left: 0.3rem;"></i></div>
                             </div>
                             <div
-                                style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center;">
+                                style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center;" class="chart-container-responsive">
                                 <canvas id="pharaInventoryChart"></canvas>
                             </div>
                         </div>
@@ -394,14 +400,13 @@
                     <h3 style="margin-bottom: 1rem; color: #3b82f6;"><i class="fa-solid fa-pen-to-square"></i> Edit
                         Inventory Item</h3>
 
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: end;">
-                        <div class="form-group" style="margin-bottom: 0; flex: 1; max-width: 300px;">
+                    <div class="edit-search-container">
+                        <div class="form-group">
                             <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Search by Inventory ID</label>
                             <input type="text" class="form-input" id="searchEditId" placeholder="Enter ID..."
                                 style="padding: 0.5rem; font-size: 0.9rem;">
                         </div>
-                        <button type="button" class="btn" id="btnSearchEdit" onclick="searchInventoryForEdit()"
-                            style="background: #3b82f6; width: auto; padding: 0.5rem 1rem; height: 38px;">
+                        <button type="button" class="btn" id="btnSearchEdit" onclick="searchInventoryForEdit()">
                             <i class="fa-solid fa-magnifying-glass"></i> Search
                         </button>
                     </div>

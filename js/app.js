@@ -20,11 +20,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mobile Sidebar Toggle
     const toggleBtn = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
     if (toggleBtn && sidebar) {
+        // Toggle from button
         toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             sidebar.classList.toggle('active');
+            if(sidebarOverlay) sidebarOverlay.classList.toggle('active');
         });
+
+        // Close when clicking overlay
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+        }
     }
 });
 
@@ -111,6 +123,14 @@ function setupNavigation() {
             if (tabName === 'inventory') loadInventory();
             if (tabName === 'dashboard') refreshDashboard();
             if (tabName === 'purchase') loadRecentPurchases();
+
+            // Auto-close sidebar on mobile after clicking
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            if (window.innerWidth <= 1024 && sidebar && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            }
         });
     });
 }
@@ -558,18 +578,24 @@ function initPharaCharts() {
     const salesCtx = document.getElementById('pharaSalesChart');
     if (salesCtx) {
         if (pharaSalesChartInstance) pharaSalesChartInstance.destroy();
+
+        const isMobile = window.innerWidth <= 768;
+        const labels = isMobile ? ['Today'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const data = isMobile ? [18] : [8, 16, 8, 10, 3, 14, 18];
+        const bgColors = isMobile ? ['#3b82f6'] : [
+            '#3b82f6', '#3b82f6', '#3b82f6',
+            '#0f172a', // The dark highlighted bar
+            '#3b82f6', '#3b82f6', '#3b82f6'
+        ];
+
         pharaSalesChartInstance = new Chart(salesCtx, {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: labels,
                 datasets: [{
                     label: 'Sales',
-                    data: [8, 16, 8, 10, 3, 14, 18], // Mock data to match visual
-                    backgroundColor: [
-                        '#3b82f6', '#3b82f6', '#3b82f6',
-                        '#0f172a', // The dark highlighted bar
-                        '#3b82f6', '#3b82f6', '#3b82f6'
-                    ],
+                    data: data, // Mock data to match visual
+                    backgroundColor: bgColors,
                     borderRadius: 6,
                     barThickness: 24
                 }]
@@ -579,12 +605,12 @@ function initPharaCharts() {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { enabled: true } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
                     y: {
                         grid: { color: 'rgba(255,255,255,0.05)' },
                         ticks: {
-                            color: '#94a3b8', font: { size: 11 },
-                            callback: function (value) { return '$ ' + (value) + 'K'; }
+                            color: '#94a3b8', font: { size: 10 },
+                            callback: function (value) { return 'Rs ' + (value) + 'K'; }
                         },
                         beginAtZero: true,
                         max: 20
@@ -607,7 +633,7 @@ function initPharaCharts() {
                     data: [150000], // Mock total credit
                     backgroundColor: ['#8b5cf6'],
                     borderRadius: 6,
-                    barThickness: 40
+                    barThickness: 24
                 }]
             },
             options: {
@@ -615,12 +641,12 @@ function initPharaCharts() {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { enabled: true } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
                     y: {
                         grid: { color: 'rgba(255,255,255,0.05)' },
                         ticks: {
                             color: '#94a3b8',
-                            font: { size: 11 },
+                            font: { size: 10 },
                             callback: function (value) { return 'Rs ' + (value / 1000) + 'K'; }
                         },
                         beginAtZero: true
