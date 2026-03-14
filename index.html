@@ -118,6 +118,11 @@
                         style="color: #f59e0b; border-color: #f59e0b;">
                         <i class="fa-solid fa-pen" style="margin-right: 0.4rem;"></i> Leave a Review
                     </a>
+                    <a href="#" class="btn btn-outline" onclick="openPricingModal(); return false;"
+                        style="color: #22c55e; border-color: #22c55e; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; padding: 0.5rem 1rem;">
+                        <span style="font-weight: 600; font-size: 0.95rem;">IMS 💰 Pricing Packages</span>
+                        <span style="font-size: 0.75rem; opacity: 0.9;">Starting from Rs 1500 / Month</span>
+                    </a>
                 </div>
             </div>
 
@@ -128,6 +133,44 @@
             </div>
 
             <!-- ================== FOOTER ================== -->
+            <!-- ================== PRICING MODAL ================== -->
+    <div id="pricingModal" class="modal">
+        <div class="modal-content glass-card" style="max-width: 500px; padding: 2rem;">
+            <button class="close-btn" onclick="closePricingModal()">&times;</button>
+            <h2 class="title" style="margin-bottom: 1.5rem; font-size: 1.5rem;">IMS Pricing Packages</h2>
+            <div style="overflow-x: auto;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                            <th style="padding: 0.75rem; color: #f59e0b;">Package</th>
+                            <th style="padding: 0.75rem; color: #f59e0b;">Users</th>
+                            <th style="padding: 0.75rem; color: #f59e0b;">Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <td style="padding: 0.75rem; font-weight: 600;">Starter</td>
+                            <td style="padding: 0.75rem;">1</td>
+                            <td style="padding: 0.75rem; color: #cbd5e1;">Small Shop</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <td style="padding: 0.75rem; font-weight: 600;">Business</td>
+                            <td style="padding: 0.75rem;">2</td>
+                            <td style="padding: 0.75rem; color: #cbd5e1;">Shop + Staff</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; font-weight: 600;">Professional</td>
+                            <td style="padding: 0.75rem;">5+</td>
+                            <td style="padding: 0.75rem; color: #cbd5e1;">Wholesale Business</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <button class="btn btn-primary" style="width: auto; padding: 0.5rem 1.5rem;" onclick="closePricingModal()">Got it</button>
+            </div>
+        </div>
+    </div>
             <!-- ================== FOOTER SECTION ================== -->
             <div class="footer-main-container">
 
@@ -592,6 +635,15 @@
                 console.error("Failed to fetch reviews:", e);
             }
         });
+
+        // Pricing Modal Logic
+        function openPricingModal() {
+            document.getElementById('pricingModal').style.display = 'flex';
+        }
+
+        function closePricingModal() {
+            document.getElementById('pricingModal').style.display = 'none';
+        }
     </script>
 </body>
 
