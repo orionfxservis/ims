@@ -101,7 +101,88 @@ window.switchTab = function (tabId, navItem) {
 
     document.querySelectorAll('.admin-nav-item').forEach(el => el.classList.remove('active'));
     navItem.classList.add('active');
+
+    // Load data based on tab
+    if (tabId === 'users') loadUsers();
+    if (tabId === 'categories') loadCategories();
+    if (tabId === 'broadcasts' && typeof loadAdminBroadcasts === 'function') loadAdminBroadcasts();
+    if (tabId === 'reviews' && typeof loadAdminReviews === 'function') loadAdminReviews();
+    if (tabId === 'inventory-headers' && typeof loadInventoryHeaders === 'function') loadInventoryHeaders();
 }
+
+// --- System Settings ---
+window.testConnection = async function (silent = false) {
+    const sheetIdEl = document.getElementById('sheetId');
+    if (!sheetIdEl) return;
+    
+    const url = sheetIdEl.value.trim();
+    if (!url) {
+        if (!silent) alert("Please enter a Google Script Web App URL first.");
+        return;
+    }
+
+    const btn = document.getElementById('btnTestConnection');
+    const statusEl = document.getElementById('connectionStatus');
+    
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Testing';
+    if (statusEl && !silent) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#cbd5e1';
+        statusEl.textContent = 'Connecting to Google Script...';
+    }
+
+    try {
+        const response = await fetch(`${url}?action=getCategories&_=${new Date().getTime()}`);
+        const result = await response.json();
+
+        if (result && Array.isArray(result)) {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> Success';
+            if (btn) btn.style.background = '#22c55e';
+            if (statusEl && !silent) {
+                statusEl.style.color = '#22c55e';
+                statusEl.textContent = 'Connection successful! API is responding.';
+            }
+        } else {
+            throw new Error("Invalid response format");
+        }
+    } catch (e) {
+        console.error("Connection test failed:", e);
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Failed';
+        if (btn) btn.style.background = '#ef4444';
+        if (statusEl && !silent) {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = 'Connection failed. Check URL and Script deployment.';
+        }
+    }
+    
+    if (btn) {
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fa-solid fa-plug"></i> Test';
+            btn.style.background = '#64748b';
+            if (statusEl && !silent) setTimeout(() => statusEl.style.display = 'none', 3000);
+        }, silent ? 0 : 3000);
+    }
+};
+
+window.saveSystemSettings = function () {
+    const sheetIdEl = document.getElementById('sheetId');
+    const phoneEl = document.getElementById('adminPhone');
+    
+    let saved = false;
+
+    if (sheetIdEl && sheetIdEl.value.trim()) {
+        localStorage.setItem('apiUrl', sheetIdEl.value.trim());
+        if (window.API && window.API.config) window.API.config.url = sheetIdEl.value.trim();
+        saved = true;
+    }
+    
+    if (phoneEl) {
+        localStorage.setItem('adminPhone', phoneEl.value.trim());
+        saved = true;
+    }
+    
+    if (saved) alert('System settings saved successfully!');
+};
 
 // 3. User Management
 async function loadUsers() {
@@ -931,7 +1012,7 @@ window.loadAdminBroadcasts = async function () {
     if (list) list.innerHTML = '<li style="color:#888;">Loading...</li>';
 
     try {
-        const broadcasts = await API.getBroadcasts();
+        const broadcasts = await API.getBroadcasts(true); // Explicitly pass true to get expired items
         if (!list) return; // Wait until after we have the data to decide to abort manipulating DOM
 
         if (broadcasts && broadcasts.length > 0) {
@@ -941,14 +1022,22 @@ window.loadAdminBroadcasts = async function () {
                 // Encode data for repost
                 const dataStr = encodeURIComponent(JSON.stringify(b));
 
+                // Expiry Visuals
+                const isExpiredObj = b.isExpired === true;
+                const borderLeftColor = isExpiredObj ? '#ef4444' : '#eab308';
+                const badgeHtml = isExpiredObj ? 
+                    `<span style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Expired</span>` : 
+                    `<span style="margin-left: 0.5rem; background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Active</span>`;
+
                 return `
-                <li class="glass-card" style="padding: 0.5rem; margin-bottom: 0.25rem; border-left: 2px solid #eab308; display: flex; flex-direction: column; gap: 0.15rem;">
+                <li class="glass-card" style="padding: 0.5rem; margin-bottom: 0.25rem; border-left: 2px solid ${borderLeftColor}; display: flex; flex-direction: column; gap: 0.15rem;">
                     <div style="display:flex; justify-content:space-between; align-items: center;">
                         <div style="display:flex; align-items:center; gap: 0.5rem;">
                             <span style="font-weight: 600; color: #fff; font-size: 0.85rem;">${b.userName}</span>
                             <span style="font-size: 0.7rem; color: #64748b; background: rgba(255,255,255,0.05); padding: 1px 4px; border-radius: 3px;">
                                 ${new Date(b.expiry).toLocaleDateString()}
                             </span>
+                            ${badgeHtml}
                         </div>
                         <div style="display: flex; gap: 0.25rem;">
                              <button onclick="editBroadcast('${dataStr}')" class="btn-xs" style="background: transparent; border: 1px solid #3b82f6; color: #3b82f6; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; border-radius: 3px;" title="Edit">

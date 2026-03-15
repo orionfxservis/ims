@@ -42,7 +42,8 @@ function doGet(e) {
   }
 
   if (action === 'getBroadcasts') {
-    return getBroadcasts();
+    const admin = e.parameter.admin === 'true';
+    return getBroadcasts(admin);
   }
 
   if (action === 'getReviews') {
@@ -60,6 +61,7 @@ function doPost(e) {
       if (data.action === 'login') return loginUser(data);
       if (data.action === 'register') return registerUser(data);
       if (data.action === 'updateUserStatus') return updateUserStatus(data);
+      if (data.action === 'updateUserProfile') return updateUserProfile(data);
       if (data.action === 'saveBanners') return saveBanners(data);
       if (data.action === 'saveInventory') return saveInventory(data.data);
       if (data.action === 'bulkSaveInventory') return bulkSaveInventory(data);
@@ -718,42 +720,6 @@ function getVisitorStats() {
 }
 // --- Broadcasts ---
 
-function getBroadcasts() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Broadcasts');
-  if (!sheet) return response({ success: true, broadcasts: [] });
-
-  const data = sheet.getDataRange().getValues();
-  const broadcasts = [];
-  
-  const now = new Date();
-
-  // Skip header
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    // Date[0], Message[1], Duration[2], Expiry[3], UserName[4], Company[5], Contact[6], Status[7], id[8]
-    const expiryDate = new Date(row[3]);
-    
-    // Only return active and unexpired broadcasts
-    if (row[7] === 'Active' && expiryDate > now) {
-      broadcasts.push({
-        date: row[0],
-        message: row[1],
-        duration: row[2],
-        expiry: row[3],
-        userName: row[4],
-        company: row[5],
-        contact: row[6],
-        status: row[7],
-        id: row[8] || ('err_' + i)
-      });
-    }
-  }
-
-  // Newest first
-  return response(broadcasts.reverse());
-}
-
 function saveBroadcast(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName('Broadcasts');
@@ -819,25 +785,27 @@ function deleteBroadcast(data) {
   
   const rows = sheet.getDataRange().getValues();
   
-  // Real check: Let's find exactly the matching row by ID (index 8) or fallback to precise row index
+  // Real check: Let's find exactly the matching row by ID (index 8)
   for (let i = 1; i < rows.length; i++) {
-     // Check true ID if it exists in the sheet and in the request
      if (rows[i][8] && data.id && rows[i][8] == data.id) {
         sheet.deleteRow(i + 1);
         return response({ status: 'success', message: 'Broadcast deleted by ID' });
      }
-     
-     // Fallback: Check if the ID matches the explicit row identifier '_' + (i+1)
+  }
+
+  // Row fallback pass: Check if the ID matches the explicit row identifier '_' + (i+1)
+  for (let i = 1; i < rows.length; i++) {
      if (data.id && typeof data.id === 'string' && data.id === '_' + (i + 1)) {
-        // Double check message to be safe against row shifts
-        if (rows[i][1] === data.message) {
+        if (String(rows[i][1]).trim() === String(data.message).trim()) {
             sheet.deleteRow(i + 1);
             return response({ status: 'success', message: 'Broadcast deleted by row fallback' });
         }
      }
-     
-     // Deep fallback: Just match message exactly
-     if ((!data.id || data.id === "") && rows[i][1] === data.message) {
+  }
+
+  // Deep fallback pass: Just match message exactly
+  for (let i = 1; i < rows.length; i++) {
+     if (String(rows[i][1]).trim() === String(data.message).trim()) {
         sheet.deleteRow(i + 1);
         return response({ status: 'success', message: 'Broadcast deleted by message fallback' });
      }
@@ -846,13 +814,13 @@ function deleteBroadcast(data) {
   return response({ status: 'error', message: 'Broadcast not found' });
 }
 
-function getBroadcasts() {
+function getBroadcasts(isAdmin) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName('Broadcasts');
   if (!sheet) return response({ success: true, broadcasts: [] });
 
   const data = sheet.getDataRange().getValues();
-  const activeBroadcasts = [];
+  const returnBroadcasts = [];
   const now = new Date();
 
   // Skip header
@@ -862,10 +830,13 @@ function getBroadcasts() {
     const status = row[7];
     
     // Auto-expire check (optional: update status to Expired if old?)
-    // For now just filter
+    // For now just filter based on isAdmin context
+    const isExpired = expiry <= now;
     
-    if (status === 'Active' && expiry > now) {
-      activeBroadcasts.push({
+    // Normal User View: Must be 'Active' AND not expired
+    // Admin View: Grab everything except deliberately deleted ones
+    if (isAdmin || (status === 'Active' && !isExpired)) {
+      returnBroadcasts.push({
         date: row[0],
         message: row[1],
         duration: row[2],
@@ -873,13 +844,15 @@ function getBroadcasts() {
         userName: row[4],
         company: row[5],
         contact: row[6],
-        id: row[8] ? row[8] : '_' + (i + 1) // Give front-end explicit row identifier if ID missing
+        id: row[8] ? row[8] : '_' + (i + 1), // Give front-end explicit row identifier if ID missing
+        status: status,
+        isExpired: isExpired  // Crucial flag for admin UI
       });
     }
   }
   
   // Return reversed (newest first)
-  return response({ success: true, broadcasts: activeBroadcasts.reverse() });
+  return response({ success: true, broadcasts: returnBroadcasts.reverse() });
 }
 
 function bulkSaveInventory(data) {

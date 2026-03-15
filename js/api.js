@@ -1,5 +1,5 @@
 // api.js - Fixed for IMS Cloud with Login, Banners & Broadcasts
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyU9HefA8nI_ZgE7y-a_DaxL-pz8arqpyw-zm7SEs-Bn3-fkm_XYgnPthW7SLmpwEet_w/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXKCx9Fl94FGo_gCs7gAdPzTD7ikK7cGYrDAIxSs3lm-5hkO5wRPKWpjsZ7O5_4mKEQ/exec";
 
 const API = {
     getUrl: () => {
@@ -153,9 +153,10 @@ const API = {
     },
 
     // --- Broadcasts ---
-    async getBroadcasts() {
+    async getBroadcasts(isAdmin = false) {
         if (this.isLive()) {
-            const data = await this.get('getBroadcasts');
+            const params = isAdmin ? { admin: 'true' } : {};
+            const data = await this.get('getBroadcasts', params);
             if (Array.isArray(data)) return data;
             if (data && Array.isArray(data.broadcasts)) return data.broadcasts;
             return [];
@@ -263,6 +264,22 @@ const API = {
             return await this.post({ action: 'register', ...data });
         } else {
             return { status: 'success', message: 'Offline Mock: Registration successful' };
+        }
+    },
+
+    async updateUserProfile(data) {
+        if (this.isLive()) {
+            return await this.post({ action: 'updateUserProfile', ...data });
+        } else {
+            // Mock offline update for user profile
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            let userIndex = users.findIndex(u => u.username === data.username);
+            if (userIndex !== -1) {
+                users[userIndex] = { ...users[userIndex], ...data };
+                localStorage.setItem('users', JSON.stringify(users));
+                return { status: 'success', message: 'Offline Mock: User profile updated successfully' };
+            }
+            return { status: 'error', message: 'Offline Mock: User not found' };
         }
     },
 

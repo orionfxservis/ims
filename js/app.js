@@ -1308,4 +1308,70 @@ async function deleteCurrentBatch() {
         }
     }
 }
+
+// -------------------------------------------------------------
+// USER PROFILE EDITING LOGIC
+// -------------------------------------------------------------
+
+function openUserProfile() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return alert("User session not found. Please log in again.");
+
+    document.getElementById('profileName').value = user.name || "";
+    document.getElementById('profileCompany').value = user.company || "";
+    document.getElementById('profileMobile').value = user.mobile || "";
+    document.getElementById('profileWhatsapp').value = user.whatsapp || "";
+    document.getElementById('profileEmail').value = user.email || "";
+    document.getElementById('profileAddress').value = user.address || "";
+
+    document.getElementById('userProfileModal').style.display = 'flex';
+}
+
+function closeUserProfile() {
+    document.getElementById('userProfileModal').style.display = 'none';
+}
+
+async function saveUserProfile() {
+    const btn = document.getElementById('btnSaveProfile');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        const payload = {
+            username: currentUser.username,
+            name: document.getElementById('profileName').value,
+            company: document.getElementById('profileCompany').value,
+            mobile: document.getElementById('profileMobile').value,
+            whatsapp: document.getElementById('profileWhatsapp').value,
+            email: document.getElementById('profileEmail').value,
+            address: document.getElementById('profileAddress').value
+        };
+
+        const res = await API.updateUserProfile(payload);
+        
+        if (res.status === 'success') {
+            // Update local storage with new info
+            const updatedUser = { ...currentUser, ...res.user };
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            
+            // Update Dashboard UI Header Name
+            const headerNameEl = document.getElementById('currentUserDisplay');
+            if (headerNameEl) headerNameEl.textContent = updatedUser.name;
+            
+            alert('Profile updated successfully!');
+            closeUserProfile();
+        } else {
+            alert('Failed to update profile: ' + res.message);
+        }
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        alert('An error occurred while saving profile data.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
 async function checkDeploymentVersion() { /* Your existing version check */ }

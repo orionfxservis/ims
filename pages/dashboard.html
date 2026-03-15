@@ -155,8 +155,6 @@
 
                 </div>
 
-
-
                 <!-- BROADCAST MARQUEE -->
                 <div id="broadcastContainer" class="broadcast-container hidden" style="margin-bottom: 1.5rem;">
                     <div class="broadcast-icon"><i class="fa-solid fa-bullhorn"></i></div>
@@ -1108,6 +1106,48 @@
 
                 <div class="form-group" style="grid-column: span 2; margin-top: 1rem;">
                     <button type="submit" class="btn">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================== ACTIVE USER PROFILE EDIT MODAL ================== -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content glass-card" style="max-width: 500px; padding: 2rem;">
+            <button class="close-btn" onclick="closeUserProfile()">&times;</button>
+            <h2 class="title" style="margin-bottom: 1.5rem; font-size: 1.5rem;">Edit My Profile</h2>
+            <form id="userProfileForm" onsubmit="event.preventDefault(); saveUserProfile();">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user"></i> Full Name</label>
+                        <input type="text" class="form-input" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-building"></i> Business Name</label>
+                        <input type="text" class="form-input" id="profileCompany" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone"></i> Mobile No</label>
+                        <input type="text" class="form-input" id="profileMobile" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-whatsapp"></i> WhatsApp No</label>
+                        <input type="text" class="form-input" id="profileWhatsapp">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+                        <input type="email" class="form-input" id="profileEmail">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label><i class="fa-solid fa-location-dot"></i> Business Address</label>
+                        <textarea class="form-input" id="profileAddress" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <button type="submit" class="btn btn-primary" id="btnSaveProfile" style="width: 100%; padding: 0.75rem;">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
                 </div>
             </form>
         </div>
