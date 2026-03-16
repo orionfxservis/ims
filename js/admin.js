@@ -1115,10 +1115,15 @@ window.repostBroadcast = function (dataStr) {
 let allInventoryHeaders = [];
 
 async function loadInventoryHeaders() {
+    const tbody = document.getElementById('inventoryHeadersTableBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 1rem; color: #888;">Loading...</td></tr>';
+
     try {
         allInventoryHeaders = await API.getInventoryHeaders();
+        renderInventoryHeadersTable();
     } catch (e) {
         console.error("Failed to load inventory headers", e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 1rem; color: #ef4444;">Error loading headers</td></tr>';
     }
 }
 
@@ -1141,7 +1146,32 @@ function setupInventoryHeadersListeners() {
 
             if (companyInput) companyInput.value = selectedOption.getAttribute('data-company') || '';
             const userHeaders = allInventoryHeaders.find(h => h.username === username);
-            renderHeaderFields(userHeaders ? userHeaders.headers : []);
+            
+            let parsedHeaders = [];
+            // In Google Sheets, column headers might arrive as 'headers', 'Headers', or 'HEADERS' due to `getSheetData` casing rules
+            const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS) : null;
+            
+            if (rawHeadersString) {
+                try {
+                    // Sometimes Google sheets returns a stringified array that's double escaped
+                    if (typeof rawHeadersString === 'string') {
+                        // Strip any accidental leading/trailing quotes around the bracket
+                        let cleanStr = rawHeadersString.trim();
+                        if (cleanStr.startsWith('"[')) cleanStr = cleanStr.substring(1, cleanStr.length - 1);
+                        // Fix escaped quotes
+                        cleanStr = cleanStr.replace(/\\"/g, '"');
+                        // Replace single quotes with double quotes for valid JSON
+                        cleanStr = cleanStr.replace(/'/g, '"');
+                        parsedHeaders = JSON.parse(cleanStr);
+                    } else if (Array.isArray(rawHeadersString)) {
+                         parsedHeaders = rawHeadersString;
+                    }
+                } catch(e) {
+                    console.error("Failed to parse headers", e, "Raw data:", rawHeadersString);
+                    parsedHeaders = [];
+                }
+            }
+            renderHeaderFields(parsedHeaders);
         });
     }
 
@@ -1189,6 +1219,8 @@ function setupInventoryHeadersListeners() {
                     } else {
                         allInventoryHeaders.push({ username, company, headers });
                     }
+                    // Re-render the active users table instantly
+                    renderInventoryHeadersTable();
                 } else {
                     alert('Error saving headers: ' + (res.message || 'Unknown error'));
                 }
@@ -1242,4 +1274,107 @@ function addEmptyHeaderField(count) {
         <input type="text" class="form-input inv-header-input" placeholder="Field Name (e.g., Condition, Warranty)" style="padding: 0.4rem; font-size: 0.85rem; flex: 1;">
     `;
     container.appendChild(row);
+}
+
+// Admin Table for Inventory Headers
+function renderInventoryHeadersTable() {
+    const tbody = document.getElementById('inventoryHeadersTableBody');
+    if (!tbody) return;
+
+    if (!allInventoryHeaders || allInventoryHeaders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 1rem; color: #888;">No users have configured custom headers yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = allInventoryHeaders.map((userObj) => {
+        // userObj comes as { username, company, headers }
+        const safeUsername = encodeURIComponent(userObj.username);
+        
+        return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.02)'" onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 0.75rem;"><span style="font-weight: 500; color: #fff;">${userObj.username || 'N/A'}</span></td>
+                <td style="padding: 0.75rem; color: #cbd5e1;">${userObj.company || '-'}</td>
+                <td style="padding: 0.75rem; text-align: right;">
+                    <button class="btn-xs" style="background: transparent; border: 1px solid #3b82f6; color: #3b82f6; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; border-radius: 4px; margin-right: 0.5rem;" title="Edit Headers" onclick="repostInventoryHeaders('${safeUsername}')">
+                        <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                    <button class="btn-xs" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; border-radius: 4px;" title="Delete User Headers" onclick="deleteInventoryHeaders('${safeUsername}')">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+window.repostInventoryHeaders = function(encodedUsername) {
+    const rawUsername = decodeURIComponent(encodedUsername);
+    const userSelect = document.getElementById('invHeaderUserSelect');
+    
+    if (userSelect) {
+        // Select the correct user
+        let found = false;
+        for (let i = 0; i < userSelect.options.length; i++) {
+            if (userSelect.options[i].value === rawUsername) {
+                userSelect.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        
+        // If the user isn't in the dropdown (e.g. they aren't fully registered but have headers), temporarily add them
+        if (!found) {
+            const tempOption = document.createElement('option');
+            tempOption.value = rawUsername;
+            tempOption.text = rawUsername + ' (Inactive/External)';
+            userSelect.appendChild(tempOption);
+            userSelect.value = rawUsername;
+            found = true;
+        }
+        
+        // Trigger the change event manually to load the data into the form
+        if (found) {
+            userSelect.dispatchEvent(new Event('change'));
+            
+            // Scroll user up to the form
+            const formTop = document.getElementById('invHeaderUserSelect');
+            if (formTop) {
+                 formTop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+}
+
+window.deleteInventoryHeaders = async function(encodedUsername) {
+    const rawUsername = decodeURIComponent(encodedUsername);
+    
+    if (!confirm(`Are you absolutely sure you want to permanently delete ALL custom headers configured for user "${rawUsername}"?`)) {
+        return;
+    }
+    
+    // Attempt deletion
+    try {
+        const res = await API.deleteInventoryHeaders(rawUsername);
+        if (res.status === 'success' || res.success) {
+            // Remove from local cache array
+            allInventoryHeaders = allInventoryHeaders.filter(h => h.username !== rawUsername);
+            
+            // Re-render table locally immediately 
+            renderInventoryHeadersTable();
+            
+            // If they are currently looking at the deleted user in the active form, blur the form out by triggering a blank load
+            const userSelect = document.getElementById('invHeaderUserSelect');
+            if (userSelect && userSelect.value === rawUsername) {
+                 userSelect.selectedIndex = 0; // Back to "Select user"
+                 userSelect.dispatchEvent(new Event('change'));
+            }
+            
+            alert(`Successfully wiped all custom headers for ${rawUsername}.`);
+        } else {
+            alert('Failed to delete headers: ' + (res.message || 'Unknown server error'));
+        }
+    } catch (e) {
+        console.error(e);
+        alert('A network error occurred while attempting to delete headers.');
+    }
 }

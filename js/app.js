@@ -47,11 +47,24 @@ async function loadCustomHeaders() {
         if (!user || user.role === 'admin') return; // Admins see everything, or mock logic based on requirement
 
         const headersData = await API.getInventoryHeaders();
-        const userHeaders = headersData.find(h => h.username === user.username);
+        const userHeaders = headersData.find(h => 
+            String(h.username).toLowerCase() === String(user.username).toLowerCase()
+        );
 
-        if (userHeaders && userHeaders.headers && userHeaders.headers.length > 0) {
-            window.userCustomHeaders = userHeaders.headers;
-            applyCustomHeadersToUI();
+        if (userHeaders && userHeaders.headers) {
+            let parsedHeaders = userHeaders.headers;
+            if (typeof parsedHeaders === 'string') {
+                try {
+                    parsedHeaders = JSON.parse(parsedHeaders);
+                } catch (e) {
+                    parsedHeaders = [];
+                }
+            }
+
+            if (parsedHeaders && parsedHeaders.length > 0) {
+                window.userCustomHeaders = parsedHeaders;
+                applyCustomHeadersToUI();
+            }
         }
     } catch (e) {
         console.error("Failed to load custom headers", e);
@@ -145,20 +158,46 @@ async function handleExcelUpload(event) {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            
+            let allJsonData = [];
+            
+            const batchName = prompt("Enter a name for this listing batch (e.g., 'May 2026 Batch 1'):");
+            if (!batchName) return; // Cancel import if no batch name provided
 
-            if (jsonData.length === 0) {
+            // Iterate over all sheets in the Excel file
+            workbook.SheetNames.forEach(sheetName => {
+                const rawSheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+                
+                const normalizedSheetData = rawSheetData.map(row => {
+                    // Start with the exact data the user uploaded
+                    const normalizedRow = { ...row };
+                    
+                    // Inject the user's manual batch name
+                    normalizedRow['batch'] = batchName;
+                    
+                    return normalizedRow;
+                });
+                
+                allJsonData = allJsonData.concat(normalizedSheetData);
+            });
+
+            console.log("Total Final JSON payload for Bulk Save:", allJsonData); // DEBUG
+
+            if (allJsonData.length === 0) {
                 alert("Excel file is empty!");
                 return;
             }
 
-            if (confirm(`Import ${jsonData.length} items to Google Sheets?`)) {
-                const response = await fetch(CONFIG.API_URL, {
+            if (confirm(`Import ${allJsonData.length} items from ${workbook.SheetNames.length} sheet(s) to Google Sheets?`)) {
+                // Ensure we use the correct backend action endpoint for importing
+                // Attach the user so they own their imported rows
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const response = await fetch(API.getUrl() || window.GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: 'bulkImportInventory',
-                        items: jsonData
+                        action: 'bulkSaveInventory', // Match Code.gs action name
+                        username: user.username,
+                        data: allJsonData
                     })
                 });
 
@@ -199,9 +238,14 @@ async function loadInventory() {
                 let b = item.batch;
                 if (!b && item.customData) {
                     try {
-                        const parsed = JSON.parse(item.customData);
-                        if (parsed.batch) b = parsed.batch;
-                    } catch (e) { }
+                        let parsed = item.customData;
+                        if (typeof parsed === 'string') {
+                            parsed = JSON.parse(parsed);
+                        }
+                        if (parsed && typeof parsed === 'object' && parsed.batch) {
+                            b = parsed.batch;
+                        }
+                    } catch (e) { console.warn("Batch parse error", e); }
                 }
                 if (b) {
                     item.batch = b;
@@ -249,11 +293,17 @@ async function loadInventory() {
             }
 
             tbody.innerHTML = displayInventory.map((item, index) => {
+                console.log("Rendering Item Raw customData:", item.customdata || item.customData); // DEBUG
                 let cData = {};
                 try {
                     const rawCData = item.customdata || item.customData;
-                    cData = rawCData ? JSON.parse(rawCData) : {};
-                } catch (e) { }
+                    if (typeof rawCData === 'string') {
+                        cData = rawCData ? JSON.parse(rawCData) : {};
+                    } else if (typeof rawCData === 'object' && rawCData !== null) {
+                        cData = rawCData;
+                    }
+                } catch (e) { console.warn("Failed to parse customData for item", e); }
+                console.log("Parsed cData object for lookup:", cData); // DEBUG
 
                 // Map row cells strictly according to userCustomHeaders order
                 const rowCells = window.userCustomHeaders.map(header => {
@@ -274,6 +324,7 @@ async function loadInventory() {
                     } else if (cDataVal !== undefined && cDataVal !== '') {
                         cellValue = cDataVal;
                     }
+                    console.log(`Mapping custom header [${headerLower}] -> value: [${cellValue}]`); // DEBUG
                     return `<td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${cellValue}</td>`;
                 }).join('');
 

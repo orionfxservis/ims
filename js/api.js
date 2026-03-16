@@ -38,7 +38,10 @@ const API = {
     async getInventory() {
         if (this.isLive()) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const response = await this.get('getInventory', { username: user.username });
+            const response = await this.get('getInventory', { 
+                username: user.username,
+                role: user.role 
+            });
             const data = Array.isArray(response) ? response : (response.inventory || []);
             return data.map(item => ({
                 id: item.id,
@@ -128,7 +131,11 @@ const API = {
             const newArray = existing.filter(item => {
                 let itemBatch = item.batch;
                 if (!itemBatch && item.customData) {
-                    try { const p = JSON.parse(item.customData); itemBatch = p.batch; } catch (e) { }
+                    try { 
+                        let p = item.customData;
+                        if (typeof p === 'string') p = JSON.parse(p);
+                        if (p && typeof p === 'object' && p.batch) itemBatch = p.batch; 
+                    } catch (e) { }
                 }
                 return itemBatch !== batchName;
             });
@@ -461,6 +468,12 @@ const API = {
     async saveInventoryHeaders(username, company, headers) {
         if (this.isLive()) {
             return this.post({ action: 'saveInventoryHeaders', username, company, headers });
+        }
+        return { status: 'success' };
+    },
+    async deleteInventoryHeaders(username) {
+        if (this.isLive()) {
+            return this.post({ action: 'deleteInventoryHeaders', username });
         }
         return { status: 'success' };
     },
