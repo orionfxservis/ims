@@ -760,12 +760,19 @@ function saveBanners(data) {
 // --- Auth ---
 function loginUser(data) {
   const users = getSheetData('Users');
-  // Use lowercase keys as getSheetData now normalizes them
-  const user = users.find(u => u.username === data.username && u.password === data.password);
+  
+  const reqUsername = (data.username || '').toString().toLowerCase().trim();
+  const reqPassword = (data.password || '').toString().trim(); // Ensure no accidental leading/trailing spaces
+  
+  const user = users.find(u => 
+    (u.username || '').toString().toLowerCase().trim() === reqUsername && 
+    (u.password || '').toString() === reqPassword
+  );
   
   if (user) {
     // Check Status (lowercase 'status' from normalized key)
-    if (user.status === 'Approved' || user.status === 'active') {
+    const userStatus = (user.status || '').toString().toLowerCase();
+    if (userStatus === 'approved' || userStatus === 'active') {
       return response({ status: 'success', user: { ...user, password: '' } });
     } else {
       return response({ status: 'error', message: 'Account is ' + user.status });
@@ -988,6 +995,34 @@ function bulkSaveInventory(items, username) {
                  explicitCustomFieldsLower[k.trim().toLowerCase()] = parsed[k];
              }
          } catch(e) {}
+      }
+      
+      // EXPERIMENTAL: Add new columns if they do not exist
+      if (index === 0) {
+         let newColsAdded = false;
+         for (let k in explicitCustomFieldsLower) {
+             if (k === 'batch') continue; // keep batch internal if you want, or let it be a column
+             const exists = targetHeaders.some(h => h.toString().toLowerCase().trim() === k);
+             if (!exists) {
+                 // The original header casing from the parsed JSON
+                 let origCasing = k;
+                 try {
+                     const parsed = JSON.parse(data.customData);
+                     origCasing = Object.keys(parsed).find(key => key.toLowerCase().trim() === k) || k;
+                 } catch(e){}
+                 targetHeaders.push(origCasing);
+                 sheet.getRange(1, targetHeaders.length).setValue(origCasing);
+                 newColsAdded = true;
+             }
+         }
+         
+         // If new columns were added, sync them to the global InventoryHeaders tab for this user
+         if (newColsAdded) {
+             // Exclude standard headers
+             const standardMapKeys = ['id', 'date', 'category', 'vendor', 'item name', 'brand', 'model', 'serial number', 'quantity', 'unit price', 'total', 'paid', 'balance', 'mode', 'notes', 'customdata'];
+             const customOnlyHeaders = targetHeaders.filter(h => !standardMapKeys.includes(h.toString().toLowerCase().trim()));
+             saveInventoryHeaders({ username: username, headers: customOnlyHeaders });
+         }
       }
 
       for (let i = 0; i < targetHeaders.length; i++) {

@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Sales</title>
+    <link rel="stylesheet" href="../css/style.css">
+	<link rel="stylesheet" href="../css/dashboard-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard-additions.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* specific dashboard overrides */
+        body {
+            display: block;
+            /* Override flex center */
+        }
+
+        .inventory-table-ultra-compact th,
+        .inventory-table-ultra-compact td {
+            padding: 0.15rem 0.3rem !important;
+            line-height: 1 !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* ... existing styles ... */
+    </style>
+</head>
+
+<body>
+
+    <!-- Reuse Background -->
+    <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
+
+    <div class="dashboard-container fixed-layout">
+        <!-- Sidebar (Updated to match dashboard/inventory styles) -->
+<aside class="sidebar">
+    <div class="title">
+        <i class="fa-solid fa-cube"></i> IMS Cloud
+        <span id="modeBadge" class="mode-badge">DEMO</span>
+    </div>
+
+    <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-item" data-tab="dashboard">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+        <a href="purchase.html" class="nav-item" data-tab="purchase">
+            <i class="fa-solid fa-cart-shopping"></i> Purchase
+        </a>
+        <a href="sales.html" class="nav-item" data-tab="sales">
+            <i class="fa-solid fa-cash-register"></i> Sales
+        </a>
+        <a href="expenses.html" class="nav-item" data-tab="expenses">
+            <i class="fa-solid fa-money-bill-wave"></i> Expenses
+        </a>
+        <a href="inventory.html" class="nav-item" data-tab="inventory">
+            <i class="fa-solid fa-boxes-stacked"></i> Inventory
+        </a>
+        <a href="reports.html" class="nav-item active" data-tab="reports">
+            <i class="fa-solid fa-file-invoice"></i> Reports
+        </a>
+        <a href="admin.html" class="nav-item hidden" id="adminTab" data-tab="admin">
+            <i class="fa-solid fa-users-gear"></i> Admin Panel
+        </a>
+
+        <div style="margin-top:auto;">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon mobile-menu-toggle" id="sidebarToggle"
+                        style="display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" style="font-size: 1.75rem;">Sales</h2>
+                </div>
+                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="openUserProfile()">
+                    <span id="userNameDisplay">User Name</span>
+                    <div
+                        style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="sales" class="view-section">
+                <div class="glass-card" style="max-width: 100%;">
+                    <h3>New Sale</h3>
+                    <form id="salesForm"
+                        style="margin-top: 0.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; align-items: end;">
+
+                        <!-- Row 1 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Date</label>
+                            <input type="date" class="form-input" id="saleDate" readonly
+                                style="background: rgba(255,255,255,0.05); padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Customer Name</label>
+                            <input type="text" class="form-input" id="saleCustomer" placeholder="Walk-in / Name"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
+                            <select class="form-input" id="saleItem"
+                                style="padding: 0.25rem; font-size: 0.85rem; background: white; color: #333;"></select>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
+                            <input type="number" class="form-input" id="saleQty" placeholder="0"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Unit Price</label>
+                            <input type="number" class="form-input" id="salePrice" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Total Amount</label>
+                            <input type="number" class="form-input" id="saleTotal" readonly
+                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount Paid</label>
+                            <input type="number" class="form-input" id="salePaid" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
+                            <select class="form-input" id="saleMode"
+                                style="padding: 0.25rem; font-size: 0.85rem; background: white; color: #333;">
+                                <option value="Cash">Cash</option>
+                                <option value="Online">Online</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Credit">Credit (Unpaid)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Balance</label>
+                            <input type="number" class="form-input" id="saleBalance" readonly
+                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 4: Button -->
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                            <button type="submit" class="btn"
+                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Record Sale</button>
+                        </div>
+                    </form>
+
+                    <!-- Recent Sales Table -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #ccc;">Recent Sales (This Session)</h4>
+                        <table class="data-table compact" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Item Name</th>
+                                    <th>Unit Price</th>
+                                    <th>Qty</th>
+                                    <th>Total Amount</th>
+                                    <th>Amount Paid</th>
+                                    <th>Payment Mode</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentSalesTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; color: #666;">No entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                        </section>
+
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="../js/reports.js"></script>
+</body>
+
+</html>

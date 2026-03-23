@@ -180,24 +180,25 @@
     <div class="stat-content">
 	  <div class="stat-label">Inventory Status</div>
       <div class="stat-value">$50K <span class="stat-link">View Details</span></div>
+      
     </div>
   </div>
   <div class="stat-card teal">
     <div class="stat-content">
-	  <div class="stat-label">Revenue</div>
       <div class="stat-value">$100K <span class="stat-link">View Details</span></div>
+      <div class="stat-label">Revenue</div>
     </div>
   </div>
   <div class="stat-card yellow">
     <div class="stat-content">
-	  <div class="stat-label">Items Available</div>
       <div class="stat-value">515 <span class="stat-link">Visit Inventory</span></div>
+      <div class="stat-label">Items Available</div>
     </div>
   </div>
   <div class="stat-card red">
     <div class="stat-content">
-	<div class="stat-label">Items Shortage</div>
       <div class="stat-value">2 <span class="stat-link">Resolve Now</span></div>
+      <div class="stat-label">Items Shortage</div>
     </div>
   </div>
 </div>

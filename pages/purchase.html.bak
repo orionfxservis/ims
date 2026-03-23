@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | Purchase Entry</title>
+    <link rel="stylesheet" href="../css/style.css">
+	<link rel="stylesheet" href="../css/dashboard-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard-additions.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* specific dashboard overrides */
+        body {
+            display: block;
+            /* Override flex center */
+        }
+
+        .inventory-table-ultra-compact th,
+        .inventory-table-ultra-compact td {
+            padding: 0.15rem 0.3rem !important;
+            line-height: 1 !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* ... existing styles ... */
+    </style>
+</head>
+
+<body>
+
+    <!-- Reuse Background -->
+    <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
+
+    <div class="dashboard-container fixed-layout">
+        <!-- Sidebar (Updated to match dashboard/inventory styles) -->
+<aside class="sidebar">
+    <div class="title">
+        <i class="fa-solid fa-cube"></i> IMS Cloud
+        <span id="modeBadge" class="mode-badge">DEMO</span>
+    </div>
+
+    <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-item" data-tab="dashboard">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+        <a href="purchase.html" class="nav-item" data-tab="purchase">
+            <i class="fa-solid fa-cart-shopping"></i> Purchase
+        </a>
+        <a href="sales.html" class="nav-item" data-tab="sales">
+            <i class="fa-solid fa-cash-register"></i> Sales
+        </a>
+        <a href="expenses.html" class="nav-item" data-tab="expenses">
+            <i class="fa-solid fa-money-bill-wave"></i> Expenses
+        </a>
+        <a href="inventory.html" class="nav-item" data-tab="inventory">
+            <i class="fa-solid fa-boxes-stacked"></i> Inventory
+        </a>
+        <a href="reports.html" class="nav-item active" data-tab="reports">
+            <i class="fa-solid fa-file-invoice"></i> Reports
+        </a>
+        <a href="admin.html" class="nav-item hidden" id="adminTab" data-tab="admin">
+            <i class="fa-solid fa-users-gear"></i> Admin Panel
+        </a>
+
+        <div style="margin-top:auto;">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon mobile-menu-toggle" id="sidebarToggle"
+                        style="display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" style="font-size: 1.75rem;">Purchase Entry</h2>
+                </div>
+                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="openUserProfile()">
+                    <span id="userNameDisplay">User Name</span>
+                    <div
+                        style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="purchase" class="view-section">
+                <div class="glass-card" style="max-width: 100%;">
+                    <h3>Purchase Entry</h3>
+                    <form id="purchaseForm"
+                        style="margin-top: 0.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; align-items: end;">
+
+                        <!-- Row 1: Basic Info -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Date</label>
+                            <input type="date" class="form-input" id="purDate" readonly
+                                style="padding: 0.25rem; font-size: 0.85rem; background: rgba(255,255,255,0.05);">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Category</label>
+                            <select class="form-input" id="purCategorySelect" required
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Vendor Name</label>
+                            <input type="text" class="form-input" id="purVendor" placeholder="Vendor Name"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 2: Standard Items (Hidden if Laptop) -->
+                        <div class="form-group group-standard">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item Name</label>
+                            <input type="text" class="form-input" id="purItem" placeholder="Item Name" required
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Brand</label>
+                            <input type="text" class="form-input" id="purBrand" placeholder="Brand"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Specialized Laptop Fields (Hidden by default) -->
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Generation / Class</label>
+                            <select class="form-input" id="purGen"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Generation</option>
+                                <option value="Chromebook">Chromebook</option>
+                                <option value="1st Gen">1st Gen</option>
+                                <option value="2nd Gen">2nd Gen</option>
+                                <option value="3rd Gen">3rd Gen</option>
+                                <option value="4th Gen">4th Gen</option>
+                                <option value="5th Gen">5th Gen</option>
+                                <option value="6th Gen">6th Gen</option>
+                                <option value="7th Gen">7th Gen</option>
+                                <option value="8th Gen">8th Gen</option>
+                                <option value="9th Gen">9th Gen</option>
+                                <option value="10th Gen">10th Gen</option>
+                                <option value="11th Gen">11th Gen</option>
+                                <option value="12th Gen">12th Gen</option>
+                                <option value="AMD">AMD</option>
+                                <option value="MacBook">MacBook</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Model</label>
+                            <input type="text" class="form-input" id="purModel" placeholder="e.g. Latitude 7480"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">RAM</label>
+                            <select class="form-input" id="purRam"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select RAM</option>
+                                <option value="4GB">4GB</option>
+                                <option value="8GB">8GB</option>
+                                <option value="16GB">16GB</option>
+                                <option value="32GB">32GB</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">HDD/SSD</label>
+                            <select class="form-input" id="purHdd"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Storage</option>
+                                <option value="16GB">16GB</option>
+                                <option value="32GB">32GB</option>
+                                <option value="64GB">64GB</option>
+                                <option value="128GB SSD">128GB SSD</option>
+                                <option value="256GB SSD">256GB SSD</option>
+                                <option value="512GB SSD">512GB SSD</option>
+                                <option value="1TB HDD">1TB HDD</option>
+                                <option value="1TB SSD">1TB SSD</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Display Size</label>
+                            <select class="form-input" id="purDisplay"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="">Select Size</option>
+                                <option value="11.6 inch">11.6 inch</option>
+                                <option value="12.5 inch">12.5 inch</option>
+                                <option value="13.3 inch">13.3 inch</option>
+                                <option value="14 inch">14 inch</option>
+                                <option value="15.6 inch">15.6 inch</option>
+                                <option value="17 inch">17 inch</option>
+                            </select>
+                        </div>
+                        <div class="form-group group-laptop hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Touch Screen</label>
+                            <select class="form-input" id="purTouch"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Non-Touch">Non-Touch</option>
+                                <option value="Touch">Touch</option>
+                                <option value="360 Rotation">360 Rotation</option>
+                            </select>
+                        </div>
+                        <!-- Chromebook Only -->
+                        <div class="form-group group-chromebook hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Auto Update Expiry</label>
+                            <input type="text" class="form-input" id="purUpdate" placeholder="Jun 2028"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+
+                        <!-- Keyboard & Mouse Only -->
+                        <div class="form-group group-kbmouse hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item Type</label>
+                            <select class="form-input" id="purKbType"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Keyboard">Keyboard</option>
+                                <option value="Mouse">Mouse</option>
+                                <option value="Keyboard & Mouse">Keyboard & Mouse</option>
+                            </select>
+                        </div>
+
+                        <!-- Charger Only -->
+                        <div class="form-group group-charger hidden">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Volt / Watt</label>
+                            <input type="text" class="form-input" id="purVolt" placeholder="e.g. 65W, 19V"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Dynamic Purchase Fields (Injected by JS if user has Custom Headers) -->
+                        <div id="dynamicPurchaseFields" style="display: contents;">
+                            <!-- Injected here -->
+                        </div>
+
+                        <!-- Row 3: Financials (Shared) -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Unit Price</label>
+                            <input type="number" class="form-input" id="purPrice" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
+                            <input type="number" class="form-input" id="purQty" placeholder="0"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Total Price</label>
+                            <input type="number" class="form-input" id="purTotal" readonly
+                                style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 4: Payment -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount Paid</label>
+                            <input type="number" class="form-input" id="purPaid" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
+                            <select class="form-input" id="purMode"
+                                style="padding: 0.25rem; font-size: 0.85rem; color: #333; background: white;">
+                                <option value="Cash" style="color: black;">Cash</option>
+                                <option value="Cheque" style="color: black;">Cheque</option>
+                                <option value="Online" style="color: black;">Online</option>
+                                <option value="Credit" style="color: black;">Credit (Unpaid)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Balance Amount</label>
+                            <input type="number" class="form-input" id="purBalance" readonly
+                                style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                            <button type="submit" class="btn"
+                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Record
+                                Purchase</button>
+                        </div>
+                    </form>
+
+                    <!-- Recent Purchases Table -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #ccc;">Recent Purchases (Last 7 Days)</h4>
+                        <table class="data-table compact" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product / Item Name</th>
+                                    <th>Vendor Name</th>
+                                    <th>Quantity</th>
+                                    <th>Paid Amount</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentPurchasesTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #666;">No entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                        </section>
+
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="../js/reports.js"></script>
+</body>
+
+</html>

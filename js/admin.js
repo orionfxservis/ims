@@ -13,12 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInventoryHeadersListeners();
 
     // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        if (confirm('Logout from Admin?')) {
-            localStorage.removeItem('user'); // Use 'user' to match app.js
-            window.location.href = 'index.html'; // Admin is in root folder, not pages
-        }
-    });
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Logout from Admin?')) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        });
+    }
 
     // Auto-check connection
     if (localStorage.getItem('apiUrl')) {
@@ -99,7 +104,7 @@ window.switchTab = function (tabId, navItem) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
     document.getElementById(tabId).classList.remove('hidden');
 
-    document.querySelectorAll('.admin-nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     navItem.classList.add('active');
 
     // Load data based on tab
@@ -108,13 +113,14 @@ window.switchTab = function (tabId, navItem) {
     if (tabId === 'broadcasts' && typeof loadAdminBroadcasts === 'function') loadAdminBroadcasts();
     if (tabId === 'reviews' && typeof loadAdminReviews === 'function') loadAdminReviews();
     if (tabId === 'inventory-headers' && typeof loadInventoryHeaders === 'function') loadInventoryHeaders();
+    if (tabId === 'pricing' && typeof loadPricingPackages === 'function') loadPricingPackages();
 }
 
 // --- System Settings ---
 window.testConnection = async function (silent = false) {
     const sheetIdEl = document.getElementById('sheetId');
     if (!sheetIdEl) return;
-    
+
     const url = sheetIdEl.value.trim();
     if (!url) {
         if (!silent) alert("Please enter a Google Script Web App URL first.");
@@ -123,7 +129,7 @@ window.testConnection = async function (silent = false) {
 
     const btn = document.getElementById('btnTestConnection');
     const statusEl = document.getElementById('connectionStatus');
-    
+
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Testing';
     if (statusEl && !silent) {
         statusEl.style.display = 'block';
@@ -154,7 +160,7 @@ window.testConnection = async function (silent = false) {
             statusEl.textContent = 'Connection failed. Check URL and Script deployment.';
         }
     }
-    
+
     if (btn) {
         setTimeout(() => {
             btn.innerHTML = '<i class="fa-solid fa-plug"></i> Test';
@@ -167,7 +173,7 @@ window.testConnection = async function (silent = false) {
 window.saveSystemSettings = function () {
     const sheetIdEl = document.getElementById('sheetId');
     const phoneEl = document.getElementById('adminPhone');
-    
+
     let saved = false;
 
     if (sheetIdEl && sheetIdEl.value.trim()) {
@@ -175,12 +181,12 @@ window.saveSystemSettings = function () {
         if (window.API && window.API.config) window.API.config.url = sheetIdEl.value.trim();
         saved = true;
     }
-    
+
     if (phoneEl) {
         localStorage.setItem('adminPhone', phoneEl.value.trim());
         saved = true;
     }
-    
+
     if (saved) alert('System settings saved successfully!');
 };
 
@@ -872,26 +878,28 @@ window.loadAdminReviews = async function () {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a1a1aa;">Loading reviews...</td></tr>';
 
     try {
-        const reviews = await API.getAllReviews();
-        
-        if (reviews.length === 0) {
+        const reviews = await API.getReviews();
+
+        if (!reviews || reviews.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a1a1aa;">No reviews found.</td></tr>';
             return;
         }
 
         tbody.innerHTML = reviews.map(r => {
             const dateStr = r.date ? new Date(r.date).toLocaleDateString() : 'N/A';
-            const statusStr = String(r.status || 'Pending');
+            const statusStr = String(r.status || r.Status || 'Pending');
             let statusColor = '#f59e0b'; // yellow (Pending)
             if (statusStr === 'Approved') statusColor = '#22c55e'; // green
+            else if (statusStr === 'Cancelled') statusColor = '#64748b'; // slate
+            else if (statusStr === 'Suspended') statusColor = '#f97316'; // orange
 
             return `
             <tr>
                 <td>${dateStr}</td>
                 <td style="font-weight: 500;">${r.name || 'Anonymous'}</td>
                 <td style="text-align: center; color: #fbbf24;">${'⭐'.repeat(r.rating || 5)}</td>
-                <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.message}">
-                    ${r.message || ''}
+                <td style="max-width: 400px; white-space: pre-wrap; word-break: break-word; color: #cbd5e1; font-size: 0.9rem;" title="User Message">
+                    ${r.message || r.Message || r.review || r.Review || r.text || r.comment || JSON.stringify(r)}
                 </td>
                 <td style="text-align: center;">
                     <span class="status-badge" style="background: rgba(0,0,0,0.3); border: 1px solid ${statusColor}; color: ${statusColor}; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
@@ -899,11 +907,10 @@ window.loadAdminReviews = async function () {
                     </span>
                 </td>
                 <td style="text-align: right; white-space: nowrap;">
-                    ${statusStr === 'Pending' ? 
-                        `<button class="action-btn btn-approve" onclick="updateReviewStatus(${r.rowIndex}, 'Approved')" title="Approve" style="background:#22c55e; padding: 6px 10px;"><i class="fa-solid fa-check"></i></button>` :
-                        `<button class="action-btn" onclick="updateReviewStatus(${r.rowIndex}, 'Pending')" title="Hide / Move to Pending" style="background:#f59e0b; padding: 6px 10px;"><i class="fa-solid fa-eye-slash"></i></button>`
-                    }
-                    <button class="action-btn btn-delete" onclick="updateReviewStatus(${r.rowIndex}, 'Delete')" title="Delete permanently" style="background:#ef4444; padding: 6px 10px; margin-left: 0.4rem;"><i class="fa-solid fa-trash"></i></button>
+                    <button class="action-btn btn-approve" onclick="updateReviewStatus(${r.rowIndex}, 'Approved')" title="Approve" style="background:#22c55e; padding: 6px 10px; margin-left: 0.2rem;"><i class="fa-solid fa-check"></i></button>
+                    <button class="action-btn" onclick="updateReviewStatus(${r.rowIndex}, 'Cancelled')" title="Cancel" style="background:#64748b; padding: 6px 10px; margin-left: 0.2rem;"><i class="fa-solid fa-ban"></i></button>
+                    <button class="action-btn" onclick="updateReviewStatus(${r.rowIndex}, 'Suspended')" title="Suspend" style="background:#f97316; padding: 6px 10px; margin-left: 0.2rem;"><i class="fa-solid fa-pause"></i></button>
+                    <button class="action-btn btn-delete" onclick="updateReviewStatus(${r.rowIndex}, 'Delete')" title="Delete" style="background:#ef4444; padding: 6px 10px; margin-left: 0.2rem;"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
             `;
@@ -917,7 +924,7 @@ window.loadAdminReviews = async function () {
 window.updateReviewStatus = async function (rowIndex, status) {
     let confirmMsg = `Are you sure you want to change this review status to ${status}?`;
     if (status === 'Delete') confirmMsg = "Are you sure you want to permanently delete this review? This cannot be undone.";
-    
+
     if (!confirm(confirmMsg)) return;
 
     const tbody = document.getElementById('reviewsList');
@@ -1025,8 +1032,8 @@ window.loadAdminBroadcasts = async function () {
                 // Expiry Visuals
                 const isExpiredObj = b.isExpired === true;
                 const borderLeftColor = isExpiredObj ? '#ef4444' : '#eab308';
-                const badgeHtml = isExpiredObj ? 
-                    `<span style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Expired</span>` : 
+                const badgeHtml = isExpiredObj ?
+                    `<span style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Expired</span>` :
                     `<span style="margin-left: 0.5rem; background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Active</span>`;
 
                 return `
@@ -1146,11 +1153,11 @@ function setupInventoryHeadersListeners() {
 
             if (companyInput) companyInput.value = selectedOption.getAttribute('data-company') || '';
             const userHeaders = allInventoryHeaders.find(h => h.username === username);
-            
+
             let parsedHeaders = [];
             // In Google Sheets, column headers might arrive as 'headers', 'Headers', or 'HEADERS' due to `getSheetData` casing rules
             const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS) : null;
-            
+
             if (rawHeadersString) {
                 try {
                     // Sometimes Google sheets returns a stringified array that's double escaped
@@ -1164,9 +1171,9 @@ function setupInventoryHeadersListeners() {
                         cleanStr = cleanStr.replace(/'/g, '"');
                         parsedHeaders = JSON.parse(cleanStr);
                     } else if (Array.isArray(rawHeadersString)) {
-                         parsedHeaders = rawHeadersString;
+                        parsedHeaders = rawHeadersString;
                     }
-                } catch(e) {
+                } catch (e) {
                     console.error("Failed to parse headers", e, "Raw data:", rawHeadersString);
                     parsedHeaders = [];
                 }
@@ -1289,7 +1296,7 @@ function renderInventoryHeadersTable() {
     tbody.innerHTML = allInventoryHeaders.map((userObj) => {
         // userObj comes as { username, company, headers }
         const safeUsername = encodeURIComponent(userObj.username);
-        
+
         return `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.02)'" onmouseout="this.style.backgroundColor='transparent'">
                 <td style="padding: 0.75rem;"><span style="font-weight: 500; color: #fff;">${userObj.username || 'N/A'}</span></td>
@@ -1307,10 +1314,10 @@ function renderInventoryHeadersTable() {
     }).join('');
 }
 
-window.repostInventoryHeaders = function(encodedUsername) {
+window.repostInventoryHeaders = function (encodedUsername) {
     const rawUsername = decodeURIComponent(encodedUsername);
     const userSelect = document.getElementById('invHeaderUserSelect');
-    
+
     if (userSelect) {
         // Select the correct user
         let found = false;
@@ -1321,7 +1328,7 @@ window.repostInventoryHeaders = function(encodedUsername) {
                 break;
             }
         }
-        
+
         // If the user isn't in the dropdown (e.g. they aren't fully registered but have headers), temporarily add them
         if (!found) {
             const tempOption = document.createElement('option');
@@ -1331,44 +1338,44 @@ window.repostInventoryHeaders = function(encodedUsername) {
             userSelect.value = rawUsername;
             found = true;
         }
-        
+
         // Trigger the change event manually to load the data into the form
         if (found) {
             userSelect.dispatchEvent(new Event('change'));
-            
+
             // Scroll user up to the form
             const formTop = document.getElementById('invHeaderUserSelect');
             if (formTop) {
-                 formTop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                formTop.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
     }
 }
 
-window.deleteInventoryHeaders = async function(encodedUsername) {
+window.deleteInventoryHeaders = async function (encodedUsername) {
     const rawUsername = decodeURIComponent(encodedUsername);
-    
+
     if (!confirm(`Are you absolutely sure you want to permanently delete ALL custom headers configured for user "${rawUsername}"?`)) {
         return;
     }
-    
+
     // Attempt deletion
     try {
         const res = await API.deleteInventoryHeaders(rawUsername);
         if (res.status === 'success' || res.success) {
             // Remove from local cache array
             allInventoryHeaders = allInventoryHeaders.filter(h => h.username !== rawUsername);
-            
+
             // Re-render table locally immediately 
             renderInventoryHeadersTable();
-            
+
             // If they are currently looking at the deleted user in the active form, blur the form out by triggering a blank load
             const userSelect = document.getElementById('invHeaderUserSelect');
             if (userSelect && userSelect.value === rawUsername) {
-                 userSelect.selectedIndex = 0; // Back to "Select user"
-                 userSelect.dispatchEvent(new Event('change'));
+                userSelect.selectedIndex = 0; // Back to "Select user"
+                userSelect.dispatchEvent(new Event('change'));
             }
-            
+
             alert(`Successfully wiped all custom headers for ${rawUsername}.`);
         } else {
             alert('Failed to delete headers: ' + (res.message || 'Unknown server error'));
@@ -1378,3 +1385,75 @@ window.deleteInventoryHeaders = async function(encodedUsername) {
         alert('A network error occurred while attempting to delete headers.');
     }
 }
+
+// --- Pricing Packages Management ---
+window.loadPricingPackages = async function() {
+    const container = document.getElementById('pricingAdminContainer');
+    if (!container) return;
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888;">Loading...</div>';
+
+    try {
+        const pkgs = await API.getPricingPackages();
+        container.innerHTML = pkgs.map((p, index) => `
+            <div class="glass-card" style="padding: 1.5rem; border-left: 4px solid ${p.isPopular ? '#f59e0b' : '#3b82f6'};">
+                <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Package: ${p.id.toUpperCase()}</h4>
+                <input type="hidden" name="pkgId_${index}" value="${p.id}">
+                <input type="hidden" name="pkgDesc_${index}" value="${p.desc}">
+                <input type="hidden" name="pkgPop_${index}" value="${p.isPopular ? 'true' : 'false'}">
+                <input type="hidden" name="pkgBtn_${index}" value="${p.btnText}">
+                
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Package Name</label>
+                    <input type="text" class="form-input" name="pkgName_${index}" value="${p.name}" required style="padding: 0.4rem; font-size: 0.9rem;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Price</label>
+                    <input type="text" class="form-input" name="pkgPrice_${index}" value="${p.price}" required style="padding: 0.4rem; font-size: 0.9rem;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Services Provided (Comma separated)</label>
+                    <textarea class="form-input" name="pkgServices_${index}" rows="3" required style="padding: 0.4rem; font-size: 0.9rem;">${p.services}</textarea>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = '<div style="grid-column: 1/-1; color: red;">Error loading packages.</div>';
+    }
+};
+
+window.savePricingPackages = async function() {
+    const btn = document.querySelector('#pricingForm button[type="submit"]');
+    if (!btn) return;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    try {
+        const pkgs = [];
+        for(let i=0; i<4; i++) {
+            const nameEl = document.querySelector(`[name="pkgName_${i}"]`);
+            if(!nameEl) continue; // safety check
+            pkgs.push({
+                id: document.querySelector(`[name="pkgId_${i}"]`).value,
+                desc: document.querySelector(`[name="pkgDesc_${i}"]`).value,
+                isPopular: document.querySelector(`[name="pkgPop_${i}"]`).value === 'true',
+                btnText: document.querySelector(`[name="pkgBtn_${i}"]`).value,
+                name: nameEl.value,
+                price: document.querySelector(`[name="pkgPrice_${i}"]`).value,
+                services: document.querySelector(`[name="pkgServices_${i}"]`).value
+            });
+        }
+        
+        await API.savePricingPackages(pkgs);
+        alert('Pricing Packages saved successfully!');
+    } catch(e) {
+        console.error(e);
+        alert('An error occurred while saving.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};

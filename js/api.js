@@ -1,520 +1,405 @@
-// api.js - Fixed for IMS Cloud with Login, Banners & Broadcasts
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXKCx9Fl94FGo_gCs7gAdPzTD7ikK7cGYrDAIxSs3lm-5hkO5wRPKWpjsZ7O5_4mKEQ/exec";
+// ===============================
+// IMS Frontend JS (Refactored for Modular API)
+// ===============================
 
-const API = {
-    getUrl: () => {
-        const local = localStorage.getItem('apiUrl');
-        if (local && local.trim().length > 0) return local;
-        const hardcoded = GOOGLE_SCRIPT_URL ? GOOGLE_SCRIPT_URL.trim() : "";
-        if (hardcoded && hardcoded.startsWith('http')) return hardcoded;
-        return "";
-    },
+// ===============================
+// API DEFINITION (FIX)
+// ===============================
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziXKCx9Fl94FGo_gCs7gAdPzTD7ikK7cGYrDAIxSs3lm-5hkO5wRPKWpjsZ7O5_4mKEQ/exec';
 
-    isLive: () => {
-        const url = API.getUrl();
-        return (url && url.length > 0);
-    },
-
-    isTrial: () => {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        return user && user.role === 'trial';
-    },
-
-    // --- Categories ---
-    async getCategories() {
-        if (this.isLive()) {
-            const data = await this.get('getCategories');
-            return Array.isArray(data) ? data : (data.categories || []);
-        } else {
-            return [
-                { id: 1, name: 'Laptop', status: 'active' },
-                { id: 2, name: 'Charger', status: 'active' },
-                { id: 3, name: 'RAM', status: 'active' }
-            ];
-        }
-    },
-
-    // --- Inventory ---
-    async getInventory() {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const response = await this.get('getInventory', { 
-                username: user.username,
-                role: user.role 
-            });
-            const data = Array.isArray(response) ? response : (response.inventory || []);
-            return data.map(item => ({
-                id: item.id,
-                date: item.date,
-                category: item.category,
-                vendor: item['vendor name'] || item.vendor,
-                item: item['item name'] || item.item,
-                brand: item.brand,
-                model: item.model,
-                serialnumber: item.serialnumber || item['serial number'],
-                qty: item.quantity !== undefined ? item.quantity : item.qty,
-                price: item['unit price'] !== undefined ? item['unit price'] : item.price,
-                total: item.total,
-                paid: item['paid amount'] !== undefined ? item['paid amount'] : item.paid,
-                balance: item.balance,
-                mode: item['payment mode'] || item.mode,
-                notes: item.notes,
-                customData: item.customdata || item.customData
-            }));
-        }
-
-        let data = JSON.parse(localStorage.getItem('inventory') || '[]');
-        if (!data && this.isTrial()) {
-            data = [
-                {
-                    InventoryID: 'INV001',
-                    Type: 'Laptop',
-                    Make: 'Dell',
-                    Model: 'Latitude 7480',
-                    SerialNumber: 'ABC123',
-                    'CPU Model': 'i5-7th',
-                    'RAM Capacity Size': '8GB',
-                    'HDD Capacity Size': '256GB SSD',
-                    'Cosmetic Option': 'A Grade',
-                    'Functional Option': '100%',
-                    'Test Results': 'Passed',
-                    'Battery Testing Method': 'Standard'
-                }
-            ];
-            localStorage.setItem('inventory', JSON.stringify(data));
-        }
-        return data || [];
-    },
-
-    async saveInventory(item) {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return this.post({ action: 'saveInventory', data: item, username: user.username });
-        } else {
-            if (this.isTrial()) return { status: 'error', message: 'Disabled in Trial' };
-            const items = JSON.parse(localStorage.getItem('inventory') || '[]');
-            items.push(item);
-            localStorage.setItem('inventory', JSON.stringify(items));
-            return { status: 'success' };
-        }
-    },
-
-    async updateInventory(item) {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return this.post({ action: 'updateInventory', data: item, username: user.username });
-        } else {
-            return { status: 'success', message: 'Mock offline update success' };
-        }
-    },
-
-    async bulkSaveInventory(items) {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return this.post({ action: 'bulkSaveInventory', data: items, username: user.username });
-        } else {
-            if (this.isTrial()) return { status: 'error', message: 'Disabled in Trial' };
-            const existing = JSON.parse(localStorage.getItem('inventory') || '[]');
-            const newArray = existing.concat(items);
-            localStorage.setItem('inventory', JSON.stringify(newArray));
-            return { status: 'success' };
-        }
-    },
-
-    async deleteBatch(batchName) {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return this.post({ action: 'deleteBatch', batchName: batchName, username: user.username });
-        } else {
-            if (this.isTrial()) return { status: 'error', message: 'Disabled in Trial' };
-            let existing = JSON.parse(localStorage.getItem('inventory') || '[]');
-            const newArray = existing.filter(item => {
-                let itemBatch = item.batch;
-                if (!itemBatch && item.customData) {
-                    try { 
-                        let p = item.customData;
-                        if (typeof p === 'string') p = JSON.parse(p);
-                        if (p && typeof p === 'object' && p.batch) itemBatch = p.batch; 
-                    } catch (e) { }
-                }
-                return itemBatch !== batchName;
-            });
-            localStorage.setItem('inventory', JSON.stringify(newArray));
-            return { status: 'success' };
-        }
-    },
-
-    // --- Banners ---
-    async getBanners() {
-        if (this.isLive()) {
-            const data = await this.get('getBanners');
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.banners)) return data.banners;
-            return [];
-        } else {
-            return [
-                { title: "Dashboard Banner", url: "https://orionfxservis.github.io/ims/images/banner/OrionFx - Web Banner.gif", type: "dashboard" },
-                { title: "Hero Banner", url: "https://orionfxservis.github.io/ims/images/banner/OrionFx - Web Banner.gif", type: "hero" }
-            ];
-        }
-    },
-
-    // --- Broadcasts ---
-    async getBroadcasts(isAdmin = false) {
-        if (this.isLive()) {
-            const params = isAdmin ? { admin: 'true' } : {};
-            const data = await this.get('getBroadcasts', params);
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.broadcasts)) return data.broadcasts;
-            return [];
-        } else {
-            return [{ Message: "Welcome to IMS Cloud 🚀" }];
-        }
-    },
-
-    // --- Core Fetch Helpers ---
-    async get(action, params = {}) {
+const IMS_API = {
+    request: async (action, data = null) => {
+        // Enforce the hardcoded current Google Script URL to ensure endpoints don't fail, 
+        // bypassing any old broken URLs the user manually configured in system settings
+        const url = GOOGLE_SCRIPT_URL;
         try {
-            const baseUrl = this.getUrl();
-
-            // Build query string from params object
-            let queryStr = `action=${action}&_=${new Date().getTime()}`;
-            for (let key in params) {
-                queryStr += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+            if (data) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action, ...data })
+                });
+                return await response.json();
+            } else {
+                const response = await fetch(`${url}?action=${action}&_=${new Date().getTime()}`);
+                return await response.json();
             }
-
-            const sep = baseUrl.includes('?') ? '&' : '?';
-            const url = `${baseUrl}${sep}${queryStr}`;
-
-            const res = await fetch(url, {
-                method: 'GET'
-            });
-
-            if (!res.ok) throw new Error("Network response not ok");
-
-            const jsonData = await res.json();
-            console.log(`[API GET ${action}] Response:`, jsonData);
-            return jsonData;
-        } catch (e) {
-            console.error("API GET Error:", e);
-            throw e;
+        } catch (error) {
+            console.error(`API Error (${action}):`, error);
+            return { status: 'error', success: false, message: error.message };
         }
     },
 
-    async post(data) {
-        try {
-            const res = await fetch(this.getUrl(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(data)
-            });
-
-            const rawText = await res.text();
-            console.log(`[API POST ${data.action}] Raw Response Text:`, rawText);
-
-            if (!res.ok) throw new Error("Network response not ok: " + rawText);
-
-            try {
-                return JSON.parse(rawText);
-            } catch (err) {
-                console.error("JSON Parse Error on POST response:", err);
-                throw err;
-            }
-        } catch (e) {
-            console.error("API POST Error:", e);
-            throw e;
+    API_Auth: {
+        login: (username, password, company) => IMS_API.request('login', { username, password, company }),
+        register: (data) => IMS_API.request('register', data),
+        changePassword: (username, oldPassword, newPassword) => IMS_API.request('changePassword', { username, oldPassword, newPassword })
+    },
+    
+    API_Inventory: {
+        getInventory: () => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const username = encodeURIComponent(user.username || '');
+            return IMS_API.request(`getInventory&username=${username}`).then(res => Array.isArray(res) ? res : (res.inventory || []));
+        },
+        saveInventory: (item) => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return IMS_API.request('saveInventory', { data: item, username: user.username });
+        },
+        updateInventory: (item) => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return IMS_API.request('updateInventory', { data: item, username: user.username });
+        },
+        bulkSaveInventory: (items) => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return IMS_API.request('bulkSaveInventory', { data: items, username: user.username });
         }
     },
 
-    // --- Auth / Login ---
-    async login(username, password, company) {
-        if (!company) company = 'IMS Cloud'; // default
-        if (this.isLive()) {
-            let res = await this.post({ action: 'login', username, password, company });
-            // Google Sheets strict equality (===) fix: try numeric password if string fails
-            if (res.status === 'error' && !isNaN(password) && password.trim() !== '') {
-                const retryRes = await this.post({ action: 'login', username, password: Number(password), company });
-                if (retryRes.status === 'success') return retryRes;
-            }
-            return res;
-        } else {
-            if (username === 'admin' && password === 'admin123') {
-                return { status: 'success', user: { username: 'admin', name: 'Admin', role: 'admin', company: 'IMS Cloud' } };
-            }
-            return { status: 'error', message: 'Invalid Credentials' };
-        }
+    API_Categories: {
+        getCategories: () => IMS_API.request('getCategories').then(res => Array.isArray(res) ? res : (res.categories || [])),
+        addCategory: (name) => IMS_API.request('addCategory', { categoryName: name }),
+        deleteCategory: (id) => IMS_API.request('deleteCategory', { id })
     },
 
-    // --- Visitor Tracking ---
-    async logVisit(visitorId) {
-        if (this.isLive()) {
-            return await this.post({ action: 'logVisit', visitorId });
-        } else {
-            return { success: true, stats: { online: 1, today: 12, yesterday: 45, week: 140, month: 650 } };
-        }
+    API_Sales: {
+        getSales: () => IMS_API.request('getSales').then(res => Array.isArray(res) ? res : (res.sales || [])),
+        saveSale: (sale) => IMS_API.request('saveSale', sale),
+        getExpenses: () => IMS_API.request('getExpenses').then(res => Array.isArray(res) ? res : (res.expenses || [])),
+        saveExpense: (expense) => IMS_API.request('saveExpense', expense)
     },
 
-    async getVisitorStats() {
-        if (this.isLive()) {
-            const data = await this.post({ action: 'getVisitorStats' });
-            if (data && data.success) return data;
-            return { success: true, stats: { online: 0, today: 0, yesterday: 0, week: 0, month: 0 } };
-        } else {
-            return { success: true, stats: { online: 1, today: 12, yesterday: 45, week: 140, month: 650 } };
-        }
+    API_Banners: {
+        getBanners: () => IMS_API.request('getBanners').then(res => Array.isArray(res) ? res : (res.banners || [])),
+        saveBanners: (banners) => IMS_API.request('saveBanners', { banners })
     },
 
-    async register(data) {
-        if (this.isLive()) {
-            return await this.post({ action: 'register', ...data });
-        } else {
-            return { status: 'success', message: 'Offline Mock: Registration successful' };
-        }
+    API_Broadcasts: {
+        getBroadcasts: (isAdmin) => IMS_API.request('getBroadcasts').then(res => Array.isArray(res) ? res : (res.broadcasts || [])),
+        saveBroadcast: (payload) => IMS_API.request('saveBroadcast', payload)
     },
 
-    async updateUserProfile(data) {
-        if (this.isLive()) {
-            return await this.post({ action: 'updateUserProfile', ...data });
-        } else {
-            // Mock offline update for user profile
-            let users = JSON.parse(localStorage.getItem('users') || '[]');
-            let userIndex = users.findIndex(u => u.username === data.username);
-            if (userIndex !== -1) {
-                users[userIndex] = { ...users[userIndex], ...data };
-                localStorage.setItem('users', JSON.stringify(users));
-                return { status: 'success', message: 'Offline Mock: User profile updated successfully' };
-            }
-            return { status: 'error', message: 'Offline Mock: User not found' };
-        }
+    API_Users: {
+        getUsers: () => IMS_API.request('getUsers').then(res => Array.isArray(res) ? res : (res.users || [])),
+        updateUserStatus: (username, status) => IMS_API.request('updateUserStatus', { username, status }),
+        updateUserProfile: (username, updates) => IMS_API.request('updateUserProfile', { username, ...updates })
     },
 
-    // --- Users ---
-    async getUsers() {
-        let usersList = [];
-        if (this.isLive()) {
-            const data = await this.get('getUsers');
-            usersList = Array.isArray(data) ? data : (data.users || []);
-        } else {
-            usersList = JSON.parse(localStorage.getItem('users') || '[]');
-        }
-
-        // Ensure Demo Guest/Trial user is always available for Admin panel display
-        if (!usersList.some(u => String(u.username).toLowerCase() === 'trial')) {
-            usersList.push({
-                username: 'trial',
-                name: 'Guest User',
-                role: 'trial',
-                company: 'Demo Company Ltd.',
-                status: 'active',
-                profileImage: 'assets/trial_avatar.jpg'
-            });
-        }
-        return usersList;
+    API_Reviews: {
+        getReviews: () => IMS_API.request('getReviews').then(res => Array.isArray(res) ? res : (res.reviews || [])),
+        submitReview: (reviewData) => IMS_API.request('saveReview', reviewData)
     },
 
-    async updateUserStatus(username, status) {
-        if (this.isLive()) {
-            return await this.post({ action: 'updateUserStatus', username, status });
-        } else {
-            let users = JSON.parse(localStorage.getItem('users') || '[]');
-            let user = users.find(u => u.username === username);
-            if (user) {
-                user.status = status;
-                localStorage.setItem('users', JSON.stringify(users));
-                return { status: 'success' };
-            }
-            return { status: 'error', message: 'User not found' };
-        }
-    },
-
-    async changePassword(username, oldPassword, newPassword) {
-        if (this.isLive()) {
-            return await this.post({ action: 'changePassword', username, oldPassword, newPassword });
-        } else {
-            let users = JSON.parse(localStorage.getItem('users') || '[]');
-            let user = users.find(u => u.username === username && u.password === oldPassword);
-            if (user) {
-                user.password = newPassword;
-                localStorage.setItem('users', JSON.stringify(users));
-                return { status: 'success' };
-            }
-            return { status: 'error', message: 'Incorrect old password' };
-        }
-    },
-
-    async testConnection(testUrl) {
-        // If a testUrl is provided, we temporarily override getUrl to test it, 
-        // or just fetch it directly.
-        const urlToTest = testUrl || this.getUrl();
-
-        if (urlToTest && urlToTest.startsWith('http')) {
-            try {
-                const sep = urlToTest.includes('?') ? '&' : '?';
-                const url = `${urlToTest}${sep}action=test&_=${new Date().getTime()}`;
-                const res = await fetch(url, { method: 'GET' });
-                if (!res.ok) throw new Error("Network response not ok");
-                return await res.json();
-            } catch (e) {
-                return { status: 'error', message: e.message };
-            }
-        } else {
-            return { status: 'error', message: 'No valid Google Script URL provided.' };
-        }
-    },
-
-    async getActivities() {
-        if (this.isLive()) {
-            return await this.get('getActivities');
-        } else {
-            return { activities: [] };
-        }
-    },
-
-    async bulkSaveInventory(items) {
-        if (this.isLive()) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            return this.post({ action: 'bulkSaveInventory', username: user.username, data: items });
-        }
-        return { status: 'success' };
-    },
-
-    // --- Sales / Expenses ---
-    async getSales() {
-        if (this.isLive()) {
-            const response = await this.get('getSales');
-            const data = Array.isArray(response) ? response : (response.sales || []);
-            return data.map(sale => ({
-                date: sale.date,
-                item: sale['item name'] || sale.item,
-                qty: sale.quantity !== undefined ? sale.quantity : sale.qty,
-                total: sale.total,
-                customer: sale.customer,
-                user: sale.user,
-                price: sale['unit price'] || sale.price,
-                paid: sale['paid amount'] || sale.paid,
-                mode: sale['payment mode'] || sale.mode,
-                balance: sale.balance
-            }));
-        }
-        return [];
-    },
-    async saveSale(sale) { return this.isLive() ? this.post({ action: 'saveSale', ...sale }) : { status: 'success' }; },
-    async getExpenses() {
-        if (this.isLive()) {
-            const response = await this.get('getExpenses');
-            const data = Array.isArray(response) ? response : (response.expenses || []);
-            return data.map(exp => ({
-                date: exp.date,
-                title: exp.title,
-                desc: exp.description || exp.desc,
-                amount: exp.amount,
-                mode: exp['payment mode'] || exp.mode
-            }));
-        }
-        return [];
-    },
-    async saveExpense(exp) { return this.isLive() ? this.post({ action: 'saveExpense', ...exp }) : { status: 'success' }; },
-
-    // --- Banner Operations ---
-    async saveBanners(banners) {
-        if (this.isLive()) {
-            return this.post({ action: 'saveBanners', banners: banners });
-        }
-        return { status: 'success' };
-    },
-
-    // --- Category Operations ---
-    async addCategory(name) {
-        if (this.isLive()) {
-            return this.post({ action: 'addCategory', categoryName: name });
-        }
-        return { status: 'success' };
-    },
-    async deleteCategory(id) {
-        if (this.isLive()) {
-            return this.post({ action: 'deleteCategory', id: id });
-        }
-        return { status: 'success' };
-    },
-
-    // --- Broadcast Operations ---
-    async saveBroadcast(payload) {
-        if (this.isLive()) {
-            return this.post({ action: 'saveBroadcast', ...payload });
-        }
-        return { status: 'success' };
-    },
-    async deleteBroadcast(broadcastObj) {
-        if (this.isLive()) {
-            return this.post({
-                action: 'deleteBroadcast',
-                id: broadcastObj.id || "",
-                message: broadcastObj.message
-            });
-        }
-        return { status: 'success' };
-    },
-
-    // --- Inventory Headers Operations ---
-    async getInventoryHeaders() {
-        if (this.isLive()) {
-            const data = await this.get('getInventoryHeaders');
-            return Array.isArray(data) ? data : (data.headers || []);
-        }
-        return [];
-    },
-    async saveInventoryHeaders(username, company, headers) {
-        if (this.isLive()) {
-            return this.post({ action: 'saveInventoryHeaders', username, company, headers });
-        }
-        return { status: 'success' };
-    },
-    async deleteInventoryHeaders(username) {
-        if (this.isLive()) {
-            return this.post({ action: 'deleteInventoryHeaders', username });
-        }
-        return { status: 'success' };
-    },
-
-    // --- Review Operations ---
-    async getReviews() {
-        if (this.isLive()) {
-            const data = await this.get('getReviews');
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.reviews)) return data.reviews;
-            return [];
-        } else {
-            // Mock data for development
+    API_Pricing: {
+        getPricingPackages: async () => {
+            const data = localStorage.getItem('pricingPackages');
+            if (data) return JSON.parse(data);
+            
             return [
-                { rating: 5, message: "Excellent system for managing inventory!", name: "Ali, Karachi" },
-                { rating: 5, message: "Track sales easily, highly recommended!", name: "Ahmed, Lahore" },
-                { rating: 5, message: "Very easy to use, great for retailers.", name: "Usman" },
-                { rating: 5, message: "Best stock controller I have used.", name: "Fatima" }
+                { id: 'starter', name: 'Starter', price: 'Rs 1,500', services: 'Stock Management, Purchase & Sales, Udhaar Tracking, Basic Reports', isPopular: false, desc: '1 User • Small Shops', btnText: 'Get Started' },
+                { id: 'business', name: 'Business ⭐', price: 'Rs 3,000', services: 'Everything in Starter, Multi User Access, Customer & Supplier, Profit Dashboard', isPopular: true, desc: '2 Users • Shop + Staff', btnText: 'Most Popular' },
+                { id: 'professional', name: 'Professional', price: 'Rs 5,500', services: 'Everything in Business, Advanced Reports, Analytics Dashboard, Priority Support', isPopular: false, desc: '5+ Users • Wholesale', btnText: 'Get Started' },
+                { id: 'enterprise', name: 'Enterprise', price: 'Custom', services: 'Everything in Professional, Custom Reports, Multi Branch, API Integration', isPopular: false, desc: 'Unlimited • Large Business', btnText: 'Contact Us' }
             ];
+        },
+        savePricingPackages: async (packages) => {
+            localStorage.setItem('pricingPackages', JSON.stringify(packages));
+            return { status: 'success', success: true };
         }
     },
-    async submitReview(reviewData) {
-        if (this.isLive()) {
-            return this.post({ action: 'saveReview', ...reviewData });
-        }
-        return { status: 'success', message: 'Review submitted successfully (Mock).' };
-    },
-    async getAllReviews() {
-        if (this.isLive()) {
-            const data = await this.post({ action: 'getAllReviews' });
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.reviews)) return data.reviews;
-            return [];
-        } else {
-            return [];
-        }
-    },
-    async updateReviewStatus(rowIndex, status) {
-        if (this.isLive()) {
-            return this.post({ action: 'updateReviewStatus', rowIndex, status });
-        }
-        return { status: 'success' };
+
+    API_Visitors: {
+        logVisit: (visitorId) => IMS_API.request('logVisit', { visitorId }),
+        getVisitorStats: () => IMS_API.request('getVisitorStats')
     }
 };
+
+window.API = {
+    getUrl: () => GOOGLE_SCRIPT_URL,
+    testConnection: async (url) => {
+        try {
+            const response = await fetch(`${url}?action=test&_=${new Date().getTime()}`);
+            return await response.json();
+        } catch (error) {
+            return { status: 'error', message: error.message };
+        }
+    },
+    ...IMS_API.API_Auth,
+    ...IMS_API.API_Inventory,
+    ...IMS_API.API_Categories,
+    ...IMS_API.API_Sales,
+    ...IMS_API.API_Banners,
+    ...IMS_API.API_Broadcasts,
+    ...IMS_API.API_Users,
+    ...IMS_API.API_Reviews,
+    ...IMS_API.API_Pricing,
+    ...IMS_API.API_Visitors,
+    getActivities: () => IMS_API.request('getActivities'),
+    getInventoryHeaders: () => IMS_API.request('getInventoryHeaders').then(res => Array.isArray(res) ? res : (res.headers || []))
+};
+
+// ===============================
+// 🔥 GLOBAL USER NORMALIZER (FIX)
+// ===============================
+function normalizeUser(data) {
+    return {
+        ...data,
+        name: data.name || data.fullName || data["Full Name"] || data["Name"] || data.username || "User",
+        username: data.username || data["User Name"] || data["Username"] || "",
+        company: data.company || data["Company"] || data["Company Name"] || "",
+        role: (data.role || data["Role"] || "user").toLowerCase()
+    };
+}
+
+// ===============================
+// Inventory
+// ===============================
+const InventoryUI = {
+    loadInventory: async () => {
+        try {
+            const data = await IMS_API.API_Inventory.getInventory();
+            renderInventoryTable(data);
+        } catch (err) {
+            console.error("Error loading inventory:", err);
+        }
+    },
+
+    saveInventory: async (item) => {
+        try {
+            const res = await IMS_API.API_Inventory.saveInventory(item);
+            if (res.status === 'success') {
+                alert('Inventory saved!');
+                InventoryUI.loadInventory();
+            } else {
+                alert(res.message || 'Save failed');
+            }
+        } catch (err) {
+            console.error("Error saving inventory:", err);
+        }
+    },
+
+    updateInventory: async (item) => {
+        try {
+            const res = await IMS_API.API_Inventory.updateInventory(item);
+            if (res.status === 'success') {
+                alert('Inventory updated!');
+                InventoryUI.loadInventory();
+            } else {
+                alert(res.message || 'Update failed');
+            }
+        } catch (err) {
+            console.error("Error updating inventory:", err);
+        }
+    },
+
+    bulkSave: async (items) => {
+        try {
+            const res = await IMS_API.API_Inventory.bulkSaveInventory(items);
+            if (res.status === 'success') {
+                alert('Bulk inventory saved!');
+                InventoryUI.loadInventory();
+            } else {
+                alert(res.message || 'Bulk save failed');
+            }
+        } catch (err) {
+            console.error("Error bulk saving inventory:", err);
+        }
+    }
+};
+
+// ===============================
+// Categories
+// ===============================
+const CategoryUI = {
+    loadCategories: async () => {
+        try {
+            const categories = await IMS_API.API_Categories.getCategories();
+            renderCategoryList(categories);
+        } catch (err) {
+            console.error("Error loading categories:", err);
+        }
+    },
+
+    addCategory: async (name) => {
+        try {
+            const res = await IMS_API.API_Categories.addCategory(name);
+            if (res.status === 'success') CategoryUI.loadCategories();
+        } catch (err) { console.error(err); }
+    },
+
+    deleteCategory: async (id) => {
+        try {
+            const res = await IMS_API.API_Categories.deleteCategory(id);
+            if (res.status === 'success') CategoryUI.loadCategories();
+        } catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// 🔥 AUTH (FIXED)
+// ===============================
+const AuthUI = {
+    login: async (username, password, company) => {
+        try {
+            const res = await IMS_API.API_Auth.login(username, password, company);
+
+            if (res.status === 'success' || res.success) {
+
+                let userData = res.user || res;
+
+                // ✅ APPLY FIX
+                userData = normalizeUser(userData);
+
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+
+                alert('Login successful!');
+
+                // Redirect
+                window.location.href = userData.role === 'admin'
+                    ? 'admin.html'
+                    : 'pages/dashboard.html';
+
+            } else {
+                alert(res.message || 'Login failed');
+            }
+
+        } catch (err) {
+            console.error("Login error:", err);
+        }
+    },
+
+    changePassword: async (username, oldPassword, newPassword) => {
+        try {
+            const res = await IMS_API.API_Auth.changePassword(username, oldPassword, newPassword);
+            alert(res.message || (res.status === 'success' ? 'Password changed' : 'Failed'));
+        } catch (err) {
+            console.error(err);
+        }
+    }
+};
+
+// ===============================
+// Sales & Expenses
+// ===============================
+const FinanceUI = {
+    loadSales: async () => {
+        try {
+            const sales = await IMS_API.API_Sales.getSales();
+            renderSalesTable(sales);
+        } catch (err) { console.error(err); }
+    },
+
+    saveSale: async (sale) => {
+        try {
+            const res = await IMS_API.API_Sales.saveSale(sale);
+            if (res.status === 'success') FinanceUI.loadSales();
+        } catch (err) { console.error(err); }
+    },
+
+    loadExpenses: async () => {
+        try {
+            const expenses = await IMS_API.API_Sales.getExpenses();
+            renderExpensesTable(expenses);
+        } catch (err) { console.error(err); }
+    },
+
+    saveExpense: async (expense) => {
+        try {
+            const res = await IMS_API.API_Sales.saveExpense(expense);
+            if (res.status === 'success') FinanceUI.loadExpenses();
+        } catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// Banners & Broadcasts
+// ===============================
+const BannerUI = {
+    loadBanners: async () => {
+        try {
+            const banners = await IMS_API.API_Banners.getBanners();
+            renderBannerCarousel(banners);
+        } catch (err) { console.error(err); }
+    },
+    saveBanners: async (banners) => {
+        try { await IMS_API.API_Banners.saveBanners(banners); }
+        catch (err) { console.error(err); }
+    }
+};
+
+const BroadcastUI = {
+    loadBroadcasts: async (isAdmin = false) => {
+        try {
+            const broadcasts = await IMS_API.API_Broadcasts.getBroadcasts(isAdmin);
+            renderBroadcastList(broadcasts);
+        } catch (err) { console.error(err); }
+    },
+    saveBroadcast: async (payload) => {
+        try { await IMS_API.API_Broadcasts.saveBroadcast(payload); }
+        catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// Users
+// ===============================
+const UserUI = {
+    loadUsers: async () => {
+        try {
+            const users = await IMS_API.API_Users.getUsers();
+            renderUserTable(users);
+        } catch (err) { console.error(err); }
+    },
+    updateUserStatus: async (username, status) => {
+        try { await IMS_API.API_Users.updateUserStatus(username, status); }
+        catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// Reviews
+// ===============================
+const ReviewUI = {
+    loadReviews: async () => {
+        try {
+            const reviews = await IMS_API.API_Reviews.getReviews();
+            renderReviewList(reviews);
+        } catch (err) { console.error(err); }
+    },
+    submitReview: async (reviewData) => {
+        try { await IMS_API.API_Reviews.submitReview(reviewData); }
+        catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// Visitor Tracking
+// ===============================
+const VisitorUI = {
+    logVisit: async (visitorId) => {
+        try { await IMS_API.API_Visitors.logVisit(visitorId); }
+        catch (err) { console.error(err); }
+    },
+    getStats: async () => {
+        try {
+            const stats = await IMS_API.API_Visitors.getVisitorStats();
+            renderVisitorStats(stats.stats);
+        } catch (err) { console.error(err); }
+    }
+};
+
+// ===============================
+// Initialization
+// ===============================
+document.addEventListener('DOMContentLoaded', () => {
+    InventoryUI.loadInventory();
+    CategoryUI.loadCategories();
+    BannerUI.loadBanners();
+    BroadcastUI.loadBroadcasts();
+    UserUI.loadUsers();
+    ReviewUI.loadReviews();
+    FinanceUI.loadSales();
+    FinanceUI.loadExpenses();
+    VisitorUI.getStats();
+});

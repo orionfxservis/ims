@@ -1,24 +1,36 @@
 (() => {
+    // ===============================
+    // Auth Module (Login & Registration)
+    // ===============================
     const Auth = {
         init: function () {
             this.bindUI();
             this.setDefaultRegDate();
         },
 
+        // ------------------------------
+        // UI Event Bindings
+        // ------------------------------
         bindUI: function () {
+            // Toggle password visibility
             const showPassToggle = document.getElementById('showPassToggle');
             if (showPassToggle) showPassToggle.addEventListener('change', this.togglePasswordVisibility);
 
             const loginPassToggle = document.getElementById('toggleLoginPassword');
             if (loginPassToggle) loginPassToggle.addEventListener('click', this.toggleLoginPasswordVisibility);
 
+            // Login form
             const loginForm = document.getElementById('loginForm');
             if (loginForm) loginForm.addEventListener('submit', this.handleLogin);
 
+            // Registration form
             const registerForm = document.getElementById('registerForm');
             if (registerForm) registerForm.addEventListener('submit', this.handleRegister);
         },
 
+        // ------------------------------
+        // Modal Toggle
+        // ------------------------------
         toggleAuth: function (view) {
             const modal = document.getElementById('registrationModal');
             if (!modal) return;
@@ -51,7 +63,7 @@
         },
 
         toggleLoginPasswordVisibility: function () {
-            const pass = document.getElementById('loginPassword') || document.getElementById('password');
+            const pass = document.getElementById('password');
             const icon = document.getElementById('toggleLoginPassword');
             if (!pass || !icon) return;
 
@@ -64,22 +76,17 @@
             }
         },
 
+        // ------------------------------
+        // Default Registration Date
+        // ------------------------------
         setDefaultRegDate: function () {
             const regDateInput = document.getElementById('regDate');
             if (regDateInput) regDateInput.valueAsDate = new Date();
         },
 
-        // ✅ Normalize user data (CORE FIX)
-        normalizeUser: function (data) {
-            return {
-                ...data,
-                name: data.name || data.fullName || data["Full Name"] || data["Name"] || data.username || "User",
-                username: data.username || data["User Name"] || data["Username"] || "",
-                company: data.company || data["Company"] || data["Company Name"] || "",
-                role: (data.role || data["Role"] || "user").toLowerCase()
-            };
-        },
-
+        // ------------------------------
+        // Trial Login
+        // ------------------------------
         loginAsTrial: function () {
             const trialUser = {
                 username: 'trial',
@@ -89,25 +96,25 @@
                 status: 'active',
                 profileImage: 'assets/trial_avatar.jpg'
             };
-
             localStorage.setItem('user', JSON.stringify(trialUser));
             localStorage.setItem('currentUser', JSON.stringify(trialUser));
             window.location.href = 'pages/dashboard.html';
         },
 
+        // ------------------------------
+        // Login Handler
+        // ------------------------------
         handleLogin: async function (e) {
             e.preventDefault();
-
             const btn = document.getElementById('loginBtn');
             const originalText = btn.innerHTML;
 
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> Signing In...';
 
-            const username = (document.getElementById('loginName') || document.getElementById('username')).value.trim();
-            const password = (document.getElementById('loginPassword') || document.getElementById('password')).value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
             const company = document.getElementById('loginCompany')?.value.trim() || '';
-
             const isAdmin = ['admin', 'superadmin'].includes(username.toLowerCase());
 
             if (!isAdmin && !company) {
@@ -119,39 +126,30 @@
 
             try {
                 const result = await API.login(username, password, company);
-
                 btn.disabled = false;
                 btn.innerHTML = originalText;
 
                 if (result.success || result.status === 'success') {
-
-                    let userData = result.user || result;
-
-                    // ✅ FIX APPLIED HERE
-                    userData = Auth.normalizeUser(userData);
-
+                    const userData = result.user || result;
                     localStorage.setItem('user', JSON.stringify(userData));
                     localStorage.setItem('currentUser', JSON.stringify(userData));
-
-                    window.location.href = userData.role === 'admin'
-                        ? 'admin.html'
-                        : 'pages/dashboard.html';
-
+                    window.location.href = userData.role?.toLowerCase() === 'admin' ? 'admin.html' : 'pages/dashboard.html';
                 } else {
                     alert(result.message || "Invalid credentials");
                 }
-
             } catch (err) {
                 console.error("Login Error:", err);
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                alert("Login failed.");
+                alert("Login failed. Check console for details.");
             }
         },
 
+        // ------------------------------
+        // Registration Handler
+        // ------------------------------
         handleRegister: function (e) {
             e.preventDefault();
-
             const btn = document.getElementById('registerBtn');
             const originalText = btn.innerHTML;
 
@@ -195,13 +193,17 @@
                 btn.disabled = false;
                 btn.innerHTML = originalText;
                 console.error("Registration Error:", err);
-                alert("Registration failed.");
+                alert("Registration failed. Check console.");
             });
         }
     };
 
+    // ===============================
+    // Initialize Auth Module
+    // ===============================
     document.addEventListener('DOMContentLoaded', () => Auth.init());
 
+    // Expose globally if needed
     window.Auth = Auth;
     window.toggleAuth = Auth.toggleAuth;
     window.loginAsTrial = Auth.loginAsTrial;

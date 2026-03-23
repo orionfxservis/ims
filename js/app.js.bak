@@ -1273,16 +1273,4 @@ async function saveUserProfile() {
     }
 }
 
-// ===== Sidebar Active Page Highlight =====
-document.addEventListener("DOMContentLoaded", () => {
-  const currentPage = window.location.pathname.split("/").pop();
-  document.querySelectorAll('.nav-item').forEach(item => {
-    if(item.getAttribute('href') === currentPage) {
-      item.classList.add('active');
-    } else {
-      item.classList.remove('active');
-    }
-  });
-});
-
 async function checkDeploymentVersion() { /* Your existing version check */ }

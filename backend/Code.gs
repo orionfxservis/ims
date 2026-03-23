@@ -146,8 +146,9 @@ function loginUser(data) {
     return response({ status: 'error', message: 'Invalid password' });
   }
   
-  if (user.status !== 'active' && user.username !== 'admin') {
-     return response({ status: 'error', message: 'Account not active. Please wait for Admin approval.' });
+  const userStatus = String(user.status || '').trim().toLowerCase();
+  if (userStatus !== 'active' && userStatus !== 'approved' && String(user.username).toLowerCase() !== 'admin') {
+     return response({ status: 'error', message: 'Account is ' + (user.status || 'Pending') });
   }
 
   logActivity(user.username, 'Login', 'User logged in');
@@ -418,74 +419,56 @@ function saveExpense(data) {
 
 function getInventory(username, role) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('InventoryData');
+  if (!sheet) return response([]);
+
+  const data = sheet.getDataRange().getValues();
   let allData = [];
   
-  // Admin sees all data. Regular users see only their own data.
-  if (role === 'admin' || role === 'super admin') {
-    const sheets = ss.getSheets();
-    for (let i = 0; i < sheets.length; i++) {
-        const sName = sheets[i].getName();
-        if (sName.startsWith('Inventory_') && sName !== 'InventoryHeaders') {
-            allData = allData.concat(getSheetData(sName));
+  // Skip header (UserID, BatchID, Data)
+  for (let i = 1; i < data.length; i++) {
+    const rowUserId = String(data[i][0]).trim().toLowerCase();
+    const batchId = String(data[i][1]).trim();
+    const jsonDataStr = data[i][2];
+    
+    // Admin sees all. Regular users see only their own.
+    if (role === 'admin' || role === 'super admin' || (username && rowUserId === String(username).trim().toLowerCase())) {
+        try {
+            let item = JSON.parse(jsonDataStr);
+            item.batch = batchId;
+            item.id = i; // Inject row index as ID for edits/searches
+            allData.push(item);
+        } catch(e) {
+            // ignore parse errors
         }
     }
-    // Include legacy Inventory sheet if it exists
-    if (ss.getSheetByName('Inventory')) {
-        allData = allData.concat(getSheetData('Inventory'));
-    }
-    return response(allData);
-  } else if (username) {
-    const safeUsername = String(username).trim().toLowerCase();
-    const sheetName = 'Inventory_' + safeUsername;
-    if (ss.getSheetByName(sheetName)) {
-        allData = getSheetData(sheetName);
-    }
-    return response(allData);
   }
   
-  // Fallback: If no role or username provided, return empty
-  return response([]);
+  return response(allData);
 }
 
 function saveInventory(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const username = String(data.username || 'unknown').trim().toLowerCase();
-  const sheetName = 'Inventory_' + username;
-  let sheet = ss.getSheetByName(sheetName);
   
+  let sheet = ss.getSheetByName('InventoryData');
   if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    // Standard basic headers if they haven't uploaded an Excel yet
-    const headers = ['Date', 'Category', 'Vendor', 'Item Name', 'Brand', 'Model', 'Quantity', 'Unit Price', 'Total', 'Paid Amount', 'Payment Mode', 'Balance', 'Generation', 'Ram', 'HDD', 'Display', 'Touch', 'UpdateDate', 'Volt', 'Batch', 'Username'];
-    sheet.appendRow(headers);
+    sheet = ss.insertSheet('InventoryData');
+    sheet.appendRow(['UserID', 'BatchID', 'Data']);
   }
   
-  const headers = sheet.getDataRange().getValues()[0];
-  const lowerHeaders = headers.map(h => String(h).toLowerCase().trim());
+  let batchId = data.batch || 'Manual';
+  let cleanedData = { ...data };
+  delete cleanedData.batch;
+  delete cleanedData.username;
+  delete cleanedData.action;
+
+  sheet.appendRow([
+    username,
+    batchId,
+    JSON.stringify(cleanedData)
+  ]);
   
-  const lowerItem = {};
-  for (const k in data) {
-      lowerItem[String(k).toLowerCase().trim()] = data[k];
-  }
-  
-  const row = lowerHeaders.map(lh => {
-      if (lh === 'username') return username;
-      
-      // Attempt synonymous lookups just in case
-      let val = '';
-      if (lh === 'qty' || lh === 'quantity') val = lowerItem['qty'] !== undefined ? lowerItem['qty'] : lowerItem['quantity'];
-      else if (lh === 'price' || lh === 'unit price') val = lowerItem['price'] !== undefined ? lowerItem['price'] : lowerItem['unit price'];
-      else if (lh === 'vendor' || lh === 'vendor name') val = lowerItem['vendor'] !== undefined ? lowerItem['vendor'] : lowerItem['vendor name'];
-      else if (lh === 'item' || lh === 'item name') val = lowerItem['item'] !== undefined ? lowerItem['item'] : lowerItem['item name'];
-      else if (lh === 'paid' || lh === 'paid amount') val = lowerItem['paid'] !== undefined ? lowerItem['paid'] : lowerItem['paid amount'];
-      else if (lh === 'mode' || lh === 'payment mode') val = lowerItem['mode'] !== undefined ? lowerItem['mode'] : lowerItem['payment mode'];
-      else val = lowerItem[lh];
-      
-      val = val !== undefined ? val : '';
-      return (typeof val === 'string' && val.match(/^[0-9]+$/)) ? "'" + val : val;
-  });
-  
-  sheet.appendRow(row);
   return { success: true, message: 'Item saved', item: data };
 }
 
@@ -902,41 +885,37 @@ function getBroadcasts(isAdmin) {
 function bulkSaveInventory(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const username = String(data.username || 'unknown').trim().toLowerCase();
-  const sheetName = 'Inventory_' + username;
-  let sheet = ss.getSheetByName(sheetName);
+  
+  let sheet = ss.getSheetByName('InventoryData');
+  if (!sheet) {
+    sheet = ss.insertSheet('InventoryData');
+    sheet.appendRow(['UserID', 'BatchID', 'Data']);
+  }
   
   const items = data.data;
   if (!items || !items.length) return response({ status: 'error', message: 'No items provided' });
   
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    const headers = Object.keys(items[0]).map(k => String(k).trim());
-    if (!headers.includes('Username')) headers.push('Username');
-    sheet.appendRow(headers);
-  }
+  const rowsToAppend = [];
   
-  const headers = sheet.getDataRange().getValues()[0];
-  const lowerHeaders = headers.map(h => String(h).toLowerCase().trim());
-  
-  const rows = items.map(item => {
-    // Map Excel keys to lowercase for robust matching
-    const lowerItem = {};
-    for (const k in item) {
-      lowerItem[String(k).toLowerCase().trim()] = item[k];
-    }
-    
-    return lowerHeaders.map(lh => {
-      if (lh === 'username') return username;
-      let val = lowerItem[lh] !== undefined ? lowerItem[lh] : '';
-      return (typeof val === 'string' && val.match(/^[0-9]+$/)) ? "'" + val : val;
-    });
+  items.forEach(item => {
+     let batchId = item.batch || 'Import';
+     let cleanedItem = {...item};
+     delete cleanedItem.batch; 
+     delete cleanedItem.username;
+     delete cleanedItem.action;
+     
+     rowsToAppend.push([
+        username,
+        batchId,
+        JSON.stringify(cleanedItem)
+     ]);
   });
   
-  if (rows.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  if (rowsToAppend.length > 0) {
+     sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, 3).setValues(rowsToAppend);
   }
   
-  return response({ status: 'success', message: 'Bulk import successful', count: rows.length });
+  return response({ status: 'success', message: 'Bulk import successful', count: rowsToAppend.length });
 }
 
 // --- Inventory Headers ---
