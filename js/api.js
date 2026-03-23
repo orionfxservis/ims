@@ -96,10 +96,10 @@ const IMS_API = {
             if (data) return JSON.parse(data);
             
             return [
-                { id: 'starter', name: 'Starter', price: 'Rs 1,500', services: 'Stock Management, Purchase & Sales, Udhaar Tracking, Basic Reports', isPopular: false, desc: '1 User • Small Shops', btnText: 'Get Started' },
-                { id: 'business', name: 'Business ⭐', price: 'Rs 3,000', services: 'Everything in Starter, Multi User Access, Customer & Supplier, Profit Dashboard', isPopular: true, desc: '2 Users • Shop + Staff', btnText: 'Most Popular' },
-                { id: 'professional', name: 'Professional', price: 'Rs 5,500', services: 'Everything in Business, Advanced Reports, Analytics Dashboard, Priority Support', isPopular: false, desc: '5+ Users • Wholesale', btnText: 'Get Started' },
-                { id: 'enterprise', name: 'Enterprise', price: 'Custom', services: 'Everything in Professional, Custom Reports, Multi Branch, API Integration', isPopular: false, desc: 'Unlimited • Large Business', btnText: 'Contact Us' }
+                { id: 'starter', name: 'Starter', price: 'Rs 1,500', services: 'Stock Management, Purchase & Sales, Udhaar Tracking, Basic Reports', isPopular: false, desc: '1 User • Small Shops', btnText: 'Start Free' },
+                { id: 'business', name: 'Business ⭐', price: 'Rs 3,000', services: 'Everything in Starter, Multi User Access, Customer & Supplier, Profit Dashboard', isPopular: true, desc: '2 Users • Shop + Staff', btnText: 'Start Free Trial 🚀' },
+                { id: 'professional', name: 'Professional', price: 'Rs 5,500', services: 'Everything in Business, Advanced Reports, Analytics Dashboard, Priority Support', isPopular: false, desc: '5+ Users • Wholesale', btnText: 'Upgrade Now' },
+                { id: 'enterprise', name: 'Enterprise', price: 'Custom', services: 'Everything in Professional, Custom Reports, Multi Branch, API Integration', isPopular: false, desc: 'Unlimited • Large Business', btnText: 'Talk to Sales' }
             ];
         },
         savePricingPackages: async (packages) => {

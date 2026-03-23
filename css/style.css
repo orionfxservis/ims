@@ -500,10 +500,8 @@ body {
 .hero-cta {
     display: flex;
     gap: 16px;
-    flex-wrap: nowrap;
-    /* Prevent wrapping */
+    flex-wrap: wrap;
     justify-content: center;
-    /* Align Center */
     width: 100%;
 }
 
@@ -518,6 +516,7 @@ body {
     white-space: nowrap;
     width: auto;
     max-width: none;
+    flex: 0 1 auto;
 }
 
 /* Primary */
@@ -553,9 +552,15 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero-cta {
+        gap: 12px;
+    }
     .hero-cta .btn {
-        width: 100%;
-        max-width: 280px;
+        width: calc(50% - 6px); /* 2 per row on tablet/mobile */
+        min-width: 140px;
+        padding: 12px 15px;
+        font-size: 14px;
+        white-space: normal;
         text-align: center;
     }
 }
@@ -2016,18 +2021,22 @@ body {
 
 /* PRICING SURFACES REFACTOR */
 .pricing-cards-container {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: stretch;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     width: 100%;
-    margin: 0;
+    margin: 0 auto;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
     .pricing-cards-container {
-        flex-wrap: wrap;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .pricing-cards-container {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -2039,13 +2048,13 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+    transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
 .pricing-card:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-8px) scale(1.02);
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
@@ -2116,4 +2125,64 @@ body {
 .pricing-btn {
     margin-top: auto; /* Aligns to bottom */
     width: 100%;
+}
+
+.offer-badge {
+    position: absolute;
+    top: 25px;
+    right: 10px;
+    background: #f59e0b;
+    color: white;
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.pricing-card.business {
+    position: relative;
+    z-index: 1;
+}
+
+.pricing-card.business::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 24px;
+    background: linear-gradient(45deg, #22c55e, #4ade80, #22c55e);
+    z-index: -1;
+    filter: blur(10px);
+    opacity: 0.6;
+}
+
+.trust-indicator {
+    animation: text-pulse 2s infinite;
+}
+
+@keyframes text-pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@media (max-width: 480px) {
+    .hero-cta .btn {
+        width: 100% !important; /* Stack 1 by 1 on very small phones instead of 2 by 2 */
+        margin-bottom: 5px;
+    }
+    .trust-indicator {
+        font-size: 0.7rem !important;
+        line-height: 1.6 !important;
+    }
+    .pricing-card {
+        padding: 1.5rem 1rem !important; /* Save space internally on small phones */
+    }
+    .pricing-cards-container {
+        gap: 1rem !important; /* Reduce gap on small phones */
+    }
 }

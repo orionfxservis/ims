@@ -118,7 +118,7 @@
                         style="color: #f59e0b; border-color: #f59e0b;">
                         <i class="fa-solid fa-pen" style="margin-right: 0.4rem;"></i> Leave a Review
                     </a>
-                    <a href="#" class="btn btn-outline" onclick="openPricingModal(); return false;"
+                    <a href="#" class="btn btn-outline" onclick="document.getElementById('dynamicPricingCards').scrollIntoView({ behavior: 'smooth' }); return false;"
                         style="color: #22c55e; border-color: #22c55e; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; padding: 0.5rem 1rem;">
                         <span style="font-weight: 600; font-size: 0.95rem;">IMS 💰 Pricing Packages</span>
                         <span style="font-size: 0.75rem; opacity: 0.9;">Starting from Rs 1500 / Month</span>
@@ -606,26 +606,58 @@
                 const pkgs = await API.getPricingPackages();
                 const pricingContainer = document.getElementById('dynamicPricingCards');
                 if (pricingContainer && pkgs && pkgs.length > 0) {
-                    pricingContainer.innerHTML = pkgs.map(p => {
-                        const isPopularClass = p.isPopular ? 'pricing-card-popular' : 'pricing-card-regular';
+                    const cardsHtml = pkgs.map(p => {
+                        let isPopularClass = p.isPopular ? 'pricing-card-popular' : 'pricing-card-regular';
+                        if (p.id === 'business') isPopularClass += ' business';
+
                         const badgeHtml = p.isPopular ? '<span class="pricing-badge">Most Popular</span>' : '';
                         const titleClass = p.isPopular ? 'class="pricing-title-popular"' : '';
                         const btnClass = p.isPopular ? 'btn-primary' : 'btn-outline';
                         const servicesHtml = p.services.split(',').map(s => `<li>${s.trim()}</li>`).join('');
 
+                        let perDayHtml = '';
+                        let savingsTagHtml = '';
+                        let recommendedTagHtml = '';
+
+                        if (p.id === 'starter') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 50/day</p>';
+                        } else if (p.id === 'business') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 100/day</p>';
+                            savingsTagHtml = '<p style="font-size:0.75rem; color:#f59e0b; font-weight:600; margin-top: 0.75rem; text-align: center;">Save Rs 1,500 vs Professional</p>';
+                            recommendedTagHtml = '<p style="font-size:0.7rem; color:#9ca3af; margin-bottom:0.5rem; text-align:center;">Recommended for Karachi Shops</p>';
+                        } else if (p.id === 'professional') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 180/day</p>';
+                        }
+
+                        const offerBadgeHtml = p.isPopular ? '<span class="offer-badge">🔥 Limited Time Offer</span>' : '';
+
                         return `
                         <div onclick="openPackageDetails('${p.id}')" class="pricing-card ${isPopularClass}">
                             ${badgeHtml}
+                            ${offerBadgeHtml}
                             <h3 ${titleClass}>${p.name}</h3>
+                            ${recommendedTagHtml}
                             <p class="pricing-desc">${p.desc}</p>
                             <ul class="pricing-features">
                                 ${servicesHtml}
                             </ul>
                             <h2>${p.price}</h2>
+                            ${perDayHtml}
                             <button class="btn ${btnClass} pricing-btn">${p.btnText}</button>
+                            ${savingsTagHtml}
                         </div>
                         `;
                     }).join('');
+
+                    pricingContainer.innerHTML = cardsHtml;
+                    
+                    if (!document.getElementById('trustIndicator')) {
+                        pricingContainer.insertAdjacentHTML('afterend', `
+                            <p id="trustIndicator" class="trust-indicator" style="text-align:center; font-size:0.85rem; color: rgba(255,255,255,0.8); margin-top:1.5rem; width: 100%;">
+                                ✔ No Hidden Charges &nbsp;•&nbsp; ✔ Cancel Anytime &nbsp;•&nbsp; ✔ Free Support Included
+                            </p>
+                        `);
+                    }
                 }
             } catch (e) {
                 console.error("Failed to fetch pricing packages:", e);

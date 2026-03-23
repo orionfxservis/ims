@@ -118,7 +118,7 @@
                         style="color: #f59e0b; border-color: #f59e0b;">
                         <i class="fa-solid fa-pen" style="margin-right: 0.4rem;"></i> Leave a Review
                     </a>
-                    <a href="#" class="btn btn-outline" onclick="openPricingModal(); return false;"
+                    <a href="#" class="btn btn-outline" onclick="document.getElementById('dynamicPricingCards').scrollIntoView({ behavior: 'smooth' }); return false;"
                         style="color: #22c55e; border-color: #22c55e; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; padding: 0.5rem 1rem;">
                         <span style="font-weight: 600; font-size: 0.95rem;">IMS 💰 Pricing Packages</span>
                         <span style="font-size: 0.75rem; opacity: 0.9;">Starting from Rs 1500 / Month</span>
@@ -135,113 +135,8 @@
             <!-- ================== FOOTER ================== -->
             <!-- ================== PRICING CARDS ================== -->
 <!-- ================== PRICING CARDS ================== -->
-<div class="pricing-cards-container" style="
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-gap: 1rem;
-">
-
-<!-- Starter -->
-<div onclick="openPackageDetails('starter')" class="pricing-card" style="
-padding: 1rem;
-border-radius: 12px;
-background: rgba(255,255,255,0.05);
-cursor: pointer;
-border: 1px solid #f59e0b;
-">
-    <h3>Starter</h3>
-    <p style="font-size: 0.85rem;">1 User • Small Shops</p>
-
-    <ul style="font-size: 0.8rem; margin: 0.8rem 0;">
-        <li>Stock Management</li>
-        <li>Purchase & Sales</li>
-        <li>Udhaar Tracking</li>
-        <li>Basic Reports</li>
-    </ul>
-
-    <h2>Rs 1,500</h2>
-    <button class="btn btn-outline" style="margin-top:0.5rem;">Get Started</button>
-</div>
-
-<!-- Business -->
-<div onclick="openPackageDetails('business')" class="pricing-card" style="
-padding: 1.2rem;
-border-radius: 12px;
-background: rgba(34,197,94,0.12);
-cursor: pointer;
-border: 2px solid #22c55e;
-position: relative;
-">
-
-<span style="
-position:absolute;
-top:-10px;
-right:10px;
-background:#22c55e;
-color:white;
-padding:4px 10px;
-font-size:0.7rem;
-border-radius:20px;
-">Most Popular</span>
-
-<h3 style="color:#22c55e;">Business ⭐</h3>
-<p style="font-size: 0.85rem;">2 Users • Shop + Staff</p>
-
-<ul style="font-size: 0.8rem; margin: 0.8rem 0;">
-    <li>Everything in Starter</li>
-    <li>Multi User Access</li>
-    <li>Customer & Supplier</li>
-    <li>Profit Dashboard</li>
-</ul>
-
-<h2>Rs 3,000</h2>
-<button class="btn btn-primary" style="margin-top:0.5rem;">Most Popular</button>
-</div>
-
-<!-- Professional -->
-<div onclick="openPackageDetails('professional')" class="pricing-card" style="
-padding: 1.2rem;
-border-radius: 12px;
-background: rgba(255,255,255,0.05);
-cursor: pointer;
-border: 1px solid #f59e0b;
-">
-<h3>Professional</h3>
-<p style="font-size: 0.85rem;">5+ Users • Wholesale</p>
-
-<ul style="font-size: 0.8rem; margin: 0.8rem 0;">
-    <li>Everything in Business</li>
-    <li>Advanced Reports</li>
-    <li>Analytics Dashboard</li>
-    <li>Priority Support</li>
-</ul>
-
-<h2>Rs 5,500</h2>
-<button class="btn btn-outline" style="margin-top:0.5rem;">Get Started</button>
-</div>
-
-<!-- Enterprise -->
-<div onclick="openPackageDetails('enterprise')" class="pricing-card" style="
-padding: 1.2rem;
-border-radius: 12px;
-background: rgba(255,255,255,0.05);
-cursor: pointer;
-border: 1px solid #f59e0b;
-">
-<h3>Enterprise</h3>
-<p style="font-size: 0.85rem;">Unlimited • Large Business</p>
-
-<ul style="font-size: 0.8rem; margin: 0.8rem 0;">
-    <li>Everything in Professional</li>
-    <li>Custom Reports</li>
-    <li>Multi Branch</li>
-    <li>API Integration</li>
-</ul>
-
-<h2>Custom</h2>
-<button class="btn btn-outline" style="margin-top:0.5rem;">Contact Us</button>
-</div>
-
+<div id="dynamicPricingCards" class="pricing-cards-container">
+    <!-- JS injected Pricing Cards -->
 </div>
             <!-- ================== FOOTER SECTION ================== -->
             <div class="footer-main-container">
@@ -701,10 +596,71 @@ border: 1px solid #f59e0b;
                     }).join('');
                 } else {
                     // Fallback or leave as is if no reviews yet
-                    // contentDiv.innerHTML = `<span>Be the first to leave a review!</span>`;
                 }
             } catch (e) {
                 console.error("Failed to fetch reviews:", e);
+            }
+
+            // Load Pricing Packages
+            try {
+                const pkgs = await API.getPricingPackages();
+                const pricingContainer = document.getElementById('dynamicPricingCards');
+                if (pricingContainer && pkgs && pkgs.length > 0) {
+                    const cardsHtml = pkgs.map(p => {
+                        let isPopularClass = p.isPopular ? 'pricing-card-popular' : 'pricing-card-regular';
+                        if (p.id === 'business') isPopularClass += ' business';
+
+                        const badgeHtml = p.isPopular ? '<span class="pricing-badge">Most Popular</span>' : '';
+                        const titleClass = p.isPopular ? 'class="pricing-title-popular"' : '';
+                        const btnClass = p.isPopular ? 'btn-primary' : 'btn-outline';
+                        const servicesHtml = p.services.split(',').map(s => `<li>${s.trim()}</li>`).join('');
+
+                        let perDayHtml = '';
+                        let savingsTagHtml = '';
+                        let recommendedTagHtml = '';
+
+                        if (p.id === 'starter') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 50/day</p>';
+                        } else if (p.id === 'business') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 100/day</p>';
+                            savingsTagHtml = '<p style="font-size:0.75rem; color:#f59e0b; font-weight:600; margin-top: 0.75rem; text-align: center;">Save Rs 1,500 vs Professional</p>';
+                            recommendedTagHtml = '<p style="font-size:0.7rem; color:#9ca3af; margin-bottom:0.5rem; text-align:center;">Recommended for Karachi Shops</p>';
+                        } else if (p.id === 'professional') {
+                            perDayHtml = '<p style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-top: 5px; margin-bottom: 15px;">Only Rs 180/day</p>';
+                        }
+
+                        const offerBadgeHtml = p.isPopular ? '<span class="offer-badge">🔥 Limited Time Offer</span>' : '';
+
+                        return `
+                        <div onclick="openPackageDetails('${p.id}')" class="pricing-card ${isPopularClass}">
+                            ${badgeHtml}
+                            ${offerBadgeHtml}
+                            <h3 ${titleClass}>${p.name}</h3>
+                            ${recommendedTagHtml}
+                            <p class="pricing-desc">${p.desc}</p>
+                            <ul class="pricing-features">
+                                ${servicesHtml}
+                            </ul>
+                            <h2>${p.price}</h2>
+                            ${perDayHtml}
+                            <button class="btn ${btnClass} pricing-btn">${p.btnText}</button>
+                            ${savingsTagHtml}
+                        </div>
+                        `;
+                    }).join('');
+
+                    pricingContainer.innerHTML = cardsHtml;
+                    
+                    if (!document.getElementById('trustIndicator')) {
+                        pricingContainer.insertAdjacentHTML('afterend', `
+                            <p id="trustIndicator" class="trust-indicator" style="text-align:center; font-size:0.85rem; color: rgba(255,255,255,0.8); margin-top:1.5rem; width: 100%;">
+                                ✔ No hidden charges &nbsp;•&nbsp; ✔ Cancel anytime &nbsp;•&nbsp; ✔ Free support included
+                            </p>
+                        `);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch pricing packages:", e);
             }
         });
 
