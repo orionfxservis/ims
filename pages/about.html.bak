@@ -1,113 +1,174 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>About Us | Hisaab Kitab</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .about-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            max-width: 1000px;
-            margin: 0 auto;
-            justify-content: center;
-            align-items: stretch;
-            padding-top: 5vh;
-        }
-        .about-card {
-            flex: 1;
-            min-width: 300px;
-            background: var(--glass-bg, rgba(255, 255, 255, 0.1));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2));
-            box-shadow: var(--glass-shadow, 0 8px 32px 0 rgba(0, 0, 0, 0.37));
-            border-radius: 16px;
-            padding: 2.5rem;
-            animation: fadeIn 0.6s ease-out;
-            text-align: left;
-        }
-        .about-card.urdu {
-            text-align: right;
-        }
-        .about-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to right, #60a5fa, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .about-card.urdu .about-title {
-            color: #f59e0b;
-            background: none;
-            -webkit-text-fill-color: initial;
-            font-family: 'Noto Nastaliq Urdu', serif;
-        }
-        .about-text {
-            color: var(--text-dim, rgba(255, 255, 255, 0.8));
-            line-height: 1.8;
-            font-size: 1.05rem;
-        }
-        .about-text.urdu {
-            font-family: 'Noto Nastaliq Urdu', serif;
-            font-size: 1.25rem;
-            line-height: 2.2;
-            color: white;
-        }
-    </style>
-</head>
-<body style="background: var(--bg-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%)); color: white; padding: 2rem; text-align: center; font-family: 'Inter', sans-serif; overflow-y: auto; height: 100vh;">
-    
-    <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
+<!-- ABOUT US SECTION (THEME-MATCHED & REFINED) -->
+<section class="about-section">
+    <div class="about-wrapper">
 
-    <h1 style="color: #f59e0b; margin-top: 5vh; font-size: 2.5rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">About Us</h1>
-    
-    <div class="about-container">
-        <!-- English Section -->
-        <div class="about-card">
-            <h2 class="about-title">English Introduction</h2>
-            <p class="about-text">
-                🌐 About Us (English)
-
-Welcome to Hisaab Kitab – Online Inventory Management System, a smart and reliable platform designed to simplify business operations.
-
-At Hisaab Kitab, we aim to help businesses take full control of their inventory, sales, and financial records with ease. Whether you are a small shop owner, a retailer, or a growing business, our system is built to manage everything in one place — efficiently and accurately.
-
-We understand the challenges of handling daily business tasks like stock tracking, sales recording, expense management, and credit (udhaar) handling. That’s why Hisaab Kitab is designed to automate these processes, reduce errors, and save valuable time.
-
-Our platform offers powerful features including inventory management, purchase & sales tracking, expense monitoring, credit management, low stock alerts, and detailed reporting — giving you complete visibility and control over your business.
-
-We are continuously improving our system by adding modern features, enhancing user experience, and ensuring smooth performance. Our mission is to provide a simple, affordable, and professional solution that supports business growth in the digital era.
-
-Hisaab Kitab is not just software — it’s your business partner in growth and success.
-            </p>
+        <!-- Heading -->
+        <div class="about-header">
+            <h1 class="title">About Hisaab Kitab</h1>
+            <p class="subtitle">Smart, Simple & Powerful Online Inventory Management System</p>
         </div>
 
-        <!-- Urdu Section -->
-        <div class="about-card urdu" dir="rtl">
-            <h2 class="about-title">اردو تعارف</h2>
-            <p class="about-text urdu">
-                🌐 About Us (Urdu)
+        <!-- Content Grid -->
+        <div class="about-grid glass-card">
+            <div class="about-text">
+                <h2>Your Business, Fully Under Control</h2>
+                <p>
+                    Hisaab Kitab helps businesses manage inventory, sales, expenses, and credit with ease. 
+                    Built for shop owners, retailers, and growing businesses, our system simplifies daily operations 
+                    and provides real-time insights.
+                </p>
+                <p>
+                    ہم آپ کے کاروبار کو آسان اور مؤثر انداز میں منظم کرنے کے لئے ہساب کتاب فراہم کرتے ہیں۔ 
+                    اسٹاک، سیلز، اخراجات اور قرضے کی مکمل نگرانی کے ساتھ اپنے کاروبار پر مکمل قابو پائیں۔
+                </p>
+                <p>
+                    We focus on automation, accuracy, and user-friendly design so you can save time and grow faster.
+                </p>
+            </div>
 
-خوش آمدید حساب کتاب – آن لائن انوینٹری مینجمنٹ سسٹم میں، جو ایک جدید اور قابلِ اعتماد پلیٹ فارم ہے جو کاروبار کو آسان اور منظم بنانے کے لیے تیار کیا گیا ہے۔
-
-Hisaab Kitab کا مقصد کاروبار کو اپنی انوینٹری، سیلز اور مالی معاملات پر مکمل کنٹرول فراہم کرنا ہے۔ چاہے آپ ایک چھوٹے دکاندار ہوں، ریٹیلر ہوں یا بڑھتا ہوا کاروبار، ہمارا سسٹم آپ کے تمام کام ایک ہی جگہ پر مؤثر طریقے سے منظم کرتا ہے۔
-
-ہم جانتے ہیں کہ روزمرہ کے کاروباری کام جیسے اسٹاک کی نگرانی، سیلز ریکارڈ، اخراجات کا حساب اور ادھار (کریڈٹ) کو سنبھالنا مشکل ہوتا ہے۔ اسی لیے Hisaab Kitab کو اس طرح ڈیزائن کیا گیا ہے کہ یہ ان تمام کاموں کو خودکار بنائے، غلطیوں کو کم کرے اور آپ کا وقت بچائے۔
-
-ہمارے سسٹم میں انوینٹری مینجمنٹ، خرید و فروخت کی ٹریکنگ، اخراجات کی نگرانی، ادھار مینجمنٹ، لو اسٹاک الرٹس اور تفصیلی رپورٹس جیسے اہم فیچرز شامل ہیں، جو آپ کے کاروبار کو بہتر بنانے میں مدد دیتے ہیں۔
-
-ہم مسلسل اپنی سروس کو بہتر بنا رہے ہیں، جدید فیچرز شامل کر رہے ہیں اور صارفین کے تجربے کو مزید آسان بنا رہے ہیں۔ ہمارا مشن ایک سادہ، سستا اور پروفیشنل حل فراہم کرنا ہے جو کاروبار کو ڈیجیٹل دور میں آگے بڑھنے میں مدد دے۔
-
-Hisaab Kitab صرف ایک سافٹ ویئر نہیں — بلکہ آپ کے کاروبار کی کامیابی کا ساتھی ہے۔
-            </p>
+            <div class="about-image">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Business Illustration">
+            </div>
         </div>
+
+        <!-- Features -->
+        <div class="features">
+            
+            <div class="feature-card glass-card">
+                <div class="icon">📦</div>
+                <h3>Inventory Management</h3>
+                <p>Track stock levels and manage products efficiently.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <div class="icon">💰</div>
+                <h3>Sales & Purchase</h3>
+                <p>Manage buying and selling with accurate records.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <div class="icon">📊</div>
+                <h3>Reports & Insights</h3>
+                <p>Get detailed reports to make smart decisions.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <div class="icon">🤝</div>
+                <h3>Credit (Udhaar)</h3>
+                <p>Keep track of customer credit and payments.</p>
+            </div>
+
+        </div>
+
     </div>
+</section>
 
-    <a href="../index.html" class="btn" style="display: inline-block; width: auto; margin-top: 3rem; text-decoration: none; padding: 12px 30px; border-radius: 30px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); font-weight: 600;">Back to Home</a>
-</body>
-</html>
+<!-- CSS (MATCHES YOUR THEME & GLASS EFFECT) -->
+<style>
+.about-section {
+    width: 100%;
+    min-height: 100vh;
+    padding: 50px 30px;
+    background: url('../images/bg-pattern.png') center/cover no-repeat; /* match your site bg */
+}
+
+.about-wrapper {
+    max-width: 1200px;
+    margin: auto;
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.about-header .title {
+    font-size: 2.5rem;
+    color: var(--primary-orange);
+}
+
+.about-header .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+}
+
+/* About grid with glass effect */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.about-text h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.about-text p {
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+.about-image img {
+    width: 100%;
+    max-width: 300px;
+    display: block;
+    margin: auto;
+}
+
+/* Features grid */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    margin-top: 60px;
+}
+
+.feature-card {
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.2);
+}
+
+.feature-card .icon {
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.feature-card h3 {
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+}
+
+.feature-card p {
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .about-image {
+        margin-top: 20px;
+    }
+}
+</style>

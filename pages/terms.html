@@ -5,12 +5,68 @@
     <title>Terms & Conditions | Hisaab Kitab</title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            justify-content: center;
+            align-items: stretch;
+            padding-top: 5vh;
+        }
+
+        .page-card {
+            flex: 1;
+            min-width: 280px;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2));
+            box-shadow: var(--glass-shadow, 0 8px 32px 0 rgba(0, 0, 0, 0.37));
+            border-radius: 14px;
+            padding: 2rem;
+            animation: fadeIn 0.6s ease-out;
+            text-align: left;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-text {
+            color: var(--text-dim, rgba(255, 255, 255, 0.8));
+            line-height: 1.8;
+            font-size: 0.95rem;
+            margin-top: 0;
+            text-align: justify;
+        }
+    </style>
 </head>
-<body style="background-color: #0f172a; color: white; padding: 2rem; text-align: center; font-family: 'Inter', sans-serif;">
-    <h1 style="color: #f59e0b; margin-top: 20vh; font-size: 2.5rem; font-weight: 700;">Terms & Conditions</h1>
-    <p style="opacity: 0.8; max-width: 600px; margin: 1rem auto; line-height: 1.6;">
-        By subscribing or using any core functionality of Hisaab Kitab, you agree to our policies. Detailed terms and references will be published here shortly.
-    </p>
-    <a href="../index.html" class="btn" style="display: inline-block; width: auto; margin-top: 1rem; text-decoration: none; background: #3b82f6;">Back to Home</a>
+<body style="background: var(--bg-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%)); color: white; padding: 2rem; text-align: center; font-family: 'Inter', sans-serif; display: block; overflow-y: auto; height: auto; min-height: 100vh;">
+
+    <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
+
+    <h1 style="color: #f59e0b; margin-top: 5vh; font-size: 2.5rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+        Terms & Conditions</h1>
+
+    <div class="page-container">
+        <div class="page-card">
+            <h2 class="page-title">📜 Our Policies</h2>
+            <p class="page-text">
+                By subscribing or using any core functionality of Hisaab Kitab, you agree to our policies. Detailed terms and references will be published here shortly.<br><br>We are committed to providing a transparent and secure environment for all our users. As we expand our platform's capabilities, this section will be updated with comprehensive guidelines regarding data usage, privacy, user responsibilities, and subscription terms. Please check back later for the complete document.
+            </p>
+        </div>
+    </div>
+
+    <a href="../index.html" class="btn"
+        style="display: inline-block; width: auto; margin-top: 3rem; text-decoration: none; padding: 12px 30px; border-radius: 30px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); font-weight: 600;">Back
+        to Home</a>
 </body>
 </html>
