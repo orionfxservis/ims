@@ -119,7 +119,7 @@ const IMS_API = {
 
     API_Visitors: {
         logVisit: (visitorId) => IMS_API.request('logVisit', { visitorId }),
-        getVisitorStats: () => IMS_API.request('getVisitorStats')
+        getVisitorStats: () => IMS_API.request('getVisitorStats', {})
     }
 };
 

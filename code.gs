@@ -54,6 +54,10 @@ function doGet(e) {
       return getReviews();
     }
 
+    if (action === 'getVisitorStats') {
+      return getVisitorStats();
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid Action' })).setMimeType(ContentService.MimeType.JSON);
   } catch (ex) {
     return ContentService.createTextOutput(JSON.stringify({ error: ex.toString() })).setMimeType(ContentService.MimeType.JSON);

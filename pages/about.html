@@ -1,16 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>About Us | Hisaab Kitab</title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .about-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            max-width: 960px;
+            margin: 0 auto;
+            justify-content: center;
+            align-items: stretch;
+            padding-top: 5vh;
+        }
+
+        .about-card {
+            flex: 1;
+            min-width: 280px;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2));
+            box-shadow: var(--glass-shadow, 0 8px 32px 0 rgba(0, 0, 0, 0.37));
+            border-radius: 14px;
+            padding: 1.2rem;
+            animation: fadeIn 0.6s ease-out;
+            text-align: left;
+        }
+
+        .about-card.urdu {
+            text-align: right;
+            direction: rtl;
+        }
+
+        .about-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .about-card.urdu .about-title {
+            color: #f59e0b;
+            background: none;
+            -webkit-text-fill-color: initial;
+            font-family: 'Noto Nastaliq Urdu', serif;
+        }
+
+        .about-text {
+            color: var(--text-dim, rgba(255, 255, 255, 0.8));
+            line-height: 1.6;
+            font-size: 0.82rem;
+            white-space: pre-line;
+            margin-top: 0;
+        }
+
+        .about-text.urdu {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 0.85rem;
+            line-height: 2.1;
+            color: white;
+        }
+    </style>
 </head>
-<body style="background-color: #0f172a; color: white; padding: 2rem; text-align: center; font-family: 'Inter', sans-serif;">
-    <h1 style="color: #f59e0b; margin-top: 20vh; font-size: 2.5rem; font-weight: 700;">About Us</h1>
-    <p style="opacity: 0.8; max-width: 600px; margin: 1rem auto; line-height: 1.6;">
-        Hisaab Kitab is focused on providing the best Inventory Management System available for modern wholesalers and retailers. This page is scheduled for future updates.
-    </p>
-    <a href="../index.html" class="btn" style="display: inline-block; width: auto; margin-top: 1rem; text-decoration: none; background: #3b82f6;">Back to Home</a>
+
+<body
+    style="background: var(--bg-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%)); color: white; padding: 2rem; text-align: center; font-family: 'Inter', sans-serif; display: block; overflow-y: auto; height: auto; min-height: 100vh;">
+
+    <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
+
+    <h1
+        style="color: #f59e0b; margin-top: 5vh; font-size: 2.5rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+        About Us</h1>
+
+    <div class="about-container">
+        <!-- English Section -->
+        <div class="about-card">
+            <h2 class="about-title">🌐 About Us</h2>
+            <p class="about-text">
+                Welcome to Hisaab Kitab – Online Inventory Management System, a smart and reliable platform designed to
+                simplify business operations.
+
+                At Hisaab Kitab, we aim to help businesses take full control of their Inventory, Sales & Financial
+                records with ease. Whether you are a small Shop Owner, a Retailer or a growing Business, our system is
+                built to manage everything in one place — efficiently & accurately.
+
+                We understand the challenges of handling daily business tasks like Stock Tracking, Sales Recording,
+                Expense Management & Credit (Udhaar) handling. That’s why Hisaab Kitab is designed to automate these
+                processes, reduce errors & save valuable time.
+
+                Our platform offers powerful features including Inventory Management, Purchase & Sales Tracking, Expense
+                Monitoring, Credit Management, Low Stock Alerts & detailed Reporting — giving you complete visibility &
+                control over your business.
+
+                We are continuously improving our system by adding modern features, enhancing user experience & ensuring
+                smooth performance. Our mission is to provide a simple, affordable & professional solution that supports
+                business growth in the digital era.
+
+                Hisaab Kitab is not just software — it’s your business partner in growth and success.
+            </p>
+        </div>
+
+        <!-- Urdu Section -->
+        <div class="about-card urdu" dir="rtl">
+            <h2 class="about-title">🌐 ہمارے بارے میں</h2>
+            <p class="about-text urdu">
+                خوش آمدید حساب کتاب – آن لائن انوینٹری مینجمنٹ سسٹم میں، جو ایک جدید اور قابلِ اعتماد پلیٹ فارم ہے جو
+                کاروبار کو آسان اور منظم بنانے کے لیے تیار کیا گیا ہے۔
+
+                Hisaab Kitab کا مقصد کاروبار کو اپنی انوینٹری، سیلز اور مالی معاملات پر مکمل کنٹرول فراہم کرنا ہے۔ چاہے
+                آپ ایک چھوٹے دکاندار ہوں، ریٹیلر ہوں یا بڑھتا ہوا کاروبار، ہمارا سسٹم آپ کے تمام کام ایک ہی جگہ پر مؤثر
+                طریقے سے منظم کرتا ہے۔
+
+                ہم جانتے ہیں کہ روزمرہ کے کاروباری کام جیسے اسٹاک کی نگرانی، سیلز ریکارڈ، اخراجات کا حساب اور ادھار
+                (کریڈٹ) کو سنبھالنا مشکل ہوتا ہے۔ اسی لیے Hisaab Kitab کو اس طرح ڈیزائن کیا گیا ہے کہ یہ ان تمام کاموں
+                کو خودکار بنائے، غلطیوں کو کم کرے اور آپ کا وقت بچائے۔
+
+                ہمارے سسٹم میں انوینٹری مینجمنٹ، خرید و فروخت کی ٹریکنگ، اخراجات کی نگرانی، ادھار مینجمنٹ، لو اسٹاک
+                الرٹس اور تفصیلی رپورٹس جیسے اہم فیچرز شامل ہیں، جو آپ کے کاروبار کو بہتر بنانے میں مدد دیتے ہیں۔
+
+                ہم مسلسل اپنی سروس کو بہتر بنا رہے ہیں، جدید فیچرز شامل کر رہے ہیں اور صارفین کے تجربے کو مزید آسان بنا
+                رہے ہیں۔ ہمارا مشن ایک سادہ، سستا اور پروفیشنل حل فراہم کرنا ہے جو کاروبار کو ڈیجیٹل دور میں آگے بڑھنے
+                میں مدد دے۔
+
+                Hisaab Kitab صرف ایک سافٹ ویئر نہیں — بلکہ آپ کے کاروبار کی کامیابی کا ساتھی ہے۔
+            </p>
+        </div>
+    </div>
+
+    <a href="../index.html" class="btn"
+        style="display: inline-block; width: auto; margin-top: 3rem; text-decoration: none; padding: 12px 30px; border-radius: 30px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); font-weight: 600;">Back
+        to Home</a>
 </body>
+
 </html>
