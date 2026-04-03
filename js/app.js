@@ -154,7 +154,7 @@ async function handleExcelUpload(event) {
 
             let allJsonData = [];
 
-            const batchName = prompt("Enter a name for this listing batch (e.g., 'May 2026 Batch 1'):");
+            const batchName = file.name.replace(/\.[^/.]+$/, "");
             if (!batchName) return; // Cancel import if no batch name provided
 
             // Iterate over all sheets in the Excel file
@@ -232,6 +232,13 @@ async function loadInventory() {
             `<th style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">${h}</th>`
         ).join('') + `<th style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">Action</th>`;
 
+        // Extract unique batch IDs and populate dropdown
+        const batchSelect = document.getElementById('batchFilterSelect');
+        if (batchSelect) {
+            const uniqueBatches = [...new Set(inventory.map(item => item.batch || item.batchid || 'Manual'))];
+            batchSelect.innerHTML = `<option value="All">All Batches</option>` + uniqueBatches.map(b => `<option value="${b}">${b}</option>`).join('');
+        }
+
         // 2. Render Rows
         if (inventory.length === 0) {
             tbody.innerHTML = `<tr><td colspan="${window.userCustomHeaders.length + 1}" style="text-align:center;">No items found.</td></tr>`;
@@ -265,8 +272,9 @@ async function loadInventory() {
             }).join('');
 
             const editId = item.id || item.batchid || (index + 1);
+            const batchIdAttr = item.batch || item.batchid || 'Manual';
 
-            return `<tr style="color: white;">
+            return `<tr style="color: white;" data-id="${editId}" data-batch="${batchIdAttr}">
                         ${rowCells}
                         <td style="padding: 1rem 1.5rem; white-space: nowrap; text-align: center;">
                             <button class="btn btn-sm" style="background: #3b82f6; border-radius: 4px; padding: 0.4rem 0.8rem;" onclick="document.getElementById('searchEditId').value='${editId}'; searchInventoryForEdit();">
@@ -1044,9 +1052,10 @@ async function handleInventoryImport(event) {
     // Reset input so the same file can be selected again if needed
     event.target.value = '';
 
-    const batchName = prompt("Enter a name for this import File:");
-    if (!batchName || batchName.trim() === '') {
-        alert("Import canceled: Batch name is required.");
+    // Automatically use the Excel file's actual name (stripped of extension) as the batch name
+    const batchName = file.name.replace(/\.[^/.]+$/, "");
+    if (!batchName) {
+        alert("Import canceled: Could not determine file name.");
         return;
     }
 

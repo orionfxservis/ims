@@ -142,8 +142,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="title">
-        <i class="fa-solid fa-cube"></i> IMS Cloud
-        <span id="modeBadge" class="mode-badge">DEMO</span>
+        <i class="fa-solid fa-cube"></i> Hisaab Kitab
+        <span id="modeBadge" class="mode-badge">IMS Cloud</span>
       </div>
       <nav class="nav-menu">
         <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -180,25 +180,24 @@
     <div class="stat-content">
 	  <div class="stat-label">Inventory Status</div>
       <div class="stat-value">$50K <span class="stat-link">View Details</span></div>
-      
     </div>
   </div>
   <div class="stat-card teal">
     <div class="stat-content">
+	  <div class="stat-label">Revenue</div>
       <div class="stat-value">$100K <span class="stat-link">View Details</span></div>
-      <div class="stat-label">Revenue</div>
     </div>
   </div>
   <div class="stat-card yellow">
     <div class="stat-content">
+	  <div class="stat-label">Items Available</div>
       <div class="stat-value">515 <span class="stat-link">Visit Inventory</span></div>
-      <div class="stat-label">Items Available</div>
     </div>
   </div>
   <div class="stat-card red">
     <div class="stat-content">
+	<div class="stat-label">Items Shortage</div>
       <div class="stat-value">2 <span class="stat-link">Resolve Now</span></div>
-      <div class="stat-label">Items Shortage</div>
     </div>
   </div>
 </div>
@@ -208,7 +207,7 @@
   <div class="broadcast-icon"><i class="fa-solid fa-bullhorn"></i></div>
   <div class="broadcast-wrapper">
     <div class="broadcast-content" id="broadcastText">
-      Welcome to IMS Cloud! &nbsp;|&nbsp; System Running Smoothly &nbsp;|&nbsp; New Sales Recorded!
+      Welcome to Hisaab Kitab! &nbsp;|&nbsp; System Running Smoothly &nbsp;|&nbsp; New Sales Recorded!
     </div>
   </div>
 </div>

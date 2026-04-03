@@ -8,7 +8,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    
+    <link rel="stylesheet" href="../css/dashboard-theme.css">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -51,8 +51,8 @@
         <!-- Sidebar (Updated to match dashboard/inventory styles) -->
 <aside class="sidebar">
     <div class="title">
-        <i class="fa-solid fa-cube"></i> IMS Cloud
-        <span id="modeBadge" class="mode-badge">DEMO</span>
+        <i class="fa-solid fa-cube"></i> Hisaab Kitab
+        <span id="modeBadge" class="mode-badge">IMS Cloud</span>
     </div>
 
     <nav class="nav-menu">

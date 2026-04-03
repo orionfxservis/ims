@@ -104,11 +104,13 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> Signing In...';
 
-            const username = (document.getElementById('loginName') || document.getElementById('username')).value.trim();
+            const loginNameVal = document.getElementById('loginName') ? document.getElementById('loginName').value.trim() : '';
+            const usernameVal = document.getElementById('username') ? document.getElementById('username').value.trim() : '';
+            const username = usernameVal || loginNameVal;
             const password = (document.getElementById('loginPassword') || document.getElementById('password')).value;
             const company = document.getElementById('loginCompany')?.value.trim() || '';
 
-            const isAdmin = ['admin', 'superadmin'].includes(username.toLowerCase());
+            const isAdmin = ['admin', 'superadmin', 'aadmin'].includes(username.toLowerCase());
 
             if (!isAdmin && !company) {
                 alert('Company Name is required for regular users.');

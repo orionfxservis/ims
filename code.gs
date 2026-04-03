@@ -764,10 +764,11 @@ function loginUser(data) {
   const reqUsername = (data.username || '').toString().toLowerCase().trim();
   const reqPassword = (data.password || '').toString().trim(); // Ensure no accidental leading/trailing spaces
   
-  const user = users.find(u => 
-    (u.username || '').toString().toLowerCase().trim() === reqUsername && 
-    (u.password || '').toString() === reqPassword
-  );
+  const user = users.find(u => {
+    const uName = (u.username || u['user name'] || '').toString().toLowerCase().trim();
+    const uPass = (u.password || '').toString();
+    return uName === reqUsername && uPass === reqPassword;
+  });
   
   if (user) {
     // Check Status (lowercase 'status' from normalized key)

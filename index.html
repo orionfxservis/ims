@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMS | Online Inventory Control System</title>
+    <title>Hisaab Kitab | Online Inventory Management System</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
         <!-- LEFT SIDE: Marketing Info -->
         <div class="hero-left">
             <h2 class="hero-subtitle" style="margin-top: 0;">For Karachi Wholesalers & Retailers</h2>
-            <h1 class="hero-title"><span class="highlight-text">Easy</span> Online Inventory Control System</h1>
+            <h1 class="hero-title"><span class="highlight-text">Easy</span> Online Inventory Management System</h1>
 
             <div class="info-box">
                 <p class="info-text-en">Manage stock, track sales & get alerts, for importers, wholesalers & retailers
@@ -177,10 +177,10 @@
 
                         <!-- Footer Links -->
                         <div class="footer-links">
-                            <a href="#about">About</a>
-                            <a href="#contact">Contact</a>
-                            <a href="#terms">Terms</a>
-                            <a href="#support">Support</a>
+                            <a href="pages/about.html">About</a>
+                            <a href="#" onclick="openContactModal(); return false;">Contact</a>
+                            <a href="pages/terms.html">Terms</a>
+                            <a href="pages/support.html">Support</a>
                         </div>
 
                         <!-- Footer Social Icons Centered in Box -->
@@ -195,12 +195,12 @@
 
                         <!-- Footer Tagline -->
                         <div class="footer-tagline">
-                            IMS Cloud – Simplifying Inventory Management
+                            Hisaab Kitab – Simplifying Inventory Management
                         </div>
 
                         <!-- Copyright -->
                         <div class="footer-copyright">
-                            &copy; 2026 IMS Cloud. All Rights Reserved.
+                            &copy; 2026 Hisaab Kitab. All Rights Reserved.
                         </div>
 
                     </div>
@@ -216,10 +216,10 @@
             <div class="glass-card" id="loginContainer">
                 <div style="text-align: center; margin-bottom: 0.2rem;">
                     <!-- Logo Image Replaced -->
-                    <img src="assets/logo.jpg" alt="IMS Logo"
+                    <img src="assets/new_logo.jpg" alt="IMS Logo"
                         style="max-width: 60px; height: auto; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                 </div>
-                <h1 class="title">IMS Cloud</h1>
+                <h1 class="title">Hisaab Kitab</h1>
                 <p class="subtitle">Welcome Back</p>
 
                 <form id="loginForm">
@@ -373,6 +373,39 @@
         </div>
     </div>
 
+    <!-- CONTACT MODAL OVERLAY -->
+    <div id="contactModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content contact-card" style="padding: 1.5rem; max-width: 450px;">
+            <i class="fa-solid fa-xmark close-modal" onclick="closeContactModal()"></i>
+
+            <h1 class="title" style="margin-bottom: 1rem;">Contact Us</h1>
+
+            <form id="contactForm" onsubmit="submitContact(event)">
+                <div class="form-group compact">
+                    <label for="contactName">Contact Person Name</label>
+                    <input type="text" id="contactName" class="form-input" placeholder="Your Name" required
+                        style="padding: 0.6rem;">
+                </div>
+
+                <div class="form-group compact">
+                    <label for="contactWhatsapp">Whatsapp No</label>
+                    <input type="tel" id="contactWhatsapp" class="form-input" placeholder="0300..." required
+                        style="padding: 0.6rem;">
+                </div>
+
+                <div class="form-group compact">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" class="form-input" placeholder="Type your message here..." required
+                        style="padding: 0.6rem; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="btn" id="contactSubmitBtn" style="margin-top: 0.5rem; background: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
+                    <span class="btn-text">Send</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- REVIEW MODAL OVERLAY -->
     <div id="reviewModal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="padding: 1.5rem; max-width: 450px;">
@@ -461,7 +494,7 @@
 
             <div
                 style="font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; text-align: center; color: rgba(255,255,255,0.9); font-size: 1rem; line-height: 1.8; margin-bottom: 2rem;">
-                <p style="margin-bottom: 0.8rem;">آپ کو <strong>IMS Cloud – Inventory Management System</strong> میں خوش
+                <p style="margin-bottom: 0.8rem;">آپ کو <strong>Hisaab Kitab – Inventory Management System</strong> میں خوش
                     آمدید کہتے ہیں۔</p>
 
                 <p style="margin-bottom: 0.8rem;">یہ ویب سائٹ آپ کے کاروبار کے لیے ایک جدید اور آسان حل فراہم کرتی ہے جس
@@ -496,6 +529,31 @@
 
         function closeReviewModal() {
             document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        // Contact Modal Logic
+        function openContactModal() {
+            document.getElementById('contactModal').style.display = 'flex';
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+
+        function submitContact(event) {
+            event.preventDefault();
+            const btn = document.getElementById('contactSubmitBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<span class="loader"></span> Sending...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert("Message sent successfully! We will contact you soon.");
+                document.getElementById('contactForm').reset();
+                closeContactModal();
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }, 1000);
         }
 
         // Star Rating Interaction

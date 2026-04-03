@@ -18,7 +18,7 @@ function doGet(e) {
   }
 
   if (action === 'getInventory') {
-    return getInventory();
+    return getInventory(params.username, params.role);
   }
 
   if (action === 'getCategories') {
@@ -69,6 +69,8 @@ function doPost(e) {
       if (data.action === 'saveBanners') return saveBanners(data);
       if (data.action === 'saveInventory') return saveInventory(data.data);
       if (data.action === 'bulkSaveInventory') return bulkSaveInventory(data);
+      if (data.action === 'updateInventory') return updateInventory(data);
+      if (data.action === 'deleteInventory') return deleteInventory(data);
       if (data.action === 'saveSale') return saveSale(data);
       if (data.action === 'addCategory') return addCategory(data);
       if (data.action === 'deleteCategory') return deleteCategory(data);
@@ -132,10 +134,14 @@ function registerUser(data) {
 function loginUser(data) {
   const users = getSheetData('Users');
   
-  // Robust matching: String(), trim(), and case-insensitive username
-  const user = users.find(u => 
-    String(u.username).trim().toLowerCase() === String(data.username).trim().toLowerCase()
-  );
+  const reqUsername = (data.username || '').toString().toLowerCase().trim();
+  const reqPassword = (data.password || '').toString().trim(); // Ensure no accidental leading/trailing spaces
+  
+  const user = users.find(u => {
+    const uName = (u.username || u['user name'] || '').toString().toLowerCase().trim();
+    const uPass = (u.password || '').toString();
+    return uName === reqUsername && uPass === reqPassword;
+  });
 
   if (!user) {
     return response({ status: 'error', message: 'User not found' });
@@ -469,7 +475,56 @@ function saveInventory(data) {
     JSON.stringify(cleanedData)
   ]);
   
-  return { success: true, message: 'Item saved', item: data };
+  return response({ status: 'success', message: 'Item saved', item: data });
+}
+
+function updateInventory(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('InventoryData');
+  if (!sheet) return response({ status: 'error', message: 'InventoryData sheet not found' });
+
+  const username = String(data.username || '').trim().toLowerCase();
+  const itemId = parseInt(data.data.id);
+  
+  if (isNaN(itemId)) return response({ status: 'error', message: 'Invalid Item ID' });
+
+  const rowUser = String(sheet.getRange(itemId + 1, 1).getValue()).trim().toLowerCase();
+  
+  if (username !== 'admin' && username !== 'super admin' && rowUser !== username) {
+      return response({ status: 'error', message: 'Unauthorized or item not found' });
+  }
+
+  let updateData = { ...data.data };
+  let batchId = updateData.batchid || updateData.batch || 'Manual';
+  delete updateData.id;
+  delete updateData.batchid;
+  delete updateData.batch;
+  
+  sheet.getRange(itemId + 1, 2).setValue(batchId);
+  sheet.getRange(itemId + 1, 3).setValue(JSON.stringify(updateData));
+  
+  return response({ status: 'success', message: 'Inventory updated' });
+}
+
+function deleteInventory(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('InventoryData');
+  if (!sheet) return response({ status: 'error', message: 'InventoryData sheet not found' });
+
+  const username = String(data.username || '').trim().toLowerCase();
+  const itemId = parseInt(data.id);
+  
+  if (isNaN(itemId)) return response({ status: 'error', message: 'Invalid Item ID' });
+
+  const rowUser = String(sheet.getRange(itemId + 1, 1).getValue()).trim().toLowerCase();
+  
+  if (username !== 'admin' && username !== 'super admin' && rowUser !== username) {
+      return response({ status: 'error', message: 'Unauthorized or item not found' });
+  }
+
+  sheet.deleteRow(itemId + 1);
+  
+  return response({ status: 'success', message: 'Inventory item deleted' });
 }
 
 // --- Sales Functions ---
@@ -989,26 +1044,21 @@ function deleteBatch(data) {
   
   if (!username || !batchName) return response({ status: 'error', message: 'Missing username or batch name' });
   
-  const sheetName = 'Inventory_' + username;
-  const sheet = ss.getSheetByName(sheetName);
+  const sheet = ss.getSheetByName('InventoryData');
   
-  if (!sheet) return response({ status: 'error', message: 'User inventory sheet not found' });
+  if (!sheet) return response({ status: 'error', message: 'InventoryData sheet not found' });
   
   const dataRange = sheet.getDataRange();
   const values = dataRange.getValues();
   if (values.length <= 1) return response({ status: 'success', message: 'Nothing to delete' });
   
-  const headers = values[0];
-  const lowerHeaders = headers.map(h => String(h).toLowerCase().trim());
-  const batchColIndex = lowerHeaders.indexOf('batch');
-  
-  if (batchColIndex === -1) return response({ status: 'error', message: 'No batch column found in sheet' });
-  
-  // Delete from bottom to top so row indices don't shift during deletion
   let deletedCount = 0;
   for (let i = values.length - 1; i > 0; i--) {
-     if (values[i][batchColIndex] === batchName) {
-         sheet.deleteRow(i + 1); // +1 because array is 0-indexed, rows are 1-indexed
+     const rowUser = String(values[i][0]).trim().toLowerCase();
+     const rowBatch = String(values[i][1]).trim();
+
+     if (rowUser === username && rowBatch === batchName) {
+         sheet.deleteRow(i + 1);
          deletedCount++;
      }
   }

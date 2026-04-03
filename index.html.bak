@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMS | Online Inventory Control System</title>
+    <title>Hisaab Kitab | Online Inventory Management System</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
         <!-- LEFT SIDE: Marketing Info -->
         <div class="hero-left">
             <h2 class="hero-subtitle" style="margin-top: 0;">For Karachi Wholesalers & Retailers</h2>
-            <h1 class="hero-title"><span class="highlight-text">Easy</span> Online Inventory Control System</h1>
+            <h1 class="hero-title"><span class="highlight-text">Easy</span> Online Inventory Management System</h1>
 
             <div class="info-box">
                 <p class="info-text-en">Manage stock, track sales & get alerts, for importers, wholesalers & retailers
@@ -195,12 +195,12 @@
 
                         <!-- Footer Tagline -->
                         <div class="footer-tagline">
-                            IMS Cloud – Simplifying Inventory Management
+                            Hisaab Kitab – Simplifying Inventory Management
                         </div>
 
                         <!-- Copyright -->
                         <div class="footer-copyright">
-                            &copy; 2026 IMS Cloud. All Rights Reserved.
+                            &copy; 2026 Hisaab Kitab. All Rights Reserved.
                         </div>
 
                     </div>
@@ -219,7 +219,7 @@
                     <img src="assets/logo.jpg" alt="IMS Logo"
                         style="max-width: 60px; height: auto; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                 </div>
-                <h1 class="title">IMS Cloud</h1>
+                <h1 class="title">Hisaab Kitab</h1>
                 <p class="subtitle">Welcome Back</p>
 
                 <form id="loginForm">
@@ -654,7 +654,7 @@
                     if (!document.getElementById('trustIndicator')) {
                         pricingContainer.insertAdjacentHTML('afterend', `
                             <p id="trustIndicator" class="trust-indicator" style="text-align:center; font-size:0.85rem; color: rgba(255,255,255,0.8); margin-top:1.5rem; width: 100%;">
-                                ✔ No hidden charges &nbsp;•&nbsp; ✔ Cancel anytime &nbsp;•&nbsp; ✔ Free support included
+                                ✔ No Hidden Charges &nbsp;•&nbsp; ✔ Cancel Anytime &nbsp;•&nbsp; ✔ Free Support Included
                             </p>
                         `);
                     }

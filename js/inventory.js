@@ -46,6 +46,13 @@ async function loadInventory() {
         // Render table headers
         headerRow.innerHTML = headers.map(h => `<th>${h}</th>`).join('') + `<th>Actions</th>`;
 
+        // Extract unique batch IDs and populate dropdown
+        const batchSelect = document.getElementById('batchFilterSelect');
+        if (batchSelect) {
+            const uniqueBatches = [...new Set(inventory.map(item => item.batch || item.batchid || 'Manual'))];
+            batchSelect.innerHTML = `<option value="All">All Batches</option>` + uniqueBatches.map(b => `<option value="${b}">${b}</option>`).join('');
+        }
+
         // Render table rows
         tbody.innerHTML = inventory.map((item, index) => {
             let rowData = {};
@@ -65,8 +72,10 @@ async function loadInventory() {
 
             const editId = item.id || item.batchid || (index + 1);
 
+            const batchIdAttr = item.batch || item.batchid || 'Manual';
+
             return `
-                <tr data-id="${editId}">
+                <tr data-id="${editId}" data-batch="${batchIdAttr}">
                     ${cells}
                     <td>
                         <button class="btn btn-sm" onclick="editInventoryItem('${editId}')">Edit</button>
@@ -87,6 +96,26 @@ function filterInventory(query) {
     const rows = document.querySelectorAll('#inventoryTableBody tr');
     rows.forEach(row => {
         row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+    });
+}
+
+function filterInventoryByBatch() {
+    const select = document.getElementById('batchFilterSelect');
+    const deleteBtn = document.getElementById('btnDeleteBatch');
+    if (!select || !deleteBtn) return;
+    
+    const selectedBatch = select.value;
+    const rows = document.querySelectorAll('#inventoryTableBody tr');
+    
+    // Show delete button only if a specific batch is selected (not "All")
+    deleteBtn.style.display = selectedBatch === 'All' ? 'none' : 'inline-block';
+    
+    rows.forEach(row => {
+        if (selectedBatch === 'All') {
+            row.style.display = '';
+        } else {
+            row.style.display = row.getAttribute('data-batch') === selectedBatch ? '' : 'none';
+        }
     });
 }
 
@@ -196,3 +225,32 @@ function submitEditInventory() {
 
 // -------------------- GLOBAL --------------------
 window.deleteInventoryItem = deleteInventoryItem;
+window.filterInventoryByBatch = filterInventoryByBatch;
+
+async function deleteSelectedBatch() {
+    const select = document.getElementById('batchFilterSelect');
+    if (!select) return;
+    
+    const batchName = select.value;
+    if (batchName === 'All') return;
+    
+    if (!confirm(`Are you sure you want to delete all items inside the batch "${batchName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        // Find how API is referenced. Usually API.deleteBatch or IMS_API.API_Inventory.deleteBatch depending on context
+        // In inventory.js it uses API.deleteInventory
+        const res = await API.deleteBatch(batchName);
+        if (res?.status === 'success') {
+            alert('Batch deleted successfully!');
+            loadInventory();
+        } else {
+            alert('Delete failed: ' + (res?.message || 'Unknown error'));
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error deleting batch');
+    }
+}
+window.deleteSelectedBatch = deleteSelectedBatch;

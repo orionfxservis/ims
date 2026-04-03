@@ -173,8 +173,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="title">
-        <i class="fa-solid fa-cube"></i> IMS Cloud
-        <span id="modeBadge" class="mode-badge">DEMO</span>
+        <i class="fa-solid fa-cube"></i> Hisaab Kitab
+        <span id="modeBadge" class="mode-badge">IMS Cloud</span>
       </div>
       <nav class="nav-menu">
         <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -204,17 +204,15 @@
         </div>
       </header>
 
-      <!-- Inventory Chart -->
-      <div class="glass-card">
-        <h3>Inventory Overview</h3>
-        <canvas id="inventoryChart" class="inventory-chart"></canvas>
-      </div>
-
       <!-- Inventory Table -->
       <div class="glass-card">
         <div class="card-header">
           <h3>Available Inventory</h3>
-          <div class="card-actions">
+          <div class="card-actions" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <select id="batchFilterSelect" class="form-input" style="width: auto; padding: 0.3rem 0.5rem; max-width: 150px; font-size: 0.85rem;" onchange="filterInventoryByBatch()">
+              <option value="All">All Batches</option>
+            </select>
+            <button id="btnDeleteBatch" class="btn btn-sm btn-danger" style="display: none;" onclick="deleteSelectedBatch()">Delete Batch</button>
             <button id="downloadInventoryTemplate" class="btn btn-sm"><i class="fa-solid fa-download"></i> Template</button>
             <input type="file" id="importExcelInput" hidden>
             <button class="btn btn-sm" onclick="document.getElementById('importExcelInput').click()"><i class="fa-solid fa-file-excel"></i> Import</button>
@@ -222,7 +220,7 @@
           </div>
         </div>
         <div class="card-search">
-          <input type="text" id="inventorySearch" placeholder="Search inventory...">
+          <input type="text" id="inventorySearch" placeholder="Search inventory..." style="max-width: 400px; width: 100%;">
         </div>
         <div class="table-container">
           <table class="data-table">
@@ -232,6 +230,12 @@
             <tbody id="inventoryTableBody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Inventory Chart -->
+      <div class="glass-card">
+        <h3>Inventory Overview</h3>
+        <canvas id="inventoryChart" class="inventory-chart"></canvas>
       </div>
 
       <!-- Edit Inventory Panel -->

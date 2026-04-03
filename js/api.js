@@ -5,7 +5,7 @@
 // ===============================
 // API DEFINITION (FIX)
 // ===============================
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziXKCx9Fl94FGo_gCs7gAdPzTD7ikK7cGYrDAIxSs3lm-5hkO5wRPKWpjsZ7O5_4mKEQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7-cVF-Z_OaLA6j9NtkFWUtajTTqWQHgYU3WRS8yWnG5vpddC9X2S7R3rsyYLIaQ2nTA/exec';
 
 const IMS_API = {
     request: async (action, data = null) => {
@@ -35,12 +35,13 @@ const IMS_API = {
         register: (data) => IMS_API.request('register', data),
         changePassword: (username, oldPassword, newPassword) => IMS_API.request('changePassword', { username, oldPassword, newPassword })
     },
-    
+
     API_Inventory: {
         getInventory: () => {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             const username = encodeURIComponent(user.username || '');
-            return IMS_API.request(`getInventory&username=${username}`).then(res => Array.isArray(res) ? res : (res.inventory || []));
+            const role = encodeURIComponent(user.role || '');
+            return IMS_API.request(`getInventory&username=${username}&role=${role}`).then(res => Array.isArray(res) ? res : (res.inventory || []));
         },
         saveInventory: (item) => {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -53,6 +54,14 @@ const IMS_API = {
         bulkSaveInventory: (items) => {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             return IMS_API.request('bulkSaveInventory', { data: items, username: user.username });
+        },
+        deleteInventory: (data) => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return IMS_API.request('deleteInventory', { id: data.id, username: user.username });
+        },
+        deleteBatch: (batchName) => {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return IMS_API.request('deleteBatch', { batchName: batchName, username: user.username });
         }
     },
 
@@ -94,7 +103,7 @@ const IMS_API = {
         getPricingPackages: async () => {
             const data = localStorage.getItem('pricingPackages');
             if (data) return JSON.parse(data);
-            
+
             return [
                 { id: 'starter', name: 'Starter', price: 'Rs 1,500', services: 'Stock Management, Purchase & Sales, Udhaar Tracking, Basic Reports', isPopular: false, desc: '1 User • Small Shops', btnText: 'Start Free' },
                 { id: 'business', name: 'Business ⭐', price: 'Rs 3,000', services: 'Everything in Starter, Multi User Access, Customer & Supplier, Profit Dashboard', isPopular: true, desc: '2 Users • Shop + Staff', btnText: 'Start Free Trial 🚀' },

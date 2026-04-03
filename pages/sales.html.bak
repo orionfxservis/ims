@@ -35,12 +35,12 @@
     <!-- Reuse Background -->
     <div class="bg-image" style="background-image: url('../assets/inventory_system_background.png');"></div>
 
-    <div class="dashboard-container fixed-layout">
+    <div class="dashboard-container">
         <!-- Sidebar (Updated to match dashboard/inventory styles) -->
 <aside class="sidebar">
     <div class="title">
-        <i class="fa-solid fa-cube"></i> IMS Cloud
-        <span id="modeBadge" class="mode-badge">DEMO</span>
+        <i class="fa-solid fa-cube"></i> Hisaab Kitab
+        <span id="modeBadge" class="mode-badge">IMS Cloud</span>
     </div>
 
     <nav class="nav-menu">

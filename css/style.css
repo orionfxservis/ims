@@ -1183,7 +1183,9 @@ body {
     border-radius: 12px;
 
     padding: 0.6rem 1rem;
-    display: inline-flex;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 1rem;
     margin-bottom: 0;
 }
@@ -1196,6 +1198,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0;
 
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
@@ -1207,7 +1210,7 @@ body {
 .footer-social-box .social-icon:hover {
     transform: translateY(-3px) scale(1.1);
     background: rgba(255, 255, 255, 0.18);
-    color: var(--accent-color);
+    color: #f59e0b;
 }
 
 /* Tagline */
@@ -2185,4 +2188,15 @@ body {
     .pricing-cards-container {
         gap: 1rem !important; /* Reduce gap on small phones */
     }
+}
+
+/* Contact Us Modal card replicating Pricing Card behavior */
+.contact-card {
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    transition: all 0.3s ease;
+}
+.contact-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(245, 158, 11, 0.8);
+    box-shadow: 0 20px 40px rgba(245, 158, 11, 0.15);
 }
