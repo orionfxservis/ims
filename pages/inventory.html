@@ -105,7 +105,7 @@
 
     table.data-table th,
     table.data-table td {
-      padding: 0.4rem 0.6rem;
+      padding: 0.2rem 0.4rem; /* Reduced padding for tighter lines */
       text-align: left;
       vertical-align: middle;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -117,7 +117,10 @@
       font-weight: 600;
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 20;
+      background-color: #3b82f6; /* Blue color to differentiate */
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     /* Chart container */
@@ -198,9 +201,11 @@
       <!-- Header -->
       <header class="page-header">
         <h2>Inventory</h2>
-        <div class="user-profile" onclick="openUserProfile()">
+        <div class="user-profile" style="display: flex; align-items: center; gap: 0.7rem; cursor: pointer;" onclick="openUserProfile()">
           <span id="userNameDisplay">User Name</span>
-          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="avatar" style="background-color: #3b82f6; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff;">
+            <i class="fa-solid fa-user"></i>
+          </div>
         </div>
       </header>
 

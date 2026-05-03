@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -166,9 +166,11 @@
       <!-- Header -->
       <header class="page-header">
         <h2>Dashboard</h2>
-        <div class="user-profile" onclick="openUserProfile()">
+        <div class="user-profile" style="display: flex; align-items: center; gap: 0.7rem; cursor: pointer;" onclick="openUserProfile()">
           <span id="userNameDisplay">User Name</span>
-          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="avatar" style="background-color: #3b82f6; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff;">
+            <i class="fa-solid fa-user"></i>
+          </div>
         </div>
       </header>
 
@@ -176,34 +178,34 @@
 
       <!-- Four Stat Boxes -->
 <div class="stat-grid section-spacing">
-  <div class="stat-card blue">
+  <div class="stat-card blue" style="cursor: pointer;" onclick="window.location.href='inventory.html'">
     <div class="stat-content">
 	  <div class="stat-label">Inventory Status</div>
-      <div class="stat-value">$50K <span class="stat-link">View Details</span></div>
+      <div class="stat-value"><span id="dTotalValue">Rs 50K</span> <span class="stat-link">View Details</span></div>
     </div>
   </div>
-  <div class="stat-card teal">
+  <div class="stat-card teal" style="cursor: pointer;" onclick="window.location.href='sales.html'">
     <div class="stat-content">
 	  <div class="stat-label">Revenue</div>
-      <div class="stat-value">$100K <span class="stat-link">View Details</span></div>
+      <div class="stat-value"><span id="dSalesToday">Rs 100K</span> <span class="stat-link">View Details</span></div>
     </div>
   </div>
-  <div class="stat-card yellow">
+  <div class="stat-card yellow" style="cursor: pointer;" onclick="window.location.href='inventory.html'">
     <div class="stat-content">
 	  <div class="stat-label">Items Available</div>
-      <div class="stat-value">515 <span class="stat-link">Visit Inventory</span></div>
+      <div class="stat-value"><span id="dTotalProducts">515</span> <span class="stat-link">Visit Inventory</span></div>
     </div>
   </div>
-  <div class="stat-card red">
+  <div class="stat-card red" style="cursor: pointer;" onclick="window.location.href='inventory.html'">
     <div class="stat-content">
 	<div class="stat-label">Items Shortage</div>
-      <div class="stat-value">2 <span class="stat-link">Resolve Now</span></div>
+      <div class="stat-value"><span id="dItemsShortage">2</span> <span class="stat-link">Resolve Now</span></div>
     </div>
   </div>
 </div>
 
 <!-- Broadcast Scroll Bar -->
-<div id="broadcastContainer" class="broadcast-container section-spacing">
+<div id="broadcastContainer" class="broadcast-container section-spacing hidden">
   <div class="broadcast-icon"><i class="fa-solid fa-bullhorn"></i></div>
   <div class="broadcast-wrapper">
     <div class="broadcast-content" id="broadcastText">
@@ -227,7 +229,7 @@
       <div class="chart-row section-spacing">
         <div class="chart-col">
           <div class="glass-card chart-container-fixed">
-            <h3>Total Sale</h3>
+            <h3 style="cursor: pointer;" onclick="window.location.href='sales.html'">Total Sale</h3>
             <canvas id="pharaSalesChart"></canvas>
           </div>
           <div class="glass-card">
@@ -246,9 +248,9 @@
         <div class="chart-col">
   <!-- Credit Chart -->
   <div class="glass-card chart-container-fixed">
-    <h3>Credit/Udhaar Tracking</h3>
-    <canvas id="pharaCreditChart"></canvas>
-  </div>
+            <h3 style="cursor: pointer;" onclick="window.location.href='sales.html'">Credit/Udhaar Tracking</h3>
+            <canvas id="pharaCreditChart"></canvas>
+          </div>
 
   <!-- ✅ NEW: Recent Activity -->
   <div class="glass-card">
@@ -257,7 +259,7 @@
     </h3>
 
     <div id="recentActivity">
-      <ul style="list-style:none; padding:0; margin:0; font-size:0.9rem;">
+      <ul id="recentActivityList" style="list-style:none; padding:0; margin:0; font-size:0.9rem;">
         <li style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
           🧾 Sale recorded - Rs 5,000
         </li>
@@ -274,7 +276,7 @@
 
         <div class="chart-col">
           <div class="glass-card chart-container-fixed">
-            <h3>Inventory</h3>
+            <h3 style="cursor: pointer;" onclick="window.location.href='inventory.html'">Inventory Data</h3>
             <canvas id="pharaInventoryChart"></canvas>
           </div>
           <div class="glass-card">

@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMS | Sales</title>
+    <title>Hisaab Kitab | Sales</title>
     <link rel="stylesheet" href="../css/style.css">
 	<link rel="stylesheet" href="../css/dashboard-theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -87,11 +87,10 @@
                     </button>
                     <h2 id="pageTitle" style="font-size: 1.75rem;">Sales</h2>
                 </div>
-                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                <div class="user-profile" style="display: flex; align-items: center; gap: 0.7rem; cursor: pointer;"
                     onclick="openUserProfile()">
                     <span id="userNameDisplay">User Name</span>
-                    <div
-                        style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    <div class="avatar" style="background-color: #3b82f6; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff;">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
@@ -115,11 +114,26 @@
                             <input type="text" class="form-input" id="saleCustomer" placeholder="Walk-in / Name"
                                 style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
-                            <select class="form-input" id="saleItem"
-                                style="padding: 0.25rem; font-size: 0.85rem; background: white; color: #333;"></select>
-                        </div>
+                        <div class="form-group" style="position: relative;">
+    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
+
+    <!-- Search Input -->
+    <input type="text" id="itemSearch" class="form-input"
+        placeholder="Search Item..."
+        style="padding: 0.25rem; font-size: 0.85rem;">
+
+    <!-- Dropdown List -->
+    <div id="itemDropdown" 
+        style="position: absolute; top: 100%; left: 0; width: 100%;
+        background: #1f2937; border: 1px solid rgba(255,255,255,0.1);
+        max-height: 180px; overflow-y: auto; display: none;
+        border-radius: 6px; z-index: 999;">
+
+    </div>
+
+    <!-- Hidden actual value -->
+    <input type="hidden" id="saleItem">
+</div>
 
                         <!-- Row 2 -->
                         <div class="form-group">
@@ -161,9 +175,11 @@
                         </div>
 
                         <!-- Row 4: Button -->
-                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem; display: flex; gap: 1rem;">
                             <button type="submit" class="btn"
-                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Record Sale</button>
+                                style="flex: 1; padding: 0.4rem; font-size: 0.9rem;">Record Sale</button>
+                            <button type="button" class="btn" id="btnReceipt"
+                                style="flex: 1; padding: 0.4rem; font-size: 0.9rem; background-color: #64748b; color: white;">Receipt</button>
                         </div>
                     </form>
 
@@ -194,15 +210,81 @@
                 </div>
                         </section>
 
+            <!-- Receipt Modal -->
+            <div id="receiptModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+                <div class="modal-content glass-card" style="width: 90%; max-width: 400px; padding: 1.5rem; position: relative;">
+                    <button id="closeReceiptBtn" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    <h3 style="text-align: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.5rem;">Sale Receipt</h3>
+                    
+                    <div id="receiptContent" style="font-size: 0.95rem; line-height: 1.8; color: #ddd;">
+                        <!-- Receipt details injected here by JS -->
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; text-align: center;">
+                        <button type="button" class="btn" onclick="printReceipt()" style="padding: 0.4rem 1rem;">Print Receipt</button>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <script src="../js/api.js"></script>
-    <script src="../js/app.js"></script>
-    <script src="../js/admin.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="../js/reports.js"></script>
+<script>
+let inventoryItems = [
+    { name: "Sugar 1kg", price: 140 },
+    { name: "Flour 10kg", price: 1200 },
+    { name: "Rice Premium", price: 280 },
+    { name: "Cooking Oil 1L", price: 550 }
+];
+
+const searchInput = document.getElementById("itemSearch");
+const dropdown = document.getElementById("itemDropdown");
+const hiddenInput = document.getElementById("saleItem");
+
+searchInput.addEventListener("input", function () {
+    let value = this.value.toLowerCase();
+    dropdown.innerHTML = "";
+
+    let filtered = inventoryItems.filter(item =>
+        item.name.toLowerCase().includes(value)
+    );
+
+    if (filtered.length === 0) {
+        dropdown.style.display = "none";
+        return;
+    }
+
+    dropdown.style.display = "block";
+
+    filtered.forEach(item => {
+        let div = document.createElement("div");
+        div.textContent = `${item.name} (Rs. ${item.price})`;
+
+        div.onclick = () => {
+            searchInput.value = item.name;
+            hiddenInput.value = item.name;
+            document.getElementById("salePrice").value = item.price;
+            dropdown.style.display = "none";
+        };
+
+        dropdown.appendChild(div);
+    });
+});
+
+document.addEventListener("click", function (e) {
+    if (!e.target.closest("#itemSearch")) {
+        dropdown.style.display = "none";
+    }
+});
+</script>
+
+<!-- KEEP YOUR FILES BELOW -->
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/admin.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../js/reports.js"></script>
 </body>
 
 </html>

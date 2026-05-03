@@ -65,6 +65,14 @@
                 <a href="admin.html" class="nav-item hidden" id="adminTab" data-tab="admin">
                     <i class="fa-solid fa-users-gear"></i> Admin Panel
                 </a>
+                
+                <!-- Admin Sub Menu (Visible only when in admin.html) -->
+                <div class="admin-sub-menu" style="display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+                    <a href="#" class="nav-item" onclick="switchTab('dashboard', this); return false;"><i class="fa-solid fa-gauge" style="font-size: 0.8rem;"></i> Home</a>
+                    <a href="#" class="nav-item" onclick="switchTab('users', this); return false;"><i class="fa-solid fa-users" style="font-size: 0.8rem;"></i> Users</a>
+                    <a href="#" class="nav-item" onclick="switchTab('packages', this); return false;"><i class="fa-solid fa-box-open" style="font-size: 0.8rem;"></i> Packages</a>
+                    <a href="#" class="nav-item" onclick="switchTab('system', this); return false;"><i class="fa-solid fa-cog" style="font-size: 0.8rem;"></i> System</a>
+                </div>
 
                 <div style="margin-top: auto;">
                     <a href="#" class="nav-item" id="logoutBtn">
@@ -423,6 +431,58 @@
                     <ul id="activeBroadcastsList" style="list-style: none; padding: 0;">
                         <!-- JS Populated -->
                     </ul>
+                </div>
+            </div>
+
+            <!-- 8. PACKAGES -->
+            <div id="packages" class="view-section hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 class="page-title" style="margin: 0;">Pricing Packages</h1>
+                </div>
+
+                <!-- Package Form Overlay -->
+                <div class="glass-card" id="packageEditFormContainer" style="display: none; margin-bottom: 2rem; border: 1px solid #3b82f6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 id="pkgFormTitle" style="color: #60a5fa; margin: 0;">Edit Package</h3>
+                        <button class="btn" style="width: auto; padding: 0.2rem 0.6rem; background: transparent; border: 1px solid rgba(255,255,255,0.2);" onclick="closePackageForm()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="pkgForm" onsubmit="event.preventDefault(); saveAdminPackage();">
+                        <input type="hidden" id="epId">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Package Name</label>
+                                <input type="text" id="epName" class="form-input" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Price</label>
+                                <input type="text" id="epPrice" class="form-input" placeholder="e.g. Rs 1,500" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Description (Small Note)</label>
+                                <input type="text" id="epDesc" class="form-input" placeholder="e.g. 1 User • Small Shops" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Features (Comma Separated)</label>
+                                <textarea id="epServices" class="form-input" rows="2" placeholder="Feature 1, Feature 2, Feature 3" required></textarea>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Button Text</label>
+                                <input type="text" id="epBtnText" class="form-input" value="Start Free" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                                <input type="checkbox" id="epPopular" style="width: 18px; height: 18px;">
+                                <label for="epPopular" style="font-size: 0.9rem; margin-bottom: 0; cursor: pointer; color: #f59e0b; font-weight: 600;">⭐ Mark as Most Popular</label>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn" style="width: auto; padding: 0.5rem 1.5rem;"><i class="fa-solid fa-save"></i> Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="adminPackagesList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- JS Populated Packages -->
+                    <div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #a1a1aa;">Loading Packages...</div>
                 </div>
             </div>
 

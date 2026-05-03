@@ -113,7 +113,7 @@ window.switchTab = function (tabId, navItem) {
     if (tabId === 'broadcasts' && typeof loadAdminBroadcasts === 'function') loadAdminBroadcasts();
     if (tabId === 'reviews' && typeof loadAdminReviews === 'function') loadAdminReviews();
     if (tabId === 'inventory-headers' && typeof loadInventoryHeaders === 'function') loadInventoryHeaders();
-    if (tabId === 'pricing' && typeof loadPricingPackages === 'function') loadPricingPackages();
+    if ((tabId === 'packages' || tabId === 'pricing') && typeof loadPricingPackages === 'function') loadPricingPackages();
 }
 
 // --- System Settings ---
@@ -1152,11 +1152,11 @@ function setupInventoryHeadersListeners() {
             }
 
             if (companyInput) companyInput.value = selectedOption.getAttribute('data-company') || '';
-            const userHeaders = allInventoryHeaders.find(h => h.username === username);
+            const userHeaders = allInventoryHeaders.find(h => String(h.username).toLowerCase() === String(username).toLowerCase());
 
             let parsedHeaders = [];
             // In Google Sheets, column headers might arrive as 'headers', 'Headers', or 'HEADERS' due to `getSheetData` casing rules
-            const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS) : null;
+            const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS || userHeaders.headersjson) : null;
 
             if (rawHeadersString) {
                 try {
@@ -1220,7 +1220,7 @@ function setupInventoryHeadersListeners() {
                 if (res.status === 'success' || res.success) {
                     alert('Inventory headers saved successfully!');
                     // Update local cache
-                    const existing = allInventoryHeaders.find(h => h.username === username);
+                    const existing = allInventoryHeaders.find(h => String(h.username).toLowerCase() === String(username).toLowerCase());
                     if (existing) {
                         existing.headers = headers;
                     } else {
@@ -1322,7 +1322,7 @@ window.repostInventoryHeaders = function (encodedUsername) {
         // Select the correct user
         let found = false;
         for (let i = 0; i < userSelect.options.length; i++) {
-            if (userSelect.options[i].value === rawUsername) {
+            if (String(userSelect.options[i].value).toLowerCase() === String(rawUsername).toLowerCase()) {
                 userSelect.selectedIndex = i;
                 found = true;
                 break;
@@ -1364,14 +1364,14 @@ window.deleteInventoryHeaders = async function (encodedUsername) {
         const res = await API.deleteInventoryHeaders(rawUsername);
         if (res.status === 'success' || res.success) {
             // Remove from local cache array
-            allInventoryHeaders = allInventoryHeaders.filter(h => h.username !== rawUsername);
+            allInventoryHeaders = allInventoryHeaders.filter(h => String(h.username).toLowerCase() !== String(rawUsername).toLowerCase());
 
             // Re-render table locally immediately 
             renderInventoryHeadersTable();
 
             // If they are currently looking at the deleted user in the active form, blur the form out by triggering a blank load
             const userSelect = document.getElementById('invHeaderUserSelect');
-            if (userSelect && userSelect.value === rawUsername) {
+            if (userSelect && String(userSelect.value).toLowerCase() === String(rawUsername).toLowerCase()) {
                 userSelect.selectedIndex = 0; // Back to "Select user"
                 userSelect.dispatchEvent(new Event('change'));
             }
@@ -1388,39 +1388,86 @@ window.deleteInventoryHeaders = async function (encodedUsername) {
 
 // --- Pricing Packages Management ---
 window.loadPricingPackages = async function() {
-    const container = document.getElementById('pricingAdminContainer');
-    if (!container) return;
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888;">Loading...</div>';
+    const listNew = document.getElementById('adminPackagesList');
+    const containerOld = document.getElementById('pricingAdminContainer');
+    
+    // Show loading state
+    if (listNew) listNew.innerHTML = '<div style="text-align: center; grid-column: 1/-1; color: #a1a1aa;">Loading...</div>';
+    if (containerOld) containerOld.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888;">Loading...</div>';
 
     try {
         const pkgs = await API.getPricingPackages();
-        container.innerHTML = pkgs.map((p, index) => `
-            <div class="glass-card" style="padding: 1.5rem; border-left: 4px solid ${p.isPopular ? '#f59e0b' : '#3b82f6'};">
-                <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Package: ${p.id.toUpperCase()}</h4>
-                <input type="hidden" name="pkgId_${index}" value="${p.id}">
-                <input type="hidden" name="pkgDesc_${index}" value="${p.desc}">
-                <input type="hidden" name="pkgPop_${index}" value="${p.isPopular ? 'true' : 'false'}">
-                <input type="hidden" name="pkgBtn_${index}" value="${p.btnText}">
-                
-                <div class="form-group" style="margin-bottom: 0.8rem;">
-                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Package Name</label>
-                    <input type="text" class="form-input" name="pkgName_${index}" value="${p.name}" required style="padding: 0.4rem; font-size: 0.9rem;">
+        adminPackages = pkgs; // cache for the new edit form behavior
+
+        // Render for admin.html (Root)
+        if (containerOld) {
+            let editPkgs = pkgs;
+            if (!editPkgs || editPkgs.length === 0) {
+                editPkgs = [
+                    { id: 'starter', name: '', price: '', services: '', isPopular: false, desc: '1 User • Small Shops', btnText: 'Start Free' },
+                    { id: 'business', name: '', price: '', services: '', isPopular: true, desc: '2 Users • Shop + Staff', btnText: 'Start Free Trial 🚀' },
+                    { id: 'professional', name: '', price: '', services: '', isPopular: false, desc: '5+ Users • Wholesale', btnText: 'Upgrade Now' },
+                    { id: 'enterprise', name: '', price: '', services: '', isPopular: false, desc: 'Unlimited • Large Business', btnText: 'Talk to Sales' }
+                ];
+            }
+            containerOld.innerHTML = editPkgs.map((p, index) => `
+                <div class="glass-card" style="padding: 1.5rem; border-left: 4px solid ${p.isPopular ? '#f59e0b' : '#3b82f6'};">
+                    <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Package: ${p.id.toUpperCase()}</h4>
+                    <input type="hidden" name="pkgId_${index}" value="${p.id}">
+                    <input type="hidden" name="pkgDesc_${index}" value="${p.desc}">
+                    <input type="hidden" name="pkgPop_${index}" value="${p.isPopular ? 'true' : 'false'}">
+                    <input type="hidden" name="pkgBtn_${index}" value="${p.btnText}">
+                    
+                    <div class="form-group" style="margin-bottom: 0.8rem;">
+                        <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Package Name</label>
+                        <input type="text" class="form-input" name="pkgName_${index}" value="${p.name}" required style="padding: 0.4rem; font-size: 0.9rem;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0.8rem;">
+                        <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Price</label>
+                        <input type="text" class="form-input" name="pkgPrice_${index}" value="${p.price}" required style="padding: 0.4rem; font-size: 0.9rem;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Services Provided (Comma separated)</label>
+                        <textarea class="form-input" name="pkgServices_${index}" rows="3" required style="padding: 0.4rem; font-size: 0.9rem;">${p.services}</textarea>
+                    </div>
                 </div>
-                
-                <div class="form-group" style="margin-bottom: 0.8rem;">
-                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Price</label>
-                    <input type="text" class="form-input" name="pkgPrice_${index}" value="${p.price}" required style="padding: 0.4rem; font-size: 0.9rem;">
-                </div>
-                
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Services Provided (Comma separated)</label>
-                    <textarea class="form-input" name="pkgServices_${index}" rows="3" required style="padding: 0.4rem; font-size: 0.9rem;">${p.services}</textarea>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
+
+        // Render for pages/admin.html
+        if (listNew) {
+            if (!pkgs || pkgs.length === 0) {
+                listNew.innerHTML = '<div style="text-align: center; grid-column: 1/-1; color: #a1a1aa;">No packages found.</div>';
+            } else {
+                listNew.innerHTML = pkgs.map(p => `
+                    <div class="glass-card" style="padding: 1.5rem; position: relative; border: 1px solid rgba(255,255,255,0.1);">
+                        ${p.isPopular ? '<span style="position: absolute; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">Popular</span>' : ''}
+                        <h3 style="margin-bottom: 0.5rem; color: #60a5fa;">${p.name}</h3>
+                        <h2 style="margin-bottom: 0.5rem;">${p.price}</h2>
+                        <div style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem;">${p.desc}</div>
+                        <div style="margin-bottom: 1rem; flex-grow: 1;">
+                            <ul style="padding-left: 1rem; margin: 0; font-size: 0.85rem; color: #cccccc;">
+                                ${p.services.split(',').map(s => `<li>${s.trim()}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <!-- Button text display -->
+                        <div style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+                            <strong>Cart Button:</strong> ${p.btnText}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: auto;">
+                            <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; border-color: #3b82f6; color: #3b82f6;" onclick="editAdminPackage('${p.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                            ${p.id !== 'starter' && p.id !== 'business' && p.id !== 'professional' && p.id !== 'enterprise' ? `<button class="btn btn-outline" style="padding: 0.4rem 0.8rem; border-color: #ef4444; color: #ef4444;" onclick="deleteAdminPackage('${p.id}')"><i class="fa-solid fa-trash"></i> Delete</button>` : `<button class="btn btn-outline" style="padding: 0.4rem 0.8rem; border-color: #ef4444; color: #ef4444;" onclick="deleteAdminPackage('${p.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
     } catch(e) {
         console.error(e);
-        container.innerHTML = '<div style="grid-column: 1/-1; color: red;">Error loading packages.</div>';
+        if (containerOld) containerOld.innerHTML = '<div style="grid-column: 1/-1; color: red;">Error loading packages.</div>';
+        if (listNew) listNew.innerHTML = `<div style="text-align: center; color: #ef4444;">Error loading packages</div>`;
     }
 };
 
@@ -1457,3 +1504,69 @@ window.savePricingPackages = async function() {
         btn.disabled = false;
     }
 };
+
+// ===============================
+// Packages Management
+// ===============================
+let adminPackages = [];
+
+function editAdminPackage(id) {
+    const p = adminPackages.find(x => x.id === id);
+    if (!p) return;
+    
+    document.getElementById('epId').value = p.id;
+    document.getElementById('epName').value = p.name;
+    document.getElementById('epPrice').value = p.price;
+    document.getElementById('epDesc').value = p.desc;
+    document.getElementById('epServices').value = p.services;
+    document.getElementById('epBtnText').value = p.btnText || 'Subscribe';
+    document.getElementById('epPopular').checked = !!p.isPopular;
+
+    document.getElementById('packageEditFormContainer').style.display = 'block';
+    document.getElementById('packageEditFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closePackageForm() {
+    document.getElementById('packageEditFormContainer').style.display = 'none';
+    document.getElementById('pkgForm').reset();
+}
+
+async function saveAdminPackage() {
+    const id = document.getElementById('epId').value;
+    const pIndex = adminPackages.findIndex(x => x.id === id);
+    if (pIndex === -1) return;
+
+    // Get HTML input values directly into the array properties
+    adminPackages[pIndex].name = document.getElementById('epName').value;
+    adminPackages[pIndex].price = document.getElementById('epPrice').value;
+    adminPackages[pIndex].desc = document.getElementById('epDesc').value;
+    adminPackages[pIndex].services = document.getElementById('epServices').value;
+    adminPackages[pIndex].btnText = document.getElementById('epBtnText').value;
+    
+    const isPopular = document.getElementById('epPopular').checked;
+    if (isPopular) {
+        adminPackages.forEach(pkg => pkg.isPopular = false);
+    }
+    adminPackages[pIndex].isPopular = isPopular;
+
+    const res = await API.savePricingPackages(adminPackages);
+    if (res.status === 'success' || res.success) {
+        closePackageForm();
+        loadPricingPackages();
+        alert('Package updated successfully!');
+    } else {
+        alert('Failed to save package!');
+    }
+}
+
+async function deleteAdminPackage(id) {
+    if (!confirm('Are you sure you want to delete this package? It will be removed from the main display.')) return;
+    
+    adminPackages = adminPackages.filter(x => x.id !== id);
+    const res = await API.savePricingPackages(adminPackages);
+    if (res.status === 'success' || res.success) {
+        loadPricingPackages();
+    } else {
+        alert('Failed to delete package!');
+    }
+}

@@ -37,42 +37,65 @@ async function loadInventory() {
         // Fetch dynamic headers from window or sample
         let headers = window.userCustomHeaders || [];
         if (headers.length === 0) {
-            let sample = inventory[0];
-            if (typeof sample.data === 'string') sample = JSON.parse(sample.data);
-            else if (typeof sample.customData === 'string') sample = JSON.parse(sample.customData);
-            headers = Object.keys(sample);
+            let keys = new Set();
+            inventory.forEach(item => {
+                let sample;
+                if (typeof item.data === 'string') sample = JSON.parse(item.data);
+                else if (item.customdata && typeof item.customdata === 'string') sample = JSON.parse(item.customdata);
+                else if (item.customData && typeof item.customData === 'string') sample = JSON.parse(item.customData);
+                else sample = item.data || item;
+                Object.keys(sample).forEach(k => {
+                    // Ignore standard internal keys if needed or allow all
+                    if (k !== 'id' && k !== 'action') keys.add(k);
+                });
+            });
+            headers = Array.from(keys);
+            // Fallback if empty
+            if (headers.length === 0 && inventory.length > 0) {
+                headers = Object.keys(inventory[0]);
+            }
         }
 
         // Render table headers
         headerRow.innerHTML = headers.map(h => `<th>${h}</th>`).join('') + `<th>Actions</th>`;
 
-        // Extract unique batch IDs and populate dropdown
-        const batchSelect = document.getElementById('batchFilterSelect');
-        if (batchSelect) {
-            const uniqueBatches = [...new Set(inventory.map(item => item.batch || item.batchid || 'Manual'))];
-            batchSelect.innerHTML = `<option value="All">All Batches</option>` + uniqueBatches.map(b => `<option value="${b}">${b}</option>`).join('');
-        }
-
-        // Render table rows
-        tbody.innerHTML = inventory.map((item, index) => {
+        // Parse inventory data once
+        const parsedInventory = inventory.map((item, index) => {
             let rowData = {};
             try {
                 rowData = typeof item.data === 'string' ? JSON.parse(item.data)
                     : (item.customdata && typeof item.customdata === 'string') ? { ...item, ...JSON.parse(item.customdata) }
                         : (item.customData && typeof item.customData === 'string') ? { ...item, ...JSON.parse(item.customData) }
-                            : item;
+                            : { ...item };
             } catch (e) {
                 console.warn('Parse error:', e);
+                rowData = item;
             }
+            return { raw: item, data: rowData, originalIndex: index };
+        });
 
+        // Extract unique batch IDs and populate dropdown
+        const batchSelect = document.getElementById('batchFilterSelect');
+        if (batchSelect) {
+            const uniqueBatches = [...new Set(parsedInventory.map(pi => {
+                const d = pi.data || {};
+                const r = pi.raw || {};
+                return d.batch || d.batchid || d.Batch || d['file name'] || d['File Name'] || r.batch || r.batchid || r.Batch || r['file name'] || r['File Name'] || 'Manual';
+            }))];
+            batchSelect.innerHTML = `<option value="All">All Batches</option>` + uniqueBatches.map(b => `<option value="${b}">${b}</option>`).join('');
+
+        }
+
+        // Render table rows
+        tbody.innerHTML = parsedInventory.map(({ raw: item, data: rowData, originalIndex }) => {
             const cells = headers.map(h => {
-                const key = Object.keys(rowData).find(k => k.toLowerCase().trim() === h.toLowerCase().trim());
+                const normH = h.replace(/\s+/g, '').toLowerCase();
+                const key = Object.keys(rowData).find(k => k.replace(/\s+/g, '').toLowerCase() === normH);
                 return `<td>${key ? rowData[key] ?? '-' : '-'}</td>`;
             }).join('');
 
-            const editId = item.id || item.batchid || (index + 1);
-
-            const batchIdAttr = item.batch || item.batchid || 'Manual';
+            const editId = item.id || item.batchid || (originalIndex + 1);
+            const batchIdAttr = rowData.batch || rowData['file name'] || rowData['File Name'] || item.batch || item.batchid || 'Manual';
 
             return `
                 <tr data-id="${editId}" data-batch="${batchIdAttr}">

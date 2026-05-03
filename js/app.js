@@ -48,7 +48,7 @@ async function loadCustomHeaders() {
         );
 
         // In Google Sheets, column headers might arrive as 'headers', 'Headers', or 'HEADERS' due to `getSheetData` casing rules
-        const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS) : null;
+        const rawHeadersString = userHeaders ? (userHeaders.headers || userHeaders.Headers || userHeaders.HEADERS || userHeaders.headersjson) : null;
 
         if (rawHeadersString) {
             let parsedHeaders = [];
@@ -407,14 +407,43 @@ async function refreshDashboard() {
 
         // Stats Calculation
         let totalValue = 0;
-        inventory.forEach(item => totalValue += (parseFloat(item.total) || 0));
+        let totalInventoryItems = 0;
+        let itemsShortage = 0;
+
+        inventory.forEach(item => {
+            let rowData = {};
+            try {
+                rowData = typeof item.data === 'string' ? JSON.parse(item.data)
+                    : (item.customdata && typeof item.customdata === 'string') ? { ...item, ...JSON.parse(item.customdata) }
+                        : (item.customData && typeof item.customData === 'string') ? { ...item, ...JSON.parse(item.customData) }
+                            : { ...item };
+            } catch (e) {
+                rowData = item;
+            }
+
+            // Calculate total items
+            let q = parseInt(rowData.qty || rowData.Quantity || rowData.quantity || 1);
+            if (isNaN(q)) q = 1;
+            totalInventoryItems += q;
+
+            // Shortage logic
+            if (q <= 5) itemsShortage++;
+
+            // Calculate value
+            let itemTotal = parseFloat(rowData.total || rowData.Total) || 0;
+            if (itemTotal === 0 && (rowData.Rate || rowData.rate || rowData.Price || rowData.price)) {
+                let rStr = (rowData.Rate || rowData.rate || rowData.Price || rowData.price || '').toString().replace('Rs.', '').replace(',', '').trim();
+                itemTotal = (parseFloat(rStr) || 0) * q;
+            }
+            totalValue += itemTotal;
+        });
 
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
-        const currentYearMonth = todayStr.substring(0, 7); // e.g., "2026-02"
+        const currentYearMonth = todayStr.substring(0, 7);
 
         let salesToday = 0;
-        let salesMonth = 0; // SOP (Month)
+        let salesMonth = 0;
 
         sales.forEach(s => {
             const sTotal = parseFloat(s.total) || 0;
@@ -427,11 +456,29 @@ async function refreshDashboard() {
         const prodEl = document.getElementById('dTotalProducts');
         const saleEl = document.getElementById('dSalesToday');
         const sopEl = document.getElementById('dSoPMonth');
+        const shortEl = document.getElementById('dItemsShortage');
 
-        if (valEl) valEl.innerText = 'Rs. ' + totalValue.toLocaleString();
-        if (prodEl) prodEl.innerText = inventory.length;
-        if (saleEl) saleEl.innerText = 'Rs. ' + salesToday.toLocaleString();
-        if (sopEl) sopEl.innerText = 'Rs. ' + salesMonth.toLocaleString();
+        if (valEl) valEl.innerText = 'Rs ' + totalValue.toLocaleString();
+        if (prodEl) prodEl.innerText = totalInventoryItems;
+        if (saleEl) saleEl.innerText = 'Rs ' + salesToday.toLocaleString();
+        if (sopEl) sopEl.innerText = 'Rs ' + salesMonth.toLocaleString();
+        if (shortEl) shortEl.innerText = itemsShortage;
+
+        // Update Recent Activity
+        const activityList = document.getElementById('recentActivityList');
+        if (activityList) {
+            activityList.innerHTML = `
+                <li style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                  🧾 Sale recorded - Rs ${salesToday.toLocaleString()}
+                </li>
+                <li style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                  📦 Purchase added - ${totalInventoryItems} items
+                </li>
+                <li style="padding:6px 0;">
+                  💸 Inventory Value - Rs ${totalValue.toLocaleString()}
+                </li>
+            `;
+        }
 
         // Animate Progress Bars (Relative visual indicators)
         // Set some arbitrary "targets" to make the bars look dynamic and attractive
@@ -457,8 +504,8 @@ async function refreshDashboard() {
             if (barSop) barSop.style.width = monthPct + '%';
         }, 100);
 
-        // Initialize Phara UI Charts
-        initPharaCharts();
+        // Initialize Phara UI Charts with dynamic data
+        initPharaCharts(inventory, sales, totalInventoryItems, itemsShortage);
 
     } catch (e) {
         console.warn("Dashboard stats failed to load.", e);
@@ -469,7 +516,7 @@ let pharaSalesChartInstance = null;
 let pharaInvChartInstance = null;
 let pharaUsersChartInstance = null;
 
-function initPharaCharts() {
+function initPharaCharts(inventory = [], sales = [], totalInventoryItems = 0, itemsShortage = 0) {
     // Total Sale (Bar Chart)
     const salesCtx = document.getElementById('pharaSalesChart');
     if (salesCtx) {
@@ -477,10 +524,14 @@ function initPharaCharts() {
 
         const isMobile = window.innerWidth <= 768;
         const labels = isMobile ? ['Today'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const data = isMobile ? [18] : [8, 16, 8, 10, 3, 14, 18];
+        
+        // Calculate daily sales for real data (simple mockup logic mapped to real totals)
+        let totalSalesVal = sales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0);
+        const data = isMobile ? [(totalSalesVal/1000)] : [0, 0, 0, 0, 0, 0, (totalSalesVal/1000) || 18];
+        
         const bgColors = isMobile ? ['#3b82f6'] : [
             '#3b82f6', '#3b82f6', '#3b82f6',
-            '#0f172a', // The dark highlighted bar
+            '#0f172a',
             '#3b82f6', '#3b82f6', '#3b82f6'
         ];
 
@@ -520,13 +571,17 @@ function initPharaCharts() {
     const creditCtx = document.getElementById('pharaCreditChart');
     if (creditCtx) {
         if (pharaUsersChartInstance) pharaUsersChartInstance.destroy();
+        
+        // Calculate real credit from sales balance
+        let totalCredit = sales.reduce((sum, s) => sum + (parseFloat(s.balance) || 0), 0);
+        
         pharaUsersChartInstance = new Chart(creditCtx, {
             type: 'bar',
             data: {
                 labels: ['Total Credit'],
                 datasets: [{
                     label: 'Credit (Rs)',
-                    data: [150000], // Mock total credit
+                    data: [totalCredit || 0],
                     backgroundColor: ['#8b5cf6'],
                     borderRadius: 6,
                     barThickness: 24
@@ -559,9 +614,9 @@ function initPharaCharts() {
         pharaInvChartInstance = new Chart(invCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Total product', 'Out of stock', 'Return', 'Expire'],
+                labels: ['Total product', 'Low stock', 'Return', 'Expire'],
                 datasets: [{
-                    data: [45, 15, 20, 20],
+                    data: [totalInventoryItems || 0, itemsShortage || 0, 0, 0],
                     backgroundColor: ['#1e293b', '#ef4444', '#8b5cf6', '#f59e0b'],
                     borderWidth: 0,
                     hoverOffset: 4
@@ -872,6 +927,47 @@ function setupSalesForm() {
     if (paid) paid.addEventListener('input', calc);
     if (sDate) sDate.value = new Date().toISOString().split('T')[0];
 
+    // Receipt Modal Logic
+    const btnReceipt = document.getElementById('btnReceipt');
+    const receiptModal = document.getElementById('receiptModal');
+    const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+    const receiptContent = document.getElementById('receiptContent');
+
+    if (btnReceipt) {
+        btnReceipt.addEventListener('click', () => {
+            const customer = document.getElementById('saleCustomer').value || 'Walk-in';
+            const item = document.getElementById('saleItem').value || 'N/A';
+            const quantity = qty ? (qty.value || '0') : '0';
+            const rate = price ? (price.value || '0') : '0';
+            const tot = total ? (total.value || '0') : '0';
+            const p = paid ? (paid.value || '0') : '0';
+            const bal = balance ? (balance.value || '0') : '0';
+            const date = sDate ? (sDate.value || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0];
+
+            if (receiptContent) {
+                receiptContent.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;"><strong>Date:</strong> <span>${date}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><strong>Customer:</strong> <span>${customer}</span></div>
+                    <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.2); margin: 0.5rem 0;">
+                    <div style="display: flex; justify-content: space-between;"><strong>Product:</strong> <span>${item}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><strong>Rate:</strong> <span>Rs. ${rate}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><strong>Qty:</strong> <span>${quantity}</span></div>
+                    <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.2); margin: 0.5rem 0;">
+                    <div style="display: flex; justify-content: space-between;"><strong>Total Amount:</strong> <span>Rs. ${tot}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><strong>Amount Paid:</strong> <span>Rs. ${p}</span></div>
+                    <div style="display: flex; justify-content: space-between; color: ${parseFloat(bal) > 0 ? '#ef4444' : '#22c55e'};"><strong>Balance:</strong> <span>Rs. ${bal}</span></div>
+                `;
+            }
+            if (receiptModal) receiptModal.style.display = 'flex';
+        });
+    }
+
+    if (closeReceiptBtn) {
+        closeReceiptBtn.addEventListener('click', () => {
+            if (receiptModal) receiptModal.style.display = 'none';
+        });
+    }
+
     async function loadSaleItems() {
         if (!itemSelect) return;
         try {
@@ -1053,9 +1149,10 @@ async function handleInventoryImport(event) {
     event.target.value = '';
 
     // Automatically use the Excel file's actual name (stripped of extension) as the batch name
-    const batchName = file.name.replace(/\.[^/.]+$/, "");
-    if (!batchName) {
-        alert("Import canceled: Could not determine file name.");
+    let batchName = file.name.replace(/\.[^/.]+$/, "");
+    batchName = prompt("Enter a name for this import File:", batchName);
+    if (!batchName || batchName.trim() === '') {
+        alert("Import canceled: Could not determine or complete file name.");
         return;
     }
 
@@ -1136,6 +1233,7 @@ async function handleInventoryImport(event) {
                 explicitCustomData.batch = batchName.trim(); // For legacy backend deletion
                 // Send the flat merged JSON
                 itemPayload.customData = JSON.stringify(explicitCustomData);
+                itemPayload.batch = batchName.trim(); // Required for Code.gs mapping!
 
                 payloadArray.push(itemPayload);
             }
@@ -1295,3 +1393,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkDeploymentVersion() { /* Your existing version check */ }
+
+window.printReceipt = function() {
+    const receiptContentEl = document.getElementById('receiptContent');
+    if (!receiptContentEl) return;
+    
+    const receiptHTML = receiptContentEl.innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=400');
+    printWindow.document.write('<html><head><title>Receipt</title>');
+    printWindow.document.write('<style>body { font-family: sans-serif; padding: 20px; line-height: 1.6; color: #000; } hr { border:0; border-top: 1px dashed #000; margin: 10px 0; } span { font-weight: 500; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2 style="text-align: center; margin-bottom: 20px;">Sale Receipt</h2>');
+    // Strip colors from the HTML so it prints cleanly in black and white
+    printWindow.document.write(receiptHTML.replace(/rgba\(255,255,255,0\.2\)/g, '#000').replace(/#ef4444|#22c55e/g, '#000').replace(/color:\s*[^;]+;/g, 'color: #000;')); 
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    
+    // Give it a small delay for styles to apply before printing
+    setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+};

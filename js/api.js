@@ -102,7 +102,12 @@ const IMS_API = {
     API_Pricing: {
         getPricingPackages: async () => {
             const data = localStorage.getItem('pricingPackages');
-            if (data) return JSON.parse(data);
+            if (data) {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            }
 
             return [
                 { id: 'starter', name: 'Starter', price: 'Rs 1,500', services: 'Stock Management, Purchase & Sales, Udhaar Tracking, Basic Reports', isPopular: false, desc: '1 User • Small Shops', btnText: 'Start Free' },
@@ -144,7 +149,9 @@ window.API = {
     ...IMS_API.API_Pricing,
     ...IMS_API.API_Visitors,
     getActivities: () => IMS_API.request('getActivities'),
-    getInventoryHeaders: () => IMS_API.request('getInventoryHeaders').then(res => Array.isArray(res) ? res : (res.headers || []))
+    getInventoryHeaders: () => IMS_API.request('getInventoryHeaders').then(res => Array.isArray(res) ? res : (res.headers || [])),
+    saveInventoryHeaders: (username, company, headers) => IMS_API.request('saveInventoryHeaders', { username, company, headers }),
+    deleteInventoryHeaders: (username) => IMS_API.request('deleteInventoryHeaders', { username })
 };
 
 // ===============================

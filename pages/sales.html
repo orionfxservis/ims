@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -25,6 +25,11 @@
             line-height: 1 !important;
             font-size: 0.8rem !important;
         }
+
+        .in-stock { color: #22c55e !important; }
+        .low-stock { color: #f59e0b !important; }
+        .out-stock { color: #ef4444 !important; }
+
 
         /* ... existing styles ... */
     </style>
@@ -87,11 +92,10 @@
                     </button>
                     <h2 id="pageTitle" style="font-size: 1.75rem;">Sales</h2>
                 </div>
-                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                <div class="user-profile" style="display: flex; align-items: center; gap: 0.7rem; cursor: pointer;"
                     onclick="openUserProfile()">
                     <span id="userNameDisplay">User Name</span>
-                    <div
-                        style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    <div class="avatar" style="background-color: #3b82f6; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff;">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
@@ -115,21 +119,48 @@
                             <input type="text" class="form-input" id="saleCustomer" placeholder="Walk-in / Name"
                                 style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
-                            <select class="form-input" id="saleItem"
-                                style="padding: 0.25rem; font-size: 0.85rem; background: white; color: #333;"></select>
-                        </div>
+                        <div class="form-group" style="position: relative;">
+    <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Item</label>
+
+    <!-- Search Input -->
+    <input type="text" id="itemSearch" class="form-input"
+        placeholder="Search Item..."
+        style="padding: 0.25rem; font-size: 0.85rem;">
+
+    <!-- Dropdown List -->
+    <div id="itemDropdown" class="dropdown-menu"
+        style="position: absolute; top: 100%; left: 0; width: 100%;
+        background: #1f2937; border: 1px solid rgba(255,255,255,0.1);
+        max-height: 300px; overflow-y: auto; display: none;
+        border-radius: 6px; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+
+    </div>
+
+    <!-- Hidden actual value -->
+    <input type="hidden" id="saleItem">
+</div>
 
                         <!-- Row 2 -->
                         <div class="form-group">
-                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
-                            <input type="number" class="form-input" id="saleQty" placeholder="0"
-                                style="padding: 0.25rem; font-size: 0.85rem;">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">SKU</label>
+                            <input type="text" class="form-input" id="saleSku" readonly placeholder="Auto-fill"
+                                style="background: rgba(255,255,255,0.05); padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Available Stock</label>
+                            <input type="text" class="form-input" id="saleStock" readonly placeholder="Auto-fill"
+                                style="background: rgba(255,255,255,0.05); padding: 0.25rem; font-size: 0.85rem;">
                         </div>
                         <div class="form-group">
                             <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Unit Price</label>
                             <input type="number" class="form-input" id="salePrice" placeholder="0.00"
+                                style="padding: 0.25rem; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Quantity</label>
+                            <input type="number" class="form-input" id="saleQty" placeholder="0"
                                 style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
                         <div class="form-group">
@@ -137,14 +168,14 @@
                             <input type="number" class="form-input" id="saleTotal" readonly
                                 style="background: rgba(255,255,255,0.05); color: #fbbf24; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-
-                        <!-- Row 3 -->
                         <div class="form-group">
                             <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Amount Paid</label>
                             <input type="number" class="form-input" id="salePaid" placeholder="0.00"
                                 style="padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-                        <div class="form-group">
+
+                        <!-- Row 4 -->
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
                             <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Payment Mode</label>
                             <select class="form-input" id="saleMode"
                                 style="padding: 0.25rem; font-size: 0.85rem; background: white; color: #333;">
@@ -154,16 +185,16 @@
                                 <option value="Credit">Credit (Unpaid)</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
                             <label style="font-size: 0.8rem; margin-bottom: 0.2rem;">Balance</label>
                             <input type="number" class="form-input" id="saleBalance" readonly
                                 style="background: rgba(255,255,255,0.05); color: #ef4444; font-weight: bold; padding: 0.25rem; font-size: 0.85rem;">
                         </div>
-
-                        <!-- Row 4: Button -->
-                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                        <div class="form-group" style="margin-bottom: 0.5rem; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 0.5rem; align-items: flex-end; height: 100%;">
                             <button type="submit" class="btn"
-                                style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">Record Sale</button>
+                                style="flex: 1; padding: 0.4rem; font-size: 0.9rem; margin: 0; width: auto; height: 32px;">Record Sale</button>
+                            <button type="button" class="btn" id="btnReceipt"
+                                style="flex: 1; padding: 0.4rem; font-size: 0.9rem; background-color: #64748b; color: white; margin: 0; width: auto; height: 32px;">Receipt</button>
                         </div>
                     </form>
 
@@ -194,15 +225,226 @@
                 </div>
                         </section>
 
+            <!-- Receipt Modal -->
+            <div id="receiptModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+                <div class="modal-content glass-card" style="width: 90%; max-width: 400px; padding: 1.5rem; position: relative;">
+                    <button id="closeReceiptBtn" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    <h3 style="text-align: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.5rem;">Sale Receipt</h3>
+                    
+                    <div id="receiptContent" style="font-size: 0.95rem; line-height: 1.8; color: #ddd;">
+                        <!-- Receipt details injected here by JS -->
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; text-align: center;">
+                        <button type="button" class="btn" onclick="printReceipt()" style="padding: 0.4rem 1rem;">Print Receipt</button>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <script src="../js/api.js"></script>
-    <script src="../js/app.js"></script>
-    <script src="../js/admin.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="../js/reports.js"></script>
+<script>
+let inventoryItems = [];
+
+const searchInput = document.getElementById("itemSearch");
+const dropdown = document.getElementById("itemDropdown");
+const hiddenInput = document.getElementById("saleItem");
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // We wait for the API to be loaded from js/api.js which is included below
+        // DOMContentLoaded fires after all scripts are executed
+        const rawInventory = await window.API.getInventory();
+        let formattedItems = [];
+
+        rawInventory.forEach(item => {
+            let rowData = {};
+            try {
+                rowData = typeof item.data === 'string' ? JSON.parse(item.data)
+                    : (item.customdata && typeof item.customdata === 'string') ? { ...item, ...JSON.parse(item.customdata) }
+                        : (item.customData && typeof item.customData === 'string') ? { ...item, ...JSON.parse(item.customData) }
+                            : { ...item };
+            } catch (e) {
+                rowData = item;
+            }
+
+            // Find properties flexibly to handle empty strings or custom keys like 'Type' and 'Make'
+            const getVal = (...keys) => {
+                for (let k of keys) {
+                    if (rowData[k] && String(rowData[k]).trim() !== '') return String(rowData[k]).trim();
+                }
+                return "";
+            };
+
+            let pCategory = getVal('category', 'Category', 'Type', 'type') || "Uncategorized";
+            let pItem = getVal('item', 'Item', 'product', 'Product', 'Name', 'name', 'Make', 'make') || "Unknown Item";
+            let pModel = getVal('model', 'Model', 'Model No', 'modelNo', ' CPU Model') || "";
+            let pBrand = getVal('brand', 'Brand', 'Make', 'make') || ""; // Some systems use Make for Brand
+            
+            let qStr = getVal('qty', 'Quantity', 'quantity', 'stock', 'Stock', 'QTY');
+            let qRaw = parseInt(qStr);
+            let q = (isNaN(qRaw) || qStr === "") ? 1 : qRaw; // Default to 1 if empty or non-numeric metadata since it exists in inventory, 0 means explicit out-of-stock
+            
+            let priceStr = getVal('Rate', 'rate', 'Price', 'price').replace('Rs.', '').replace(',', '').trim() || "0";
+            let pPrice = parseFloat(priceStr) || 0;
+
+            let sku = getVal('batchid', 'batchId', 'id', 'InventoryID') || "N/A";
+            
+            let displayName = pItem;
+            // Enhancing display name to include model for clarity, especially if it's a laptop
+            if ((pCategory.toLowerCase().trim() === "laptop" || pCategory.toLowerCase().trim() === "laptop " || pItem.toLowerCase().includes("laptop"))) {
+                // If Item only says "HP" but model is "ELITEBOOK", make it clearer
+                if (pModel) {
+                    displayName = pItem !== "Unknown Item" ? `${pItem} (${pModel})` : pModel;
+                }
+            }
+
+            formattedItems.push({
+                name: displayName,
+                category: pCategory,
+                price: pPrice,
+                stock: q,
+                sku: sku,
+                model: pModel,
+                unit: ""
+            });
+        });
+
+        inventoryItems = formattedItems;
+        
+        // If the user already focused the input before data loaded
+        if (document.activeElement === searchInput) {
+            renderDropdown(inventoryItems);
+        }
+    } catch (e) {
+        console.error("Error fetching inventory for dropdown:", e);
+    }
+});
+
+function renderDropdown(items) {
+    dropdown.innerHTML = "";
+    if (items.length === 0) {
+        dropdown.innerHTML = "<div style='padding:10px; color:#999; text-align:center;'>No items found</div>";
+        dropdown.style.display = "block";
+        return;
+    }
+
+    // Sort by category
+    const categories = {};
+    items.forEach(item => {
+        const cat = item.category || "Uncategorized";
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(item);
+    });
+
+    for (const [category, catItems] of Object.entries(categories)) {
+        let header = document.createElement("div");
+        header.style.backgroundColor = "rgba(0,0,0,0.3)";
+        header.style.padding = "6px 12px";
+        header.style.fontSize = "0.75rem";
+        header.style.color = "#9ca3af";
+        header.style.textTransform = "uppercase";
+        header.style.letterSpacing = "0.05em";
+        header.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+        header.innerHTML = `📦 ${category}`;
+        dropdown.appendChild(header);
+
+        catItems.forEach(item => {
+            let div = document.createElement("div");
+            div.style.padding = "10px 12px";
+            div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            div.style.cursor = "pointer";
+            div.style.transition = "background 0.2s";
+
+            div.onmouseover = () => div.style.background = "rgba(59,130,246,0.1)";
+            div.onmouseout = () => div.style.background = "transparent";
+
+            let stockClass = "in-stock";
+            let stockStatus = "🟢 In Stock";
+            if (item.stock === 0) {
+                stockClass = "out-stock";
+                stockStatus = "🔴 Out of Stock";
+            } else if (item.stock <= 10) {
+                stockClass = "low-stock";
+                stockStatus = "🟡 Low Stock";
+            }
+
+            const unit = item.unit ? ' ' + item.unit : '';
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                    <div style="font-weight:600; font-size: 0.9rem; color:#fff;">• ${item.name}</div>
+                    <div class="${stockClass}" style="font-size:0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: 500;">${stockStatus}</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#9ca3af; padding-left: 12px;">
+                    <div>Price: Rs. ${item.price.toLocaleString()}</div>
+                    <div>Stock: <span style="color:#e5e7eb">${item.stock}${unit}</span></div>
+                </div>
+            `;
+
+            div.onclick = () => {
+                searchInput.value = item.name;
+                hiddenInput.value = item.name;
+                document.getElementById("salePrice").value = item.price;
+                if(document.getElementById("saleStock")) {
+                    document.getElementById("saleStock").value = item.stock + unit;
+                }
+                if(document.getElementById("saleSku")) {
+                    document.getElementById("saleSku").value = item.sku || '';
+                }
+                dropdown.style.display = "none";
+            };
+
+            dropdown.appendChild(div);
+        });
+    }
+    dropdown.style.display = "block";
+}
+
+searchInput.addEventListener("focus", function () {
+    renderDropdown(inventoryItems);
+});
+
+searchInput.addEventListener("input", function () {
+    let value = this.value.toLowerCase();
+    
+    if(!value) {
+        renderDropdown(inventoryItems);
+        return;
+    }
+
+    let filtered = inventoryItems.filter(item => {
+        let isLaptop = item.category.toLowerCase() === "laptop" || item.name.toLowerCase().includes("laptop");
+        
+        // If it's a laptop, prioritize searching by model no, but still allow name search
+        if (isLaptop && item.model) {
+            return item.model.toLowerCase().includes(value) || item.name.toLowerCase().includes(value) || (item.sku && item.sku.toLowerCase().includes(value));
+        }
+        
+        // For rest of the inventory, search with product name
+        return item.name.toLowerCase().includes(value) || 
+               (item.category && item.category.toLowerCase().includes(value)) ||
+               (item.sku && item.sku.toLowerCase().includes(value));
+    });
+
+    renderDropdown(filtered);
+});
+
+document.addEventListener("click", function (e) {
+    if (!e.target.closest("#itemSearch") && !e.target.closest("#itemDropdown")) {
+        dropdown.style.display = "none";
+    }
+});
+</script>
+
+<!-- KEEP YOUR FILES BELOW -->
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/admin.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../js/reports.js"></script>
 </body>
 
 </html>

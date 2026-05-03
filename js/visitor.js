@@ -1,143 +1,157 @@
-(() => {
-    // ===============================
-    // Visitor API Logic
-    // ===============================
-    const VisitorAPI = {
-        init: function () {
-            const visitorId = this.getVisitorId();
+// Visitor Counter Logic
 
-            if (!sessionStorage.getItem('imb_visit_active')) {
-                this.logVisit(visitorId);
-            } else {
-                this.getStats();
-            }
+const VisitorAPI = {
+    // Check if user visited in this session (or persistent check if desired)
+    // Using sessionStorage for session-based counting, or localStorage for device-based.
+    // "Actual visitors" usually means page hits or unique sessions.
+    // Let's use sessionStorage to limit spamming the DB on reload in same tab, 
+    // but log new visit on new tab/window.
 
-            // Refresh stats every 60s
-            setInterval(() => this.getStats(), 60000);
-        },
+    init: function () {
+        // Generate or retrieve a unique ID for this device/browser
+        let visitorId = localStorage.getItem('imb_visitor_id');
+        if (!visitorId) {
+            visitorId = 'v_' + Math.random().toString(36).substr(2, 9) + Date.now();
+            localStorage.setItem('imb_visitor_id', visitorId);
+        }
 
-        getVisitorId: function () {
-            let visitorId = localStorage.getItem('imb_visitor_id');
-            if (!visitorId) {
-                visitorId = 'v_' + Math.random().toString(36).substr(2, 9) + Date.now();
-                localStorage.setItem('imb_visitor_id', visitorId);
-            }
+        // Log visit if not logged in this session (to avoid refresh spam, saving quota)
+        // AND/OR if we want to support "Online" accurately across tabs, we can log.
+        // Let's stick to "Log once per session" but use the Unique ID so backend counts distinct users.
+        // Actually, if we use the Unique ID, we can relax the session check if we want, 
+        // but Google Apps Script has quotas. Better to check session.
+        if (!sessionStorage.getItem('imb_visit_active')) {
+            this.logVisit(visitorId);
+        } else {
+            this.getStats();
+        }
 
-            // Use logged-in username if available
-            try {
-                const userStr = localStorage.getItem('currentUser');
-                if (userStr) {
-                    const userObj = JSON.parse(userStr);
-                    if (userObj?.username) visitorId = userObj.username;
+        // Refresh stats periodically
+        setInterval(() => {
+            this.getStats();
+        }, 60000);
+    },
+
+    logVisit: function (visitorId) {
+        if (typeof API === 'undefined') return;
+
+        // If no ID passed (e.g. called manually), try get it
+        if (!visitorId) visitorId = localStorage.getItem('imb_visitor_id');
+
+        // Use actual username if logged in
+        try {
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                const userObj = JSON.parse(userStr);
+                if (userObj && userObj.username) {
+                    visitorId = userObj.username;
                 }
-            } catch (e) { console.warn("Error parsing currentUser", e); }
+            }
+        } catch (e) { }
 
-            return visitorId;
-        },
-
-        logVisit: async function (visitorId) {
-            if (typeof API === 'undefined') return;
-            if (!visitorId) visitorId = this.getVisitorId();
-
-            try {
-                const response = await API.logVisit(visitorId);
-                if (response?.success) {
+        console.log("Visitor: Logging visit for ID:", visitorId);
+        API.logVisit(visitorId)
+            .then(response => {
+                if (response.success) {
                     sessionStorage.setItem('imb_visit_active', 'true');
                     this.updateUI(response.stats);
                 }
-            } catch (err) {
-                console.error("Visitor Log Error:", err);
-            }
-        },
+            })
+            .catch(err => console.error("Visitor Log Error:", err));
+    },
 
-        getStats: async function () {
-            if (typeof API === 'undefined') return;
-            try {
-                const response = await API.getVisitorStats();
-                if (response?.success) this.updateUI(response.stats);
-            } catch (err) {
-                console.error("Visitor Stats Error:", err);
-            }
-        },
 
-        updateUI: function (stats) {
-            if (!stats) return;
-            this.setText('vOnline', stats.online);
-            this.setText('vToday', stats.today);
-            this.setText('vYesterday', stats.yesterday);
-            this.setText('vWeek', stats.week);
-            this.setText('vMonth', stats.month);
-        },
 
-        setText: function (id, value) {
-            const el = document.getElementById(id);
-            if (el) el.textContent = Number(value).toLocaleString();
-        }
-    };
-
-    // ===============================
-    // Landing Page Content Loaders
-    // ===============================
-    const loadHeroBanner = async () => {
+    getStats: function () {
         if (typeof API === 'undefined') return;
 
-        try {
-            const banners = await API.getBanners();
-            const heroBanner = banners.find(b => b.type === 'hero');
-            const container = document.getElementById('heroBannerContainer');
+        console.log("Visitor: Fetching stats...");
+        API.getVisitorStats()
+            .then(response => {
+                console.log("Visitor: Stats response:", response);
+                if (response.success) {
+                    this.updateUI(response.stats);
+                } else {
+                    console.warn("Visitor: Stats fetch failed", response);
+                }
+            })
+            .catch(err => console.error("Visitor Stats Error:", err));
+    },
 
-            if (container && heroBanner?.url) {
-                container.innerHTML = `
-                    <img src="${heroBanner.url}" alt="${heroBanner.title || 'Hero Banner'}"
-                         style="max-width:100%;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.4);">
-                `;
-            }
-        } catch (e) {
-            console.error("Failed to load hero banner:", e);
+    updateUI: function (stats) {
+        if (!stats) return;
+
+        // Animate numbers? For now, just set text.
+        this.setSafe('vOnline', stats.online);
+        this.setSafe('vToday', stats.today);
+        this.setSafe('vYesterday', stats.yesterday);
+        this.setSafe('vWeek', stats.week);
+        this.setSafe('vMonth', stats.month);
+    },
+
+    setSafe: function (id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val.toLocaleString();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay slightly to ensure API is ready
+    setTimeout(() => {
+        VisitorAPI.init();
+        loadHeroBanner();
+        loadLandingPageStats();
+    }, 1000);
+});
+
+async function loadHeroBanner() {
+    try {
+        if (typeof API === 'undefined') return;
+        const banners = await API.getBanners();
+        const heroBanner = banners.find(b => b.type === 'hero');
+
+        const container = document.getElementById('heroBannerContainer');
+        if (container && heroBanner && heroBanner.url) {
+            container.innerHTML = `<img src="${heroBanner.url}" alt="${heroBanner.title || 'Hero Banner'}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">`;
         }
-    };
+    } catch (e) {
+        console.error("Failed to load hero banner", e);
+    }
+}
 
-    const loadLandingPageStats = async () => {
+// Removed loadHomeBroadcasts()
+
+async function loadLandingPageStats() {
+    try {
         if (typeof API === 'undefined') return;
 
-        try {
-            const users = await API.getUsers();
-            const realUsers = users.filter(u => !['admin','trial'].includes((u.role||'').toLowerCase()) && (u.username||'').toLowerCase() !== 'trial');
-            const companies = new Set(realUsers.map(u => (u.company||'').trim().toLowerCase()).filter(c => c && c !== 'system'));
+        const users = await API.getUsers();
+        // Filter out admin and trial accounts from being counted
+        const realUsers = users.filter(u => String(u.role || '').toLowerCase() !== 'admin' && String(u.role || '').toLowerCase() !== 'trial' && String(u.username || '').toLowerCase() !== 'trial');
 
-            const lpElements = [
-                { id: 'lpCountCompanies', value: companies.size },
-                { id: 'lpCountUsers', value: realUsers.length },
-                { id: 'lpCountActive', value: realUsers.filter(u => (u.status||'').toLowerCase() === 'active').length },
-            ];
+        // Use a Set to calculate unique companies
+        const companies = new Set(realUsers.map(u => String(u.company || '').trim().toLowerCase()).filter(c => c && c !== 'system'));
 
-            lpElements.forEach(el => {
-                const dom = document.getElementById(el.id);
-                if (dom) dom.innerText = el.value;
-            });
+        const countCompanies = companies.size;
+        const countTotalUsers = realUsers.length;
+        const countActiveUsers = realUsers.filter(u => String(u.status || '').toLowerCase() === 'active').length;
 
-            const inventory = await API.getInventory();
-            const lpItems = document.getElementById('lpCountItems');
-            if (lpItems && inventory) lpItems.innerText = inventory.length;
+        // Populate elements
+        const lpCompanies = document.getElementById('lpCountCompanies');
+        if (lpCompanies) lpCompanies.innerText = countCompanies;
 
-        } catch (e) {
-            console.error("Failed to load landing page stats:", e);
-        }
-    };
+        const lpUsers = document.getElementById('lpCountUsers');
+        if (lpUsers) lpUsers.innerText = countTotalUsers;
 
-    // ===============================
-    // Init
-    // ===============================
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            VisitorAPI.init();
-            loadHeroBanner();
-            loadLandingPageStats();
-        }, 1000);
-    });
+        const lpActive = document.getElementById('lpCountActive');
+        if (lpActive) lpActive.innerText = countActiveUsers;
 
-    // ===============================
-    // Expose VisitorAPI globally if needed
-    // ===============================
-    window.VisitorAPI = VisitorAPI;
-})();
+        // Fetch Inventory
+        const inventory = await API.getInventory();
+        const lpItems = document.getElementById('lpCountItems');
+        if (lpItems && inventory) lpItems.innerText = inventory.length;
+
+    } catch (e) {
+        console.error("Failed to load landing page stats", e);
+    }
+}
